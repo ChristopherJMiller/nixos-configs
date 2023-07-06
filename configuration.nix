@@ -56,6 +56,13 @@
     xkbVariant = "";
   };
 
+  # GPU Support
+  services.xserver.videoDrivers = [ "amdgpu" ];
+  hardware.opengl.driSupport = true;
+  hardware.opengl.extraPackages = with pkgs; [
+    amdvlk
+  ];
+
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
@@ -101,6 +108,7 @@
     wget
     curl
     git
+    efibootmgr
   ];
 
   programs.neovim = {

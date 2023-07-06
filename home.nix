@@ -45,8 +45,18 @@
     # here is some command line tools I use frequently
     # feel free to add your own or remove some of them
 
-    neofetch
+    # Social
+    spotify
+    discord
+    element-desktop
+    telegram-desktop
 
+    # Creative
+    gimp-with-plugins
+    kdenlive
+    ardour
+    blender-hip
+    
     # archives
     zip
     xz
@@ -54,6 +64,7 @@
     p7zip
 
     # utils
+    neofetch
     ripgrep # recursively searches directories for a regex pattern
     jq # A lightweight and flexible command-line JSON processor
     yq-go # yaml processer https://github.com/mikefarah/yq
