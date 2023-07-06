@@ -70,6 +70,9 @@
     yq-go # yaml processer https://github.com/mikefarah/yq
     exa # A modern replacement for ‘ls’
     fzf # A command-line fuzzy finder
+    kubectl
+    git-crypt
+    kubeseal
 
     # networking tools
     mtr # A network diagnostic tool
@@ -106,6 +109,7 @@
     btop  # replacement of htop/nmon
     iotop # io monitoring
     iftop # network monitoring
+    radeontop # gpu monitoring
 
     # system call monitoring
     strace # system call monitoring

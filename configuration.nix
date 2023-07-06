@@ -108,6 +108,7 @@
     wget
     curl
     git
+    git-lfs
     efibootmgr
   ];
 
@@ -116,11 +117,13 @@
     viAlias = true;
     vimAlias = true;
   };
+
   environment.variables.EDITOR = "nvim";
 
   programs.zsh.enable = true;
   programs.zsh.shellAliases = {
     nixr = "sudo nixos-rebuild switch";
+    nixs = "nix-shell";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
