@@ -90,7 +90,7 @@
   users.users.chris = {
     isNormalUser = true;
     description = "Chris Miller";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" ];
     shell = pkgs.zsh;
     packages = with pkgs; [
       firefox
@@ -138,6 +138,18 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+
+  # Enable Docker
+  virtualisation.docker = {
+    enable = true;
+    autoPrune = {
+      enable = true;
+    };
+    rootless = {
+      enable = true;
+      setSocketVariable = true;
+    };
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

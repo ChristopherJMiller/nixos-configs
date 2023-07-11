@@ -127,7 +127,10 @@
   programs.zsh = {
     enable = true;
     enableCompletion = true;
-    initExtra = "source ~/.p10k.zsh";
+    initExtra = ''
+      source ~/.p10k.zsh
+      bindkey -e
+    '';
     zplug = {
       enable = true;
       plugins = [
