@@ -50,12 +50,14 @@
     discord
     element-desktop
     telegram-desktop
+    mumble
 
     # Creative
     gimp-with-plugins
     kdenlive
     ardour
     blender-hip
+    vlc
     
     # archives
     zip
@@ -73,6 +75,7 @@
     kubectl
     git-crypt
     kubeseal
+    ffmpeg
 
     # networking tools
     mtr # A network diagnostic tool

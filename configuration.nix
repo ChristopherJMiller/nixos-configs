@@ -139,6 +139,13 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
+  services.tailscale.enable = true;
+
+  security.pam.services.kwallet = {
+    name = "kwallet";
+    enableKwallet = true;
+  };
+
   # Enable Docker
   virtualisation.docker = {
     enable = true;
@@ -148,6 +155,11 @@
     rootless = {
       enable = true;
       setSocketVariable = true;
+    };
+    daemon.settings = {
+      features = {
+        buildkit = true;
+      };
     };
   };
 
