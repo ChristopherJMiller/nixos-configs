@@ -99,6 +99,7 @@
     gnupg
 
     vscode
+    openrgb-with-all-plugins
 
     # nix related
     #

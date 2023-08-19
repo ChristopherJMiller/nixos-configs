@@ -123,6 +123,7 @@
   programs.zsh.enable = true;
   programs.zsh.shellAliases = {
     nixr = "sudo nixos-rebuild switch";
+    nixu = "sudo nixos-rebuild switch --upgrade";
     nixs = "nix-shell";
   };
 
