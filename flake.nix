@@ -8,6 +8,7 @@
     plasma-manager.url = "github:pjones/plasma-manager";
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
+    vscode-server.url = "github:nix-community/nixos-vscode-server";
   };
 
   outputs = inputs@{ nixpkgs, home-manager, ... }: {
@@ -29,6 +30,7 @@
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
 	    home-manager.sharedModules = [
               inputs.plasma-manager.homeManagerModules.plasma-manager
+	      inputs.vscode-server.homeModules.default
 	    ];
           }
         ];
