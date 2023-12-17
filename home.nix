@@ -53,6 +53,7 @@
     element-desktop
     telegram-desktop
     mumble
+    steam
 
     # Creative
     gimp-with-plugins
@@ -148,12 +149,6 @@
 
   programs.alacritty = {
     enable = true;
-  };
-
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
   };
 
   # This value determines the home Manager release that your
