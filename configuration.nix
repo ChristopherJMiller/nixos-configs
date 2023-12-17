@@ -59,8 +59,12 @@
   # GPU Support
   services.xserver.videoDrivers = [ "amdgpu" ];
   hardware.opengl.driSupport = true;
+  hardware.opengl.driSupport32Bit = true;
   hardware.opengl.extraPackages = with pkgs; [
     amdvlk
+  ];
+  hardware.opengl.extraPackages32 = [
+    pkgs.driversi686Linux.amdvlk
   ];
 
   # Enable CUPS to print documents.
