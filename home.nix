@@ -61,6 +61,7 @@
     ardour
     blender-hip
     vlc
+    notion-app-enhanced
     
     # archives
     zip
