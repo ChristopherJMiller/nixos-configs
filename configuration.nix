@@ -13,6 +13,9 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.supportedFilesystems = [ "ext4" "exfat" "fat32" "ntfs" "zfs" ];
+  boot.zfs.forceImportRoot = false;
+  networking.hostId = "67360d1b";
 
   networking.hostName = "rowlett"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.

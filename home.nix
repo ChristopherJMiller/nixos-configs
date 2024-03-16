@@ -77,9 +77,12 @@
     exa # A modern replacement for ‘ls’
     fzf # A command-line fuzzy finder
     kubectl
+    k9s
     git-crypt
     kubeseal
     ffmpeg
+    ventoy-full
+    zfs
 
     # networking tools
     mtr # A network diagnostic tool
