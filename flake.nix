@@ -16,7 +16,7 @@
       rowlett = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./rowlett/configuration.nix
+          ./hosts/rowlett/configuration.nix
 
           # make home-manager as a module of nixos
           # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
@@ -24,14 +24,15 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "old";
 
-            home-manager.users.chris = import ./rowlett/home.nix;
+            home-manager.users.chris = import ./hosts/rowlett/home.nix;
 
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
 	    home-manager.sharedModules = [
               inputs.plasma-manager.homeManagerModules.plasma-manager
-	      inputs.vscode-server.homeModules.default
-	    ];
+              inputs.vscode-server.homeModules.default
+            ];
           }
         ];
       };
