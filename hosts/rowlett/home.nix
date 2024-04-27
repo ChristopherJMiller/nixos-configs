@@ -58,6 +58,7 @@
     telegram-desktop
     mumble
     steam
+    slack
 
     # Creative
     gimp-with-plugins
