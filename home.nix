@@ -107,6 +107,7 @@
 
     vscode
     openrgb-with-all-plugins
+    rustup
 
     # Games
     prismlauncher

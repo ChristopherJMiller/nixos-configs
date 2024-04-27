@@ -62,10 +62,17 @@
 
   # GPU Support
   services.xserver.videoDrivers = [ "amdgpu" ];
+
+  hardware.opengl.enable = true;
   hardware.opengl.driSupport = true;
   hardware.opengl.driSupport32Bit = true;
   hardware.opengl.extraPackages = with pkgs; [
     amdvlk
+    vulkan-loader
+    vulkan-tools
+    vulkan-headers
+    vulkan-validation-layers
+    vulkan-extension-layer
   ];
   hardware.opengl.extraPackages32 = [
     pkgs.driversi686Linux.amdvlk
