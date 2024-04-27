@@ -39,6 +39,7 @@
     lfs.enable = true;
     extraConfig = {
       init.defaultBranch = "main";
+      commit.gpgsign = "true";
     };
     signing = {
       key = "6BFB8037115ADE26";
