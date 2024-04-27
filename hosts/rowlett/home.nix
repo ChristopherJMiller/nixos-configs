@@ -35,10 +35,14 @@
   programs.git = {
     enable = true;
     userName = "Christopher Miller";
-    userEmail = "hello@chrismiller.xyz";
+    userEmail = "git@chrismiller.xyz";
     lfs.enable = true;
     extraConfig = {
       init.defaultBranch = "main";
+    };
+    signing = {
+      key = "6BFB8037115ADE26";
+      signByDefault = true;
     };
   };
 
