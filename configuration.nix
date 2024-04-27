@@ -137,8 +137,8 @@
 
   programs.zsh.enable = true;
   programs.zsh.shellAliases = {
-    nixr = "sudo nixos-rebuild switch";
-    nixu = "sudo nixos-rebuild switch --upgrade";
+    nixr = "sudo nixos-rebuild switch --flake ~/nixos";
+    nixu = "nix flake update ~/nixos --commit-lock-file && nixr";
     nixs = "nix-shell";
   };
 
