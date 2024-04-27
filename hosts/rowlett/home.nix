@@ -108,7 +108,6 @@
     zstd
     gnupg
 
-    vscode
     openrgb-with-all-plugins
     rustup
 
@@ -142,6 +141,25 @@
     pciutils # lspci
     usbutils # lsusb
   ];
+
+  programs.vscode = {
+    enable = true;
+    extensions = with pkgs.vscode-extensions; [
+      rust-lang.rust-analyzer
+      skellock.just
+      ms-azuretools.vscode-docker
+    ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+      {
+        name = "catppuccin-vsc";
+        publisher = "Catppuccin";
+        version = "3.14.0";
+        sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
+      }
+    ] ++ (import ../../common/vscode.nix pkgs).extensions;
+    globalSnippets = {
+      workbench.colorTheme = "Catppuccin Macchiato";
+    };
+  };
 
   programs.zsh = {
     enable = true;
