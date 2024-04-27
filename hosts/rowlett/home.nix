@@ -74,11 +74,9 @@
     p7zip
 
     # utils
-    neofetch
     ripgrep # recursively searches directories for a regex pattern
     jq # A lightweight and flexible command-line JSON processor
     yq-go # yaml processer https://github.com/mikefarah/yq
-    eza # A modern replacement for ‘ls’
     fzf # A command-line fuzzy finder
     kubectl
     k9s
@@ -127,7 +125,7 @@
     glow # markdown previewer in terminal
     kate
 
-    btop # replacement of htop/nmon
+    # btop/htop included as common system package
     iotop # io monitoring
     iftop # network monitoring
     radeontop # gpu monitoring

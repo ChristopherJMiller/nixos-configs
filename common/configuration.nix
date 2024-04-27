@@ -53,6 +53,9 @@
 
     # System Tools
     efibootmgr
+    btop
+    neofetch
+    eza
   ];
 
   programs.neovim = {
@@ -68,6 +71,8 @@
     nixr = "sudo nixos-rebuild switch --flake ~/nixos";
     nixu = "nix flake update ~/nixos --commit-lock-file && nixr";
     nixs = "nix-shell";
+    htop = "btop";
+    ls = "eza";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
