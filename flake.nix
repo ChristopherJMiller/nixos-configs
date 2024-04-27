@@ -29,7 +29,7 @@
             home-manager.users.chris = import ./hosts/rowlett/home.nix;
 
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
-	    home-manager.sharedModules = [
+            home-manager.sharedModules = [
               inputs.plasma-manager.homeManagerModules.plasma-manager
               inputs.vscode-server.homeModules.default
             ];

@@ -1,4 +1,3 @@
-
 { config, pkgs, ... }:
 
 {
@@ -44,10 +43,15 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    # Networking Tools
     wget
     curl
+
+    # Git
     git
     git-lfs
+
+    # System Tools
     efibootmgr
   ];
 
@@ -97,16 +101,16 @@
             "FiraCode"
             "JetBrainsMono"
             "Hack"
-	        ];
-	      }
+          ];
+        }
       )
     ];
 
     fontconfig.defaultFonts = {
-     serif = [ "Noto Serif" "Noto Color Emoji" ];
-     sansSerif = [ "Noto Sans" "Noto Color Emoji" ];
-     monospace = ["Hack Nerd Font" "Noto Color Emoji" ];
-     emoji = [ "Noto Color Emoji" ];
+      serif = [ "Noto Serif" "Noto Color Emoji" ];
+      sansSerif = [ "Noto Sans" "Noto Color Emoji" ];
+      monospace = [ "Hack Nerd Font" "Noto Color Emoji" ];
+      emoji = [ "Noto Color Emoji" ];
     };
   };
 }
