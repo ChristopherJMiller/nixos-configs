@@ -27,8 +27,8 @@
   networking.networkmanager.enable = true;
   systemd.services.NetworkManager-wait-online.enable = false;
 
-  # Set your time zone.
-  time.timeZone = "America/Los_Angeles";
+  # Set timezone to be automatic
+  services.automatic-timezoned.enable = true;
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
