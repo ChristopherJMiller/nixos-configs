@@ -36,6 +36,30 @@
           }
         ];
       };
+
+      wailmer = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/wailmer/configuration.nix
+
+          # make home-manager as a module of nixos
+          # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "old";
+
+            home-manager.users.chris = import ./hosts/wailmer/home.nix;
+
+            # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
+            home-manager.sharedModules = [
+              inputs.plasma-manager.homeManagerModules.plasma-manager
+              inputs.vscode-server.homeModules.default
+            ];
+          }
+        ];
+      };
     };
   };
 }
