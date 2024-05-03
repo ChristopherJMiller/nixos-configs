@@ -180,6 +180,11 @@
 
   programs.alacritty = {
     enable = true;
+    settings = {
+      font = {
+        size = 7;
+      };
+    };
   };
 
   # This value determines the home Manager release that your
