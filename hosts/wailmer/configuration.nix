@@ -46,6 +46,10 @@
 
   nixpkgs.config.allowUnfree = true;
 
+  # Power Management
+  powerManagement.enable = true;
+  services.thermald.enable = true;
+
   # GPU Support
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.opengl = {
@@ -63,7 +67,7 @@
     # Enable this if you have graphical corruption issues or application crashes after waking
     # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead 
     # of just the bare essentials.
-    powerManagement.enable = false;
+    powerManagement.enable = true;
 
     # Fine-grained power management. Turns off GPU when not in use.
     # Experimental and only works on modern Nvidia GPUs (Turing or newer).
