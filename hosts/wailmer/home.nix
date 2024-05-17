@@ -138,6 +138,7 @@
     lsof # list open files
 
     # system tools
+    minikube
     sysstat
     lm_sensors # for `sensors` command
     ethtool
