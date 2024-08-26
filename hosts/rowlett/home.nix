@@ -163,22 +163,7 @@
     };
   };
 
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    initExtra = ''
-      source ~/.p10k.zsh
-      bindkey -e
-    '';
-    zplug = {
-      enable = true;
-      plugins = [
-        { name = "zsh-users/zsh-autosuggestions"; }
-        { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; }
-      ];
-    };
-  };
-
+ programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;
   };
