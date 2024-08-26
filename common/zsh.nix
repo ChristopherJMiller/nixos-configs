@@ -1,4 +1,3 @@
-
 let
   zsh = {
     enable = true;
