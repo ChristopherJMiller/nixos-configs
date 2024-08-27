@@ -145,11 +145,7 @@
 
   programs.vscode = {
     enable = true;
-    extensions = with pkgs.vscode-extensions; [
-      rust-lang.rust-analyzer
-      skellock.just
-      ms-azuretools.vscode-docker
-    ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+    extensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
       {
         name = "catppuccin-vsc";
         publisher = "Catppuccin";
