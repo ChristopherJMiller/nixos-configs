@@ -9,7 +9,7 @@
 
   home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
-  home.file.".face.icon".source = ./icon.png;
+  home.file.".face.icon".source = ../../common/icon.png;
 
   services.vscode-server.enable = true;
 

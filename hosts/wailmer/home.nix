@@ -9,7 +9,7 @@
 
   home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
-  home.file.".face.icon".source = ./icon.png;
+  home.file.".face.icon".source = ../../common/icon.png;
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
