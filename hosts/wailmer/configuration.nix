@@ -8,6 +8,7 @@
 
       # Include Common Configuration Options
       ../../common/configuration.nix
+      ../../common/sddm-avatar.nix
     ];
 
   # Bootloader.
@@ -107,7 +108,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.chris = {
     isNormalUser = true;
-    description = "Chris Miller";
+    description = "Chris";
     extraGroups = [ "networkmanager" "wheel" "docker" ];
     shell = pkgs.zsh;
   };

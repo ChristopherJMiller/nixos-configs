@@ -12,6 +12,7 @@
 
       # Include Common Configuration Options
       ../../common/configuration.nix
+      ../../common/sddm-avatar.nix
     ];
 
   # Bootloader.

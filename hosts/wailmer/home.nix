@@ -11,8 +11,6 @@
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ./icon.png;
 
-  services.vscode-server.enable = true;
-
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
   #   source = ./scripts;
@@ -111,7 +109,6 @@
     zstd
     gnupg
 
-    openrgb-with-all-plugins
     rustup
 
     # Games
