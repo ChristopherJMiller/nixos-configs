@@ -5,25 +5,6 @@ wheel:Vertical;NoModifier=org.kde.switchdesktop
 [ActionPlugins][1]
 RightButton;NoModifier=org.kde.contextmenu
 
-[Containments][1]
-ItemGeometries-1920x1080=
-ItemGeometries-800x600=
-ItemGeometriesHorizontal=
-activityId=9af05184-6be3-4606-87e4-efb1fbe41e66
-formfactor=0
-immutability=1
-lastScreen=0
-location=0
-plugin=org.kde.plasma.folder
-wallpaperplugin=org.kde.image
-
-[Containments][1][Wallpaper][org.kde.image][General]
-Image=/home/chris/Pictures/Wallpapers/center.jpg
-
-[Containments][1][ConfigDialog]
-DialogHeight=540
-DialogWidth=720
-
 [Containments][2]
 activityId=
 formfactor=2
@@ -47,8 +28,8 @@ plugin=org.kde.plasma.kickoff
 
 [Containments][2][Applets][3][Configuration]
 PreloadWeight=100
-popupHeight=514
-popupWidth=651
+popupHeight=614
+popupWidth=785
 
 [Containments][2][Applets][3][Configuration][General]
 favoritesPortedToKAstats=true
@@ -84,6 +65,20 @@ SystrayContainmentId=8
 
 [Containments][2][General]
 AppletOrder=3;4;5;6;7;18;19
+
+[Containments][20]
+ItemGeometries-1920x1080=
+ItemGeometriesHorizontal=
+activityId=c9483ebf-e67e-4bf3-8e21-8fc03d8d9d2b
+formfactor=0
+immutability=1
+lastScreen=0
+location=0
+plugin=org.kde.plasma.folder
+wallpaperplugin=org.kde.image
+
+[Containments][20][Wallpaper][org.kde.image][General]
+Image=/home/chris/Pictures/Wallpapers/center.jpg
 
 [Containments][8]
 activityId=
