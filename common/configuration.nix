@@ -70,6 +70,7 @@
     nixr = "sudo nixos-rebuild switch --flake ~/nixos";
     nixu = "nix flake update ~/nixos --commit-lock-file && nixr";
     nixs = "nix-shell";
+    nixclean = "sudo nix-collect-garbage -d";
     htop = "btop";
     ls = "eza";
   };
