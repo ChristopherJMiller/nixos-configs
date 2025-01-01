@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.url = "github:pjones/plasma-manager";
@@ -11,7 +12,7 @@
     vscode-server.url = "github:nix-community/nixos-vscode-server";
   };
 
-  outputs = inputs@{ nixpkgs, home-manager, ... }: {
+  outputs = inputs@{ nixpkgs, nixpkgs-unstable, home-manager, ... }: {
     nixosConfigurations = {
       rowlett = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -50,7 +51,7 @@
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "old";
 
-            home-manager.users.chris = import ./hosts/wailmer/home.nix;
+            home-manager.users.chris = (import ./hosts/wailmer/home.nix nixpkgs-unstable.legacyPackages."x86_64-linux");
 
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
             home-manager.sharedModules = [
