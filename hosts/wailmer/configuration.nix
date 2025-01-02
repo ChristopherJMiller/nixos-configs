@@ -57,6 +57,10 @@
   services.tlp.enable = true;
   services.thermald.enable = true;
 
+  # Bluetooth Support
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
+
   # GPU Support
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.graphics = {
