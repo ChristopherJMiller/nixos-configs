@@ -52,10 +52,9 @@
   # GPU Support
   services.xserver.videoDrivers = [ "amdgpu" ];
 
-  hardware.opengl.enable = true;
-  hardware.opengl.driSupport = true;
-  hardware.opengl.driSupport32Bit = true;
-  hardware.opengl.extraPackages = with pkgs; [
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
+  hardware.graphics.extraPackages = with pkgs; [
     amdvlk
     vulkan-loader
     vulkan-tools
@@ -63,9 +62,12 @@
     vulkan-validation-layers
     vulkan-extension-layer
   ];
-  hardware.opengl.extraPackages32 = [
+  hardware.graphics.extraPackages32 = [
     pkgs.driversi686Linux.amdvlk
   ];
+
+  # QMK Keyboard Support
+  hardware.keyboard.qmk.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;

@@ -55,7 +55,14 @@
     btop
     neofetch
     eza
+
+    # Keyboard Utils
+    qmk
+    qmk-udev-rules
+    via
   ];
+
+  services.udev.packages = [ pkgs.via ];
 
   programs.neovim = {
     enable = true;
@@ -68,7 +75,7 @@
   programs.zsh.enable = true;
   programs.zsh.shellAliases = {
     nixr = "sudo nixos-rebuild switch --flake ~/nixos";
-    nixu = "nix flake update ~/nixos --commit-lock-file && nixr";
+    nixu = "nix flake update --flake ~/nixos --commit-lock-file && nixr";
     nixs = "nix-shell";
     nixclean = "sudo nix-collect-garbage -d";
     htop = "btop";
