@@ -67,6 +67,7 @@ let
     gawk
     zstd
     gnupg
+    code-cursor
 
     rustup
 
