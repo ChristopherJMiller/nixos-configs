@@ -12,7 +12,16 @@
     vscode-server.url = "github:nix-community/nixos-vscode-server";
   };
 
-  outputs = inputs@{ nixpkgs, nixpkgs-unstable, home-manager, ... }: {
+  outputs = inputs@{ nixpkgs, nixpkgs-unstable, home-manager, ... }: 
+  let
+    system = "x86_64-linux";
+    pkgs-unstable = import nixpkgs-unstable {
+      inherit system;
+      config = {
+        allowUnfree = true;
+      };
+    };
+  in {
     nixosConfigurations = {
       rowlett = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -39,7 +48,7 @@
       };
 
       wailmer = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
         modules = [
           ./hosts/wailmer/configuration.nix
 
@@ -51,7 +60,8 @@
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "old";
 
-            home-manager.users.chris = (import ./hosts/wailmer/home.nix nixpkgs-unstable.legacyPackages."x86_64-linux");
+            # Pass the configured unstable packages here
+            home-manager.users.chris = (import ./hosts/wailmer/home.nix pkgs-unstable);
 
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
             home-manager.sharedModules = [

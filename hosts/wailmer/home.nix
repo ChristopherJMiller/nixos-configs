@@ -67,7 +67,6 @@ let
     gawk
     zstd
     gnupg
-    code-cursor
 
     rustup
 
@@ -104,7 +103,7 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
-    ghostty
+    code-cursor
   ];
 in
 {
@@ -190,7 +189,7 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
-    TERMINAL = "ghostty";
+    TERMINAL = "alacritty";
     DELTA_PAGER = "less -R";
     XCURSOR_SIZE = "32";
   };
