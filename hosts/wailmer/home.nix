@@ -104,6 +104,9 @@ let
 
   unstable-pkgs = with pkgs-unstable; [
     code-cursor
+
+    # Addons
+    alacritty-theme
   ];
 in
 {
@@ -171,6 +174,14 @@ in
   programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;
+    package = pkgs-unstable.alacritty;
+    settings = {
+      general = {
+        import = [
+          "${pkgs-unstable.alacritty-theme}/share/alacritty-theme/catppuccin_macchiato.toml"
+        ];
+      };
+    };
   };
 
   # This value determines the home Manager release that your
