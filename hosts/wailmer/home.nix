@@ -181,6 +181,11 @@ in
           "${pkgs-unstable.alacritty-theme}/share/alacritty-theme/catppuccin_macchiato.toml"
         ];
       };
+      cursor = {
+        style = {
+          shape = "Beam";
+        };
+      };
     };
   };
 
