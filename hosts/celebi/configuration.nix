@@ -44,6 +44,9 @@
 
   services.desktopManager.plasma6.enable = true;
 
+  # Enable Fingerprint Daemon
+  services.fprintd.enable = true;
+
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
