@@ -71,6 +71,31 @@
           }
         ];
       };
+
+      celebi = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          ./hosts/celebi/configuration.nix
+
+          # make home-manager as a module of nixos
+          # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "old";
+
+            # Pass the configured unstable packages here
+            home-manager.users.chris = (import ./hosts/celebi/home.nix pkgs-unstable);
+
+            # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
+            home-manager.sharedModules = [
+              inputs.plasma-manager.homeManagerModules.plasma-manager
+              inputs.vscode-server.homeModules.default
+            ];
+          }
+        ];
+      };
     };
   };
 }
