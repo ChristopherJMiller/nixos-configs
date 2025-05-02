@@ -11,6 +11,7 @@ let
     github.vscode-pull-request-github
     github.vscode-github-actions
     github.copilot
+    github.copilot-chat
   ];
   globalSnippets = {
     workbench.colorTheme = "Catppuccin Macchiato";
