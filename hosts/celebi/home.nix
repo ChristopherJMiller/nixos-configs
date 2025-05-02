@@ -204,7 +204,7 @@ in
     BROWSER = "firefox";
     TERMINAL = "alacritty";
     DELTA_PAGER = "less -R";
-    XCURSOR_SIZE = "32";
+    XCURSOR_SIZE = "64";
   };
 
 }

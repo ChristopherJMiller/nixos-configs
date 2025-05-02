@@ -83,6 +83,7 @@
     shell = pkgs.zsh;
   };
 
+  programs.gnupg.agent.pinentryPackage = pkgs.pinentry-qt;
 
   # List services that you want to enable:
 
