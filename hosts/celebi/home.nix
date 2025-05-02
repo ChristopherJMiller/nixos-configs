@@ -163,9 +163,7 @@ in
         sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
       }
     ] ++ (import ../../common/vscode.nix pkgs).extensions;
-    globalSnippets = {
-      workbench.colorTheme = "Catppuccin Macchiato";
-    };
+    globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
   programs.zsh = (import ../../common/zsh.nix).zsh;
