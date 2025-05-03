@@ -48,6 +48,10 @@
 
   # Enable Fingerprint Daemon
   services.fprintd.enable = true;
+  # Disable fprint for login PAM service to
+  # disable fingerprint authentication for login
+  # which fixes interactions between SDDM-KDE handoff
+  # and KWallet Authentication.
   security.pam.services.login.fprintAuth = false;
 
   # Configure keymap in X11
