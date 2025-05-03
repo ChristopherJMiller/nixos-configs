@@ -13,7 +13,7 @@ let
       ];
     };
     syntaxHighlighting.enable = true;
-    
+
     initExtra = ''
       source ~/.p10k.zsh
       bindkey "^[[1;5D" backward-word
