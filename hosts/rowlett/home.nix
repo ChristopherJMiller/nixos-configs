@@ -163,7 +163,7 @@
     };
   };
 
- programs.zsh = (import ../../common/zsh.nix).zsh;
+  programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;
   };

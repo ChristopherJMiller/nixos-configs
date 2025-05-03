@@ -16,6 +16,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "ext4" "exfat" "fat32" "ntfs" "zfs" ];
   boot.zfs.forceImportRoot = false;
+
   networking.hostId = "f5ae0848";
 
   networking.hostName = "celebi"; # Define your hostname.
@@ -47,6 +48,7 @@
 
   # Enable Fingerprint Daemon
   services.fprintd.enable = true;
+  security.pam.services.login.fprintAuth = false;
 
   # Configure keymap in X11
   services.xserver.xkb = {

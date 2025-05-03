@@ -10,7 +10,7 @@ If a new system,
 
 Otherwise,
 
-Run `sudo nixos-rebuild switch --experimental-features flake --flake .#<host>` where `<host>` is the host name in `nixosConfigurations`
+Run `sudo nixos-rebuild switch --flake .#<host>` where `<host>` is the host name in `nixosConfigurations`
 
 # Structure
 

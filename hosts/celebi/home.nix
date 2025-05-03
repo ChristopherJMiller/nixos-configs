@@ -101,9 +101,6 @@ let
 
   unstable-pkgs = with pkgs-unstable; [
     code-cursor
-
-    # Addons
-    alacritty-theme
   ];
 in
 {
@@ -167,21 +164,9 @@ in
   };
 
   programs.zsh = (import ../../common/zsh.nix).zsh;
-  programs.alacritty = {
+  programs.kitty = {
     enable = true;
-    package = pkgs-unstable.alacritty;
-    settings = {
-      general = {
-        import = [
-          "${pkgs-unstable.alacritty-theme}/share/alacritty-theme/catppuccin_macchiato.toml"
-        ];
-      };
-      cursor = {
-        style = {
-          shape = "Beam";
-        };
-      };
-    };
+    themeFile = "Catppuccin-Macchiato";
   };
 
   # This value determines the home Manager release that your
@@ -200,7 +185,7 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
-    TERMINAL = "alacritty";
+    TERMINAL = "kitty";
     DELTA_PAGER = "less -R";
     XCURSOR_SIZE = "64";
   };
