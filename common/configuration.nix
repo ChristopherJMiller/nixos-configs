@@ -43,6 +43,10 @@
     options = "--delete-older-than 30d";
   };
 
+  # Nix Storage Optimization
+  nix.optimise.automatic = true;
+  nix.optimise.dates = [ "daily" ];
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
