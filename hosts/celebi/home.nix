@@ -20,6 +20,7 @@ let
     blender-hip
     vlc
     notion-app-enhanced
+    calibre
 
     # archives
     zip

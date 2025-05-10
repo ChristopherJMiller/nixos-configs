@@ -17,6 +17,10 @@
   boot.supportedFilesystems = [ "ext4" "exfat" "fat32" "ntfs" "zfs" ];
   boot.zfs.forceImportRoot = false;
 
+  # Systemd-boot lets you mash the space bar to select a boot entry
+  # when timeout is set to 0
+  boot.loader.timeout = 0;
+
   networking.hostId = "f5ae0848";
 
   networking.hostName = "celebi"; # Define your hostname.
@@ -32,6 +36,9 @@
   # Set timezone to be automatic
   services.automatic-timezoned.enable = true;
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
+
+  # Delay time sync until network online
+  systemd.services.systemd-timesyncd.wantedBy = [ "network-online.target" ];
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
@@ -107,6 +114,7 @@
   # Enable Docker
   virtualisation.docker = {
     enable = true;
+    enableOnBoot = false;
     autoPrune = {
       enable = true;
     };
