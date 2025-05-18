@@ -20,7 +20,6 @@ let
     blender-hip
     vlc
     notion-app-enhanced
-    calibre
 
     # archives
     zip
@@ -51,7 +50,6 @@ let
     socat # replacement of openbsd-netcat
     nmap # A utility for network discovery and security auditing
     ipcalc # it is a calculator for the IPv4/v6 addresses
-    firefox
     chromium
     remmina
 
@@ -70,6 +68,7 @@ let
 
     # Games
     prismlauncher
+    runelite
 
     # nix related
     #
@@ -182,6 +181,21 @@ in
 
   # Let home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  programs.firefox = {
+    enable = true;
+    policies = {
+      Homepage = {
+        StartPage = "homepage";
+      };
+      FirefoxHome = {
+        TopSites = false;
+        SponsoredTopSites = false;
+        Pocket = false;
+        SponsoredPocket = false;
+      };
+    };
+  };
 
   home.sessionVariables = {
     EDITOR = "nvim";
