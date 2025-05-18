@@ -51,6 +51,7 @@ let
     nmap # A utility for network discovery and security auditing
     ipcalc # it is a calculator for the IPv4/v6 addresses
     chromium
+    firefox
     remmina
 
     # misc
@@ -182,21 +183,6 @@ in
   # Let home Manager install and manage itself.
   programs.home-manager.enable = true;
 
-  programs.firefox = {
-    enable = true;
-    policies = {
-      Homepage = {
-        StartPage = "homepage";
-      };
-      FirefoxHome = {
-        TopSites = false;
-        SponsoredTopSites = false;
-        Pocket = false;
-        SponsoredPocket = false;
-      };
-    };
-  };
-
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
@@ -204,5 +190,4 @@ in
     DELTA_PAGER = "less -R";
     XCURSOR_SIZE = "64";
   };
-
 }
