@@ -20,6 +20,7 @@ let
     blender-hip
     vlc
     notion-app-enhanced
+    calibre
 
     # archives
     zip
@@ -98,6 +99,7 @@ let
     ethtool
     pciutils # lspci
     usbutils # lsusb
+    nixfmt-rfc-style
   ];
 
   unstable-pkgs = with pkgs-unstable; [
