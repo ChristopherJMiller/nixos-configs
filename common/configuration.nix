@@ -21,7 +21,7 @@
   };
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -117,16 +117,9 @@
       noto-fonts
       noto-fonts-emoji
       source-sans
-
-      (
-        nerdfonts.override {
-          fonts = [
-            "FiraCode"
-            "JetBrainsMono"
-            "Hack"
-          ];
-        }
-      )
+      nerd-fonts.fira-code
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.hack
     ];
 
     fontconfig.defaultFonts = {

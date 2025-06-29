@@ -15,7 +15,7 @@ let
 
     # Creative
     gimp-with-plugins
-    kdenlive
+    kdePackages.kdenlive
     ardour
     blender-hip
     vlc
@@ -38,7 +38,6 @@ let
     git-crypt
     kubeseal
     ffmpeg
-    ventoy-full
     zfs
     imwheel
 
@@ -80,7 +79,8 @@ let
 
     # productivity
     glow # markdown previewer in terminal
-    kate
+    kdePackages.kate
+    claude-code
 
     # btop/htop included as common system package
     iotop # io monitoring
@@ -155,7 +155,7 @@ in
 
   programs.vscode = {
     enable = true;
-    extensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+    profiles.default.extensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
       {
         name = "catppuccin-vsc";
         publisher = "Catppuccin";
@@ -163,7 +163,7 @@ in
         sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
       }
     ] ++ (import ../../common/vscode.nix pkgs).extensions;
-    globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
+    profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
   programs.zsh = (import ../../common/zsh.nix).zsh;

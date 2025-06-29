@@ -14,7 +14,7 @@ let
     };
     syntaxHighlighting.enable = true;
 
-    initExtra = ''
+    initContent = ''
       source ~/.p10k.zsh
       bindkey "^[[1;5D" backward-word
       bindkey "^[[1;5C" forward-word
