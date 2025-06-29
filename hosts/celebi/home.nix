@@ -80,7 +80,6 @@ let
     # productivity
     glow # markdown previewer in terminal
     kdePackages.kate
-    claude-code
 
     # btop/htop included as common system package
     iotop # io monitoring
@@ -104,6 +103,7 @@ let
 
   unstable-pkgs = with pkgs-unstable; [
     code-cursor
+    claude-code
   ];
 in
 {
