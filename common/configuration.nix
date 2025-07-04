@@ -89,6 +89,7 @@
     nixu = "nix flake update --flake ~/nixos --commit-lock-file && nixr";
     nixs = "nix-shell";
     nixclean = "sudo nix-collect-garbage -d";
+    nixrepair = "sudo nix-store --verify --check-contents --repair";
     htop = "btop";
     ls = "eza";
   };
