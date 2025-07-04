@@ -12,9 +12,11 @@ let
     github.vscode-github-actions
     github.copilot
     github.copilot-chat
+    esbenp.prettier-vscode
   ];
   globalSnippets = {
     workbench.colorTheme = "Catppuccin Macchiato";
+    editor.formatOnSave = true;
   };
 in
 {
