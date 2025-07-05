@@ -104,6 +104,7 @@ let
   unstable-pkgs = with pkgs-unstable; [
     code-cursor
     claude-code
+    gemini-cli
   ];
 in
 {
@@ -131,8 +132,8 @@ in
 
   # set cursor size and dpi for 4k monitor
   xresources.properties = {
-   "Xcursor.size" = 32;
-   "Xft.dpi" = 172;
+    "Xcursor.size" = 32;
+    "Xft.dpi" = 172;
   };
 
   # basic configuration of git, please change to your own
@@ -155,14 +156,16 @@ in
 
   programs.vscode = {
     enable = true;
-    profiles.default.extensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-      {
-        name = "catppuccin-vsc";
-        publisher = "Catppuccin";
-        version = "3.14.0";
-        sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
-      }
-    ] ++ (import ../../common/vscode.nix pkgs).extensions;
+    profiles.default.extensions =
+      pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+        {
+          name = "catppuccin-vsc";
+          publisher = "Catppuccin";
+          version = "3.14.0";
+          sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
+        }
+      ]
+      ++ (import ../../common/vscode.nix pkgs).extensions;
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
