@@ -1,6 +1,6 @@
 pkgs-unstable:
 
-{ config, pkgs, ... }:
+{ config, pkgs, customPackages, ... }:
 
 let
   stable-pkgs = with pkgs; [
@@ -106,6 +106,10 @@ let
     claude-code
     gemini-cli
   ];
+
+  custom-pkgs = with (customPackages pkgs); [
+    mpc-autofill
+  ];
 in
 {
   home.username = "chris";
@@ -152,7 +156,7 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs;
+  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs;
 
   programs.vscode = {
     enable = true;

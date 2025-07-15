@@ -21,6 +21,9 @@
         allowUnfree = true;
       };
     };
+    customPackages = pkgs: {
+      mpc-autofill = pkgs.callPackage ./packages/mpc-autofill { };
+    };
   in {
     nixosConfigurations = {
       rowlett = nixpkgs.lib.nixosSystem {
@@ -74,6 +77,7 @@
 
       celebi = nixpkgs.lib.nixosSystem {
         inherit system;
+        specialArgs = { inherit customPackages; };
         modules = [
           ./hosts/celebi/configuration.nix
 
@@ -87,6 +91,7 @@
 
             # Pass the configured unstable packages here
             home-manager.users.chris = (import ./hosts/celebi/home.nix pkgs-unstable);
+            home-manager.extraSpecialArgs = { inherit customPackages; };
 
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
             home-manager.sharedModules = [
