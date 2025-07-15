@@ -4,8 +4,22 @@
   fetchurl,
   autoPatchelfHook,
   zlib,
+  makeDesktopItem,
 }:
 
+let
+  desktopItem = makeDesktopItem {
+    name = "mpc-autofill";
+    exec = "mpc-autofill";
+    desktopName = "MPC Autofill";
+    comment = "Desktop tool for automating MakePlayingCards.com orders";
+    categories = [
+      "Utility"
+      "Office"
+    ];
+    terminal = true;
+  };
+in
 stdenv.mkDerivation rec {
   pname = "mpc-autofill";
   version = "4.5.2";
@@ -33,6 +47,10 @@ stdenv.mkDerivation rec {
     mkdir -p $out/bin
     cp $src $out/bin/mpc-autofill
     chmod +x $out/bin/mpc-autofill
+
+    # Install desktop entry
+    mkdir -p $out/share/applications
+    cp ${desktopItem}/share/applications/* $out/share/applications/
 
     runHook postInstall
   '';
