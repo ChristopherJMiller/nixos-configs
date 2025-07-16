@@ -121,6 +121,7 @@ in
   home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ../../common/icon.png;
+  home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
