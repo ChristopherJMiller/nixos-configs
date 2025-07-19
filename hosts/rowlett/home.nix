@@ -109,6 +109,7 @@
     gawk
     zstd
     gnupg
+    xclip
 
     openrgb-with-all-plugins
     rustup
@@ -148,14 +149,16 @@
     enable = true;
 
     profiles.chris = {
-      extensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-        {
-          name = "catppuccin-vsc";
-          publisher = "Catppuccin";
-          version = "3.14.0";
-          sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
-        }
-      ] ++ (import ../../common/vscode.nix pkgs).extensions;
+      extensions =
+        pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+          {
+            name = "catppuccin-vsc";
+            publisher = "Catppuccin";
+            version = "3.14.0";
+            sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
+          }
+        ]
+        ++ (import ../../common/vscode.nix pkgs).extensions;
 
       globalSnippets = {
         workbench.colorTheme = "Catppuccin Macchiato";

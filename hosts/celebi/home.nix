@@ -1,6 +1,11 @@
 pkgs-unstable:
 
-{ config, pkgs, customPackages, ... }:
+{
+  config,
+  pkgs,
+  customPackages,
+  ...
+}:
 
 let
   stable-pkgs = with pkgs; [
@@ -40,6 +45,7 @@ let
     ffmpeg
     zfs
     imwheel
+    xclip
 
     # networking tools
     mtr # A network diagnostic tool
