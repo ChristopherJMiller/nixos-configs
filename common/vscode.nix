@@ -10,8 +10,6 @@ let
     tamasfe.even-better-toml
     github.vscode-pull-request-github
     github.vscode-github-actions
-    github.copilot
-    github.copilot-chat
     esbenp.prettier-vscode
   ];
   globalSnippets = {
