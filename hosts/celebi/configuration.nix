@@ -1,20 +1,25 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ 
-      # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
 
-      # Include Common Configuration Options
-      ../../common/configuration.nix
-      ../../common/sddm-avatar.nix
-    ];
+    # Include Common Configuration Options
+    ../../common/configuration.nix
+    ../../common/sddm-avatar.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.supportedFilesystems = [ "ext4" "exfat" "fat32" "ntfs" "zfs" ];
+  boot.supportedFilesystems = [
+    "ext4"
+    "exfat"
+    "fat32"
+    "ntfs"
+    "zfs"
+  ];
   boot.zfs.forceImportRoot = false;
 
   # Systemd-boot lets you mash the space bar to select a boot entry
@@ -93,7 +98,11 @@
   users.users.chris = {
     isNormalUser = true;
     description = "Chris";
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "docker"
+    ];
     shell = pkgs.zsh;
   };
 
@@ -143,4 +152,3 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
 }
-

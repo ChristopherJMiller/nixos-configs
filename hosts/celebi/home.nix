@@ -50,6 +50,8 @@ let
     # Virtualization
     qemu
     quickemu
+    spice
+    spice-vdagent
 
     # networking tools
     mtr # A network diagnostic tool
