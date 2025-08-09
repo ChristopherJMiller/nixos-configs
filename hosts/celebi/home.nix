@@ -47,6 +47,10 @@ let
     imwheel
     xclip
 
+    # Virtualization
+    qemu
+    quickemu
+
     # networking tools
     mtr # A network diagnostic tool
     iperf3
