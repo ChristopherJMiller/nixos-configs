@@ -65,6 +65,7 @@ let
     chromium
     firefox
     remmina
+    gh
 
     # misc
     cowsay
