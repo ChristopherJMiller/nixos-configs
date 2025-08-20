@@ -100,6 +100,7 @@ let
     ethtool
     pciutils # lspci
     usbutils # lsusb
+    nixfmt-rfc-style
   ];
 
   unstable-pkgs = with pkgs-unstable; [
