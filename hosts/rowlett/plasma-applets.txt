@@ -78,7 +78,7 @@ immutability=1
 plugin=org.kde.plasma.icontasks
 
 [Containments][3][Applets][6][Configuration][General]
-launchers=preferred://browser,preferred://filemanager,applications:Alacritty.desktop,file:///etc/profiles/per-user/chris/share/applications/code.desktop,file:///etc/profiles/per-user/chris/share/applications/spotify.desktop,file:///etc/profiles/per-user/chris/share/applications/discord.desktop,file:///etc/profiles/per-user/chris/share/applications/element-desktop.desktop,file:///etc/profiles/per-user/chris/share/applications/org.telegram.desktop.desktop,file:///etc/profiles/per-user/chris/share/applications/slack.desktop
+launchers=preferred://browser,preferred://filemanager,file:///etc/profiles/per-user/chris/share/applications/kitty.desktop,file:///etc/profiles/per-user/chris/share/applications/code.desktop,file:///etc/profiles/per-user/chris/share/applications/spotify.desktop,file:///etc/profiles/per-user/chris/share/applications/discord.desktop,file:///etc/profiles/per-user/chris/share/applications/element-desktop.desktop,file:///etc/profiles/per-user/chris/share/applications/org.telegram.desktop.desktop
 
 [Containments][3][Applets][7]
 immutability=1

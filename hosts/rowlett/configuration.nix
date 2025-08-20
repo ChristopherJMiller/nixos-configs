@@ -32,9 +32,14 @@
   services.xserver.enable = true;
 
   # Enable the KDE Plasma Desktop Environment.
-  services.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
-  services.displayManager.defaultSession = "plasmawayland";
+  services.displayManager = {
+    sddm.enable = true;
+    sddm.wayland.enable = true;
+    sddm.wayland.compositor = "kwin";
+    defaultSession = "plasma";
+  };
+
+  services.desktopManager.plasma6.enable = true;
 
   # Enable RDP
   services.xrdp.enable = true;
@@ -42,12 +47,12 @@
   services.xrdp.openFirewall = true;
 
   # Configure keymap in X11
-  services.xserver = {
-    xkb = {
-      variant = "";
-      layout = "us";
-    };
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
   };
+
+  nixpkgs.config.allowUnfree = true;
 
   # GPU Support
   services.xserver.videoDrivers = [ "amdgpu" ];
@@ -79,7 +84,7 @@
   users.users.chris = {
     isNormalUser = true;
     description = "Chris Miller";
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "dialout" ];
     shell = pkgs.zsh;
   };
 

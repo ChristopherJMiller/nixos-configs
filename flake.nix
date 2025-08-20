@@ -28,6 +28,7 @@
     nixosConfigurations = {
       rowlett = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = { inherit customPackages; };
         modules = [
           ./hosts/rowlett/configuration.nix
 
@@ -39,7 +40,8 @@
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "old";
 
-            home-manager.users.chris = import ./hosts/rowlett/home.nix;
+            home-manager.users.chris = (import ./hosts/rowlett/home.nix pkgs-unstable);
+            home-manager.extraSpecialArgs = { inherit customPackages; };
 
             # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
             home-manager.sharedModules = [

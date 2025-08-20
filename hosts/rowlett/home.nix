@@ -1,56 +1,14 @@
-{ config, pkgs, ... }:
+pkgs-unstable:
 
 {
-  home.username = "chris";
-  home.homeDirectory = "/home/chris";
+  config,
+  pkgs,
+  customPackages,
+  ...
+}:
 
-  # link the configuration file in current directory to the specified location in home directory
-  # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
-
-  home.file.".p10k.zsh".source = ../../common/p10k.zsh;
-  home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
-  home.file.".face.icon".source = ../../common/icon.png;
-
-  services.vscode-server.enable = true;
-
-  # link all files in `./scripts` to `~/.config/i3/scripts`
-  # home.file.".config/i3/scripts" = {
-  #   source = ./scripts;
-  #   recursive = true;   # link recursively
-  #   executable = true;  # make all files executable
-  # };
-
-  # encode the file content in nix configuration file directly
-  # home.file.".xxx".text = ''
-  #     xxx
-  # '';
-
-  # set cursor size and dpi for 4k monitor
-  #xresources.properties = {
-  #  "Xcursor.size" = 16;
-  #  "Xft.dpi" = 172;
-  #};
-
-  # basic configuration of git, please change to your own
-  programs.git = {
-    enable = true;
-    userName = "Christopher Miller";
-    userEmail = "git@chrismiller.xyz";
-    lfs.enable = true;
-    extraConfig = {
-      init.defaultBranch = "main";
-    };
-    signing = {
-      key = "6BFB8037115ADE26";
-      signByDefault = true;
-    };
-  };
-
-  # Packages that should be installed to the user profile.
-  home.packages = with pkgs; [
-    # here is some command line tools I use frequently
-    # feel free to add your own or remove some of them
-
+let
+  stable-pkgs = with pkgs; [
     # Social
     spotify
     discord
@@ -62,7 +20,7 @@
 
     # Creative
     gimp-with-plugins
-    kdenlive
+    kdePackages.kdenlive
     ardour
     blender-hip
     vlc
@@ -84,7 +42,6 @@
     git-crypt
     kubeseal
     ffmpeg
-    ventoy-full
     zfs
 
     # networking tools
@@ -125,7 +82,7 @@
 
     # productivity
     glow # markdown previewer in terminal
-    kate
+    kdePackages.kdenlive
 
     # btop/htop included as common system package
     iotop # io monitoring
@@ -145,30 +102,88 @@
     usbutils # lsusb
   ];
 
+  unstable-pkgs = with pkgs-unstable; [
+    code-cursor
+    claude-code
+    gemini-cli
+  ];
+
+  custom-pkgs = with (customPackages pkgs); [
+    mpc-autofill
+  ];
+in
+{
+  home.username = "chris";
+  home.homeDirectory = "/home/chris";
+
+  # link the configuration file in current directory to the specified location in home directory
+  # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
+
+  home.file.".p10k.zsh".source = ../../common/p10k.zsh;
+  home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
+  home.file.".face.icon".source = ../../common/icon.png;
+  home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
+
+  services.vscode-server.enable = true;
+
+  # link all files in `./scripts` to `~/.config/i3/scripts`
+  # home.file.".config/i3/scripts" = {
+  #   source = ./scripts;
+  #   recursive = true;   # link recursively
+  #   executable = true;  # make all files executable
+  # };
+
+  # encode the file content in nix configuration file directly
+  # home.file.".xxx".text = ''
+  #     xxx
+  # '';
+
+  # set cursor size and dpi for 4k monitor
+  #xresources.properties = {
+  #  "Xcursor.size" = 16;
+  #  "Xft.dpi" = 172;
+  #};
+
+  # basic configuration of git, please change to your own
+  programs.git = {
+    enable = true;
+    userName = "Christopher Miller";
+    userEmail = "git@chrismiller.xyz";
+    lfs.enable = true;
+    extraConfig = {
+      init.defaultBranch = "main";
+    };
+    signing = {
+      key = "6BFB8037115ADE26";
+      signByDefault = true;
+    };
+  };
+
+  # Packages that should be installed to the user profile.
+  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs;
+
   programs.vscode = {
     enable = true;
-
-    profiles.chris = {
-      extensions =
-        pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-          {
-            name = "catppuccin-vsc";
-            publisher = "Catppuccin";
-            version = "3.14.0";
-            sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
-          }
-        ]
-        ++ (import ../../common/vscode.nix pkgs).extensions;
-
-      globalSnippets = {
-        workbench.colorTheme = "Catppuccin Macchiato";
-      };
-    };
+    profiles.default.extensions =
+      pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+        {
+          name = "catppuccin-vsc";
+          publisher = "Catppuccin";
+          version = "3.14.0";
+          sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
+        }
+      ]
+      ++ (import ../../common/vscode.nix pkgs).extensions;
+    profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
   programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;
+  };
+  programs.kitty = {
+    enable = true;
+    themeFile = "Catppuccin-Macchiato";
   };
 
   # This value determines the home Manager release that your
@@ -179,7 +194,7 @@
   # You can update home Manager without changing this value. See
   # the home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "22.11";
+  home.stateVersion = "24.11";
 
   # Let home Manager install and manage itself.
   programs.home-manager.enable = true;
