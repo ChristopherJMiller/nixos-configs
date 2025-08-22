@@ -66,6 +66,7 @@ let
     firefox
     remmina
     gh
+    strawberry
 
     # misc
     cowsay
