@@ -7,16 +7,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1755932363,
-        "narHash": "sha256-blbOoY5bCDrz5AfQqnR6HLbHEzQWDOQqc0UKwikirXs=",
+        "lastModified": 1755979846,
+        "narHash": "sha256-hTg6Zaw9BusN2ISeCT1otiPNfzxFzbNP1tKvkkdT1WM=",
         "owner": "christopherjmiller",
         "repo": "bandcamp-sync",
-        "rev": "4c86ffb2be3f7564c218d9a25aaa6462c42be6be",
+        "rev": "2d3e779e102e2c75195e7e3b6dda543bf529037b",
         "type": "github"
       },
       "original": {
         "owner": "christopherjmiller",
-        "ref": "0.2.0",
+        "ref": "0.3.0",
         "repo": "bandcamp-sync",
         "type": "github"
       }

@@ -10,7 +10,7 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
     vscode-server.url = "github:nix-community/nixos-vscode-server";
-    bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.2.0";
+    bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.3.0";
   };
 
   outputs =
