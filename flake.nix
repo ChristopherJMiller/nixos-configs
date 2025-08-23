@@ -10,99 +10,109 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
     vscode-server.url = "github:nix-community/nixos-vscode-server";
+    bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.1.1";
   };
 
-  outputs = inputs@{ nixpkgs, nixpkgs-unstable, home-manager, ... }: 
-  let
-    system = "x86_64-linux";
-    pkgs-unstable = import nixpkgs-unstable {
-      inherit system;
-      config = {
-        allowUnfree = true;
-      };
-    };
-    customPackages = pkgs: {
-      mpc-autofill = pkgs.callPackage ./packages/mpc-autofill { };
-    };
-  in {
-    nixosConfigurations = {
-      rowlett = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit customPackages; };
-        modules = [
-          ./hosts/rowlett/configuration.nix
-
-          # make home-manager as a module of nixos
-          # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "old";
-
-            home-manager.users.chris = (import ./hosts/rowlett/home.nix pkgs-unstable);
-            home-manager.extraSpecialArgs = { inherit customPackages; };
-
-            # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
-            home-manager.sharedModules = [
-              inputs.plasma-manager.homeManagerModules.plasma-manager
-              inputs.vscode-server.homeModules.default
-            ];
-          }
-        ];
-      };
-
-      wailmer = nixpkgs.lib.nixosSystem {
+  outputs =
+    inputs@{
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      bandcamp-sync,
+      ...
+    }:
+    let
+      system = "x86_64-linux";
+      pkgs-unstable = import nixpkgs-unstable {
         inherit system;
-        modules = [
-          ./hosts/wailmer/configuration.nix
-
-          # make home-manager as a module of nixos
-          # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "old";
-
-            # Pass the configured unstable packages here
-            home-manager.users.chris = (import ./hosts/wailmer/home.nix pkgs-unstable);
-
-            # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
-            home-manager.sharedModules = [
-              inputs.plasma-manager.homeManagerModules.plasma-manager
-              inputs.vscode-server.homeModules.default
-            ];
-          }
-        ];
+        config = {
+          allowUnfree = true;
+        };
       };
+      customPackages = pkgs: {
+        mpc-autofill = pkgs.callPackage ./packages/mpc-autofill { };
+        bandcamp-sync = bandcamp-sync.packages.x86_64-linux.with-firefox;
+      };
+    in
+    {
+      nixosConfigurations = {
+        rowlett = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit customPackages; };
+          modules = [
+            ./hosts/rowlett/configuration.nix
 
-      celebi = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit customPackages; };
-        modules = [
-          ./hosts/celebi/configuration.nix
+            # make home-manager as a module of nixos
+            # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "old";
 
-          # make home-manager as a module of nixos
-          # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "old";
+              home-manager.users.chris = (import ./hosts/rowlett/home.nix pkgs-unstable);
+              home-manager.extraSpecialArgs = { inherit customPackages; };
 
-            # Pass the configured unstable packages here
-            home-manager.users.chris = (import ./hosts/celebi/home.nix pkgs-unstable);
-            home-manager.extraSpecialArgs = { inherit customPackages; };
+              # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
+              home-manager.sharedModules = [
+                inputs.plasma-manager.homeManagerModules.plasma-manager
+                inputs.vscode-server.homeModules.default
+              ];
+            }
+          ];
+        };
 
-            # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
-            home-manager.sharedModules = [
-              inputs.plasma-manager.homeManagerModules.plasma-manager
-              inputs.vscode-server.homeModules.default
-            ];
-          }
-        ];
+        wailmer = nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = [
+            ./hosts/wailmer/configuration.nix
+
+            # make home-manager as a module of nixos
+            # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "old";
+
+              # Pass the configured unstable packages here
+              home-manager.users.chris = (import ./hosts/wailmer/home.nix pkgs-unstable);
+
+              # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
+              home-manager.sharedModules = [
+                inputs.plasma-manager.homeManagerModules.plasma-manager
+                inputs.vscode-server.homeModules.default
+              ];
+            }
+          ];
+        };
+
+        celebi = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit customPackages; };
+          modules = [
+            ./hosts/celebi/configuration.nix
+
+            # make home-manager as a module of nixos
+            # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "old";
+
+              # Pass the configured unstable packages here
+              home-manager.users.chris = (import ./hosts/celebi/home.nix pkgs-unstable);
+              home-manager.extraSpecialArgs = { inherit customPackages; };
+
+              # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
+              home-manager.sharedModules = [
+                inputs.plasma-manager.homeManagerModules.plasma-manager
+                inputs.vscode-server.homeModules.default
+              ];
+            }
+          ];
+        };
       };
     };
-  };
 }

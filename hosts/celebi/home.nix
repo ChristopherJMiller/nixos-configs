@@ -121,9 +121,7 @@ let
     gemini-cli
   ];
 
-  custom-pkgs = with (customPackages pkgs); [
-    mpc-autofill
-  ];
+  custom-pkgs = builtins.attrValues (customPackages pkgs);
 in
 {
   home.username = "chris";
