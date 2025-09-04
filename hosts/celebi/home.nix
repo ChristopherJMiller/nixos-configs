@@ -94,6 +94,7 @@ let
     # productivity
     glow # markdown previewer in terminal
     kdePackages.kate
+    transmission_4-qt
 
     # btop/htop included as common system package
     iotop # io monitoring
