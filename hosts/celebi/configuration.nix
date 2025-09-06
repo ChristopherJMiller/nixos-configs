@@ -113,7 +113,13 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    # Disable tests to work around build failures
+    package = pkgs.tailscale.overrideAttrs (oldAttrs: {
+      doCheck = false;
+    });
+  };
 
   security.pam.services.kwallet = {
     name = "kwallet";
