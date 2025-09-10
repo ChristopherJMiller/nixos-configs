@@ -33,6 +33,7 @@
       customPackages = pkgs: {
         mpc-autofill = pkgs.callPackage ./packages/mpc-autofill { };
         bandcamp-sync = bandcamp-sync.packages.x86_64-linux.with-firefox;
+        rbxlx-to-rojo = pkgs.callPackage ./packages/rbxlx-to-rojo { };
       };
     in
     {

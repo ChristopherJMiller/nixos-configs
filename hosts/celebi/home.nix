@@ -88,7 +88,6 @@ let
     rojo
     remodel
     wally-cli
-    vinegar
 
     # nix related
     #
@@ -179,6 +178,7 @@ in
   # Flatpak configuration
   services.flatpak.packages = [
     "org.vinegarhq.Sober"
+    "org.vinegarhq.Vinegar"
   ];
 
   # Desktop entry for Sober (Flatpak)
@@ -192,6 +192,18 @@ in
     type = "Application";
     categories = [ "Game" ];
     mimeType = [ "x-scheme-handler/roblox" "x-scheme-handler/roblox-player" ];
+  };
+
+  # Desktop entry for Vinegar (Flatpak)
+  xdg.desktopEntries.vinegar = {
+    name = "Vinegar";
+    genericName = "Roblox Studio";
+    comment = "Roblox Studio on Linux";
+    exec = "flatpak run org.vinegarhq.Vinegar %u";
+    icon = "org.vinegarhq.Vinegar";
+    terminal = false;
+    type = "Application";
+    categories = [ "Game" "Development" ];
   };
 
   programs.vscode = {
