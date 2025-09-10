@@ -84,11 +84,6 @@ let
     prismlauncher
     runelite
 
-    # Roblox Development Tools
-    rojo
-    remodel
-    wally
-
     # nix related
     #
     # it provides the command `nom` works just like `nix
