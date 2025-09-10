@@ -11,7 +11,6 @@ let
   stable-pkgs = with pkgs; [
     # Social
     spotify
-    discord
     element-desktop
     telegram-desktop
     mumble
@@ -85,6 +84,12 @@ let
     prismlauncher
     runelite
 
+    # Roblox Development Tools
+    rojo
+    remodel
+    wally-cli
+    vinegar
+
     # nix related
     #
     # it provides the command `nom` works just like `nix
@@ -117,9 +122,8 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
-    code-cursor
     claude-code
-    gemini-cli
+    discord
   ];
 
   custom-pkgs = builtins.attrValues (customPackages pkgs);
@@ -171,6 +175,24 @@ in
 
   # Packages that should be installed to the user profile.
   home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs;
+
+  # Flatpak configuration
+  services.flatpak.packages = [
+    "org.vinegarhq.Sober"
+  ];
+
+  # Desktop entry for Sober (Flatpak)
+  xdg.desktopEntries.sober = {
+    name = "Sober";
+    genericName = "Roblox Player";
+    comment = "Play Roblox on Linux";
+    exec = "flatpak run org.vinegarhq.Sober %u";
+    icon = "org.vinegarhq.Sober";
+    terminal = false;
+    type = "Application";
+    categories = [ "Game" ];
+    mimeType = [ "x-scheme-handler/roblox" "x-scheme-handler/roblox-player" ];
+  };
 
   programs.vscode = {
     enable = true;

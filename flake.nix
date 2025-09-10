@@ -11,6 +11,7 @@
     plasma-manager.inputs.home-manager.follows = "home-manager";
     vscode-server.url = "github:nix-community/nixos-vscode-server";
     bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.4.0";
+    nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
   };
 
   outputs =
@@ -109,6 +110,7 @@
               home-manager.sharedModules = [
                 inputs.plasma-manager.homeManagerModules.plasma-manager
                 inputs.vscode-server.homeModules.default
+                inputs.nix-flatpak.homeManagerModules.nix-flatpak
               ];
             }
           ];
