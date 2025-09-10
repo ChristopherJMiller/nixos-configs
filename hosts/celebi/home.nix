@@ -87,7 +87,7 @@ let
     # Roblox Development Tools
     rojo
     remodel
-    wally-cli
+    wally
 
     # nix related
     #
@@ -191,7 +191,10 @@ in
     terminal = false;
     type = "Application";
     categories = [ "Game" ];
-    mimeType = [ "x-scheme-handler/roblox" "x-scheme-handler/roblox-player" ];
+    mimeType = [
+      "x-scheme-handler/roblox"
+      "x-scheme-handler/roblox-player"
+    ];
   };
 
   # Desktop entry for Vinegar (Flatpak)
@@ -203,7 +206,10 @@ in
     icon = "org.vinegarhq.Vinegar";
     terminal = false;
     type = "Application";
-    categories = [ "Game" "Development" ];
+    categories = [
+      "Game"
+      "Development"
+    ];
   };
 
   programs.vscode = {
