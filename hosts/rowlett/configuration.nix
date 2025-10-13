@@ -5,20 +5,25 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [
-      # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
 
-      # Include Common Configuration Options
-      ../../common/configuration.nix
-      ../../common/sddm-avatar.nix
-    ];
+    # Include Common Configuration Options
+    ../../common/configuration.nix
+    ../../common/sddm-avatar.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.supportedFilesystems = [ "ext4" "exfat" "fat32" "ntfs" "zfs" ];
+  boot.supportedFilesystems = [
+    "ext4"
+    "exfat"
+    "fat32"
+    "ntfs"
+    "zfs"
+  ];
   boot.zfs.forceImportRoot = false;
   networking.hostId = "67360d1b";
 
@@ -80,14 +85,20 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
+  services.flatpak.enable = true;
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.chris = {
     isNormalUser = true;
     description = "Chris Miller";
-    extraGroups = [ "networkmanager" "wheel" "docker" "dialout" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "docker"
+      "dialout"
+    ];
     shell = pkgs.zsh;
   };
-
 
   # List services that you want to enable:
 

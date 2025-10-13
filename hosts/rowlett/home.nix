@@ -163,6 +163,43 @@ in
   # Packages that should be installed to the user profile.
   home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs;
 
+  # Flatpak configuration
+  services.flatpak.packages = [
+    "org.vinegarhq.Sober"
+    "org.vinegarhq.Vinegar"
+  ];
+
+  # Desktop entry for Sober (Flatpak)
+  xdg.desktopEntries.sober = {
+    name = "Sober";
+    genericName = "Roblox Player";
+    comment = "Play Roblox on Linux";
+    exec = "flatpak run org.vinegarhq.Sober %u";
+    icon = "org.vinegarhq.Sober";
+    terminal = false;
+    type = "Application";
+    categories = [ "Game" ];
+    mimeType = [
+      "x-scheme-handler/roblox"
+      "x-scheme-handler/roblox-player"
+    ];
+  };
+
+  # Desktop entry for Vinegar (Flatpak)
+  xdg.desktopEntries.vinegar = {
+    name = "Vinegar";
+    genericName = "Roblox Studio";
+    comment = "Roblox Studio on Linux";
+    exec = "flatpak run org.vinegarhq.Vinegar %u";
+    icon = "org.vinegarhq.Vinegar";
+    terminal = false;
+    type = "Application";
+    categories = [
+      "Game"
+      "Development"
+    ];
+  };
+
   programs.vscode = {
     enable = true;
     profiles.default.extensions =

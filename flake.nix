@@ -59,6 +59,7 @@
               home-manager.sharedModules = [
                 inputs.plasma-manager.homeManagerModules.plasma-manager
                 inputs.vscode-server.homeModules.default
+                inputs.nix-flatpak.homeManagerModules.nix-flatpak
               ];
             }
           ];
