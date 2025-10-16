@@ -79,6 +79,7 @@ let
     gnupg
 
     rustup
+    stm32cubemx
 
     # Games
     prismlauncher
