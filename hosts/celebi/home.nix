@@ -80,6 +80,7 @@ let
 
     rustup
     stm32cubemx
+    stm32flash
 
     # Games
     prismlauncher
