@@ -81,6 +81,11 @@ let
     rustup
     stm32cubemx
     stm32flash
+    stlink
+    dfu-util
+    platformio
+    openocd
+    espflash
 
     # Games
     prismlauncher
