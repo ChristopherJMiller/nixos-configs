@@ -91,6 +91,29 @@
   services.tlp.enable = false;
   services.thermald.enable = true;
 
+  # Framework-specific features
+  # Enables EC control for battery charge limits, privacy switches, LEDs
+  hardware.framework.enableKmod = true;
+
+  # Firmware updates via fwupd (automatically enabled by nixos-hardware module)
+  # Use 'fwupdmgr update' to check for and install firmware updates
+
+  # Battery charge limit (OS-level, independent of BIOS setting)
+  # Note: BIOS setting takes precedence, but OS setting is useful for runtime control
+  # Set to desired percentage (e.g., 80 for 80% max charge)
+  systemd.services.battery-charge-threshold = {
+    description = "Set battery charge threshold";
+    wantedBy = [ "multi-user.target" "post-resume.target" ];
+    after = [ "multi-user.target" "post-resume.target" ];
+    startLimitBurst = 5;
+    startLimitIntervalSec = 1;
+    serviceConfig = {
+      Type = "oneshot";
+      Restart = "on-failure";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'echo 80 > /sys/class/power_supply/BAT1/charge_control_end_threshold'";
+    };
+  };
+
   # Bluetooth Support
   hardware.bluetooth = {
     enable = true;

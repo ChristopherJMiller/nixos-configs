@@ -229,7 +229,15 @@ in
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
-  programs.zsh = (import ../../common/zsh.nix).zsh;
+  # Framework-specific zsh configuration
+  programs.zsh = (import ../../common/zsh.nix).zsh // {
+    shellAliases = {
+      # Check for firmware updates after rebuild
+      nixr-fw = "nixr && fwupdmgr refresh && fwupdmgr get-updates";
+      # Firmware update command
+      fw-update = "fwupdmgr refresh && fwupdmgr update";
+    };
+  };
   programs.kitty = {
     enable = true;
     themeFile = "Catppuccin-Macchiato";
