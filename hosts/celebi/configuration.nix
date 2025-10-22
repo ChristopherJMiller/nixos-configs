@@ -92,8 +92,19 @@
   services.thermald.enable = true;
 
   # Bluetooth Support
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        Experimental = true; # Enables battery level reporting
+        FastConnectable = true;
+      };
+      Policy = {
+        AutoEnable = true;
+      };
+    };
+  };
 
   # GPU Support
   services.xserver.videoDrivers = [ "amdgpu" ];
