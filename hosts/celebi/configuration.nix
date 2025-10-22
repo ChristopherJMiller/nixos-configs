@@ -26,6 +26,16 @@
   # when timeout is set to 0
   boot.loader.timeout = 0;
 
+  # Fix S2idle and AMD GPU suspend issues
+  # Based on Framework 13 AMD 7640U community fixes
+  boot.kernelParams = [
+    "amd_pstate=active" # Use active AMD P-state driver for better power management
+    "amdgpu.runpm=1" # Enable runtime PM for AMD GPU
+    "amdgpu.dcdebugmask=0x10" # Reduce GPU debug logging (helps with black screens)
+    "pcie_aspm=off" # Fix suspend/resume crashes on Framework AMD (kernel 6.12.x)
+    "rtc_cmos.use_acpi_alarm=1" # Better RTC handling for S2idle
+  ];
+
   networking.hostId = "f5ae0848";
 
   networking.hostName = "celebi"; # Define your hostname.
@@ -75,9 +85,10 @@
   nixpkgs.config.allowUnfree = true;
 
   # Power Management
+  # Power-profiles-daemon for better AMD GPU suspends
   powerManagement.enable = true;
-  services.power-profiles-daemon.enable = false;
-  services.tlp.enable = true;
+  services.power-profiles-daemon.enable = true;
+  services.tlp.enable = false;
   services.thermald.enable = true;
 
   # Bluetooth Support
