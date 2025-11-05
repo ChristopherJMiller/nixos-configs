@@ -32,12 +32,64 @@
     # jack.enable = true;
 
     # Bluetooth audio configuration
-    wireplumber.extraConfig."10-bluez" = {
-      "monitor.bluez.properties" = {
-        "bluez5.enable-sbc-xq" = true;
-        "bluez5.enable-msbc" = true;
-        "bluez5.enable-hw-volume" = true;
-        "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+    wireplumber = {
+      enable = true;
+      extraConfig = {
+        "10-bluez" = {
+          "monitor.bluez.properties" = {
+            "bluez5.enable-sbc-xq" = true;
+            "bluez5.enable-msbc" = true;
+            "bluez5.enable-hw-volume" = true;
+            # Classic Bluetooth headset roles (HSP/HFP) + A2DP + LE Audio (BAP)
+            "bluez5.headset-roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+            # Re-enable LE Audio (BAP) with patched BlueZ that fixes Galaxy Buds3 Pro
+            # Include both bap_sink and bap_source for full LE Audio support
+            "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" "a2dp_sink" "a2dp_source" "bap_sink" "bap_source" ];
+            # Include lc3 codec for LE Audio support (Galaxy Buds3 Pro)
+            "bluez5.codecs" = [ "sbc" "sbc_xq" "aac" "ldac" "aptx" "aptx_hd" "aptx_ll" "lc3" ];
+          };
+        };
+        # Auto-switch to bluetooth when connected
+        "11-bluetooth-policy" = {
+          "wireplumber.settings" = {
+            "bluetooth.autoswitch-to-headset-profile" = false;
+          };
+          "monitor.bluez.rules" = [
+            {
+              matches = [
+                {
+                  "device.name" = "~bluez_card.*";
+                }
+              ];
+              actions = {
+                update-props = {
+                  "bluez5.auto-connect" = [ "a2dp_sink" "bap_sink" ];
+                  "bluez5.hw-volume" = [ "a2dp_sink" "bap_sink" ];
+                  # Try to force bap-sink profile (output only)
+                  "device.profile" = "bap-sink";
+                };
+              };
+            }
+          ];
+        };
+        # Keep laptop microphone as default input
+        "12-default-routes" = {
+          "monitor.alsa.rules" = [
+            {
+              matches = [
+                {
+                  "node.name" = "alsa_input.pci-*";
+                }
+              ];
+              actions = {
+                update-props = {
+                  "priority.driver" = 1000;
+                  "priority.session" = 1000;
+                };
+              };
+            }
+          ];
+        };
       };
     };
   };
@@ -77,6 +129,10 @@
     qmk
     qmk-udev-rules
     via
+
+    # Bluetooth codecs for PipeWire
+    sbc
+    fdk_aac
   ];
 
   services.udev.packages = [ pkgs.via ];

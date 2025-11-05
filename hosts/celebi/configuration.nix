@@ -1,4 +1,10 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  customPackages,
+  ...
+}:
 
 {
   imports = [
@@ -103,8 +109,14 @@
   # Set to desired percentage (e.g., 80 for 80% max charge)
   systemd.services.battery-charge-threshold = {
     description = "Set battery charge threshold";
-    wantedBy = [ "multi-user.target" "post-resume.target" ];
-    after = [ "multi-user.target" "post-resume.target" ];
+    wantedBy = [
+      "multi-user.target"
+      "post-resume.target"
+    ];
+    after = [
+      "multi-user.target"
+      "post-resume.target"
+    ];
     startLimitBurst = 5;
     startLimitIntervalSec = 1;
     serviceConfig = {
@@ -114,13 +126,19 @@
     };
   };
 
-  # Bluetooth Support
+  # Bluetooth Support with patched BlueZ for Galaxy Buds3 Pro
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
+    # Use patched BlueZ with Galaxy Buds3 Pro metadata_context fix
+    package = (customPackages pkgs).bluez-patched;
     settings = {
       General = {
-        Experimental = true; # Enables battery level reporting
+        # Enable experimental features for LE Audio support (LC3 codec, BAP profile)
+        Experimental = true;
+        # Kernel experimental UUID for LE Audio ISO socket support
+        # Required for Galaxy Buds3 Pro and other LE Audio devices
+        KernelExperimental = "6fbaf188-05e0-496a-9885-d6ddfdb4e03e";
         FastConnectable = true;
       };
       Policy = {
