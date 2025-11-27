@@ -140,6 +140,9 @@ in
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
+  home.file.".config/discord/settings.json".text = builtins.toJSON {
+    SKIP_HOST_UPDATE = true;
+  };
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
