@@ -16,6 +16,7 @@ let
     mumble
     steam
     slack
+    zoom-us
 
     # Creative
     gimp-with-plugins
@@ -265,5 +266,13 @@ in
     TERMINAL = "kitty";
     DELTA_PAGER = "less -R";
     XCURSOR_SIZE = "64";
+
+    # Qt scaling (for Zoom and other Qt apps)
+    QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+    QT_SCALE_FACTOR = "1.5";
+
+    # GTK scaling
+    GDK_SCALE = "2";
+    GDK_DPI_SCALE = "0.5";
   };
 }
