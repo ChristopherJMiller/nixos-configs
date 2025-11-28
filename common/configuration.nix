@@ -65,8 +65,9 @@
                 update-props = {
                   "bluez5.auto-connect" = [ "a2dp_sink" "bap_sink" ];
                   "bluez5.hw-volume" = [ "a2dp_sink" "bap_sink" ];
-                  # Try to force bap-sink profile (output only)
-                  "device.profile" = "bap-sink";
+                  # Force bap-duplex profile for LE Audio devices (Galaxy Buds3 Pro)
+                  # Note: profile name is "bap-duplex", not "bap-sink"
+                  "device.profile" = "bap-duplex";
                 };
               };
             }
@@ -85,6 +86,26 @@
                 update-props = {
                   "priority.driver" = 1000;
                   "priority.session" = 1000;
+                };
+              };
+            }
+          ];
+        };
+        # Auto-switch to Bluetooth sink when connected (higher priority)
+        "13-bluetooth-default-sink" = {
+          "monitor.bluez.rules" = [
+            {
+              matches = [
+                {
+                  "node.name" = "~bluez_output.*";
+                }
+              ];
+              actions = {
+                update-props = {
+                  # Higher priority than laptop speakers (default ~1000)
+                  # This makes Bluetooth become default sink when connected
+                  "priority.driver" = 2000;
+                  "priority.session" = 2000;
                 };
               };
             }
