@@ -12,6 +12,7 @@
     plasma-manager.inputs.home-manager.follows = "home-manager";
     vscode-server.url = "github:nix-community/nixos-vscode-server";
     bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.4.0";
+    loreweaver.url = "github:christopherjmiller/loreweaver/main";
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
   };
 
@@ -22,6 +23,7 @@
       nixos-hardware,
       home-manager,
       bandcamp-sync,
+      loreweaver,
       ...
     }:
     let
@@ -37,6 +39,7 @@
         bandcamp-sync = bandcamp-sync.packages.x86_64-linux.with-firefox;
         rbxlx-to-rojo = pkgs.callPackage ./packages/rbxlx-to-rojo { };
         bluez-patched = pkgs.callPackage ./packages/bluez-patched { };
+        loreweaver = loreweaver.packages.x86_64-linux.default;
       };
     in
     {
