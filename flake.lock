@@ -103,11 +103,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1766120161,
-        "narHash": "sha256-Ls7evHG9yse3aa2fkuR/RI88unjI46kXzbGV3tS90aM=",
+        "lastModified": 1766122293,
+        "narHash": "sha256-CyW/DuPnSDFcyQhUBi7CiKmgJCTDXLQVhGc0Q7/80Ds=",
         "owner": "christopherjmiller",
         "repo": "loreweaver",
-        "rev": "bbd5af7154f847aa858fd02bbaedb03b65608353",
+        "rev": "3158068ed4571a83c87c36e7cae4959f4c60243a",
         "type": "github"
       },
       "original": {
