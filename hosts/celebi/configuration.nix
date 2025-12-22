@@ -50,9 +50,25 @@
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  # Enable networking
-  networking.networkmanager.enable = true;
+  # Enable networking with iwd backend (better driver for some routers)
+  networking.networkmanager = {
+    enable = true;
+    wifi.backend = "iwd";
+  };
   systemd.services.NetworkManager-wait-online.enable = false;
+
+  # iwd WiFi backend settings
+  networking.wireless.iwd = {
+    enable = true;
+    settings = {
+      General = {
+        EnableNetworkConfiguration = false; # Let NetworkManager handle IPs
+      };
+      Network = {
+        EnableIPv6 = true;
+      };
+    };
+  };
 
   # Set timezone to be automatic
   services.automatic-timezoned.enable = true;
