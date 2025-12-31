@@ -11,7 +11,8 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
     vscode-server.url = "github:nix-community/nixos-vscode-server";
-    bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.4.0";
+    bandcamp-sync.url = "github:christopherjmiller/bandcamp-sync/0.5.0";
+    nutune.url = "github:christopherjmiller/nutune/main";
     loreweaver.url = "github:christopherjmiller/loreweaver/main";
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
   };
@@ -23,6 +24,7 @@
       nixos-hardware,
       home-manager,
       bandcamp-sync,
+      nutune,
       loreweaver,
       ...
     }:
@@ -40,6 +42,7 @@
         rbxlx-to-rojo = pkgs.callPackage ./packages/rbxlx-to-rojo { };
         bluez-patched = pkgs.callPackage ./packages/bluez-patched { };
         loreweaver = loreweaver.packages.x86_64-linux.default;
+        nutune = nutune.packages.x86_64-linux.default;
       };
     in
     {
@@ -63,7 +66,7 @@
 
               # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
               home-manager.sharedModules = [
-                inputs.plasma-manager.homeManagerModules.plasma-manager
+                inputs.plasma-manager.homeModules.plasma-manager
                 inputs.vscode-server.homeModules.default
                 inputs.nix-flatpak.homeManagerModules.nix-flatpak
               ];
@@ -89,7 +92,7 @@
 
               # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
               home-manager.sharedModules = [
-                inputs.plasma-manager.homeManagerModules.plasma-manager
+                inputs.plasma-manager.homeModules.plasma-manager
                 inputs.vscode-server.homeModules.default
               ];
             }
@@ -119,7 +122,7 @@
 
               # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
               home-manager.sharedModules = [
-                inputs.plasma-manager.homeManagerModules.plasma-manager
+                inputs.plasma-manager.homeModules.plasma-manager
                 inputs.vscode-server.homeModules.default
                 inputs.nix-flatpak.homeManagerModules.nix-flatpak
               ];
