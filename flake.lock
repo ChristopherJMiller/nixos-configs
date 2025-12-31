@@ -264,11 +264,11 @@
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {
-        "lastModified": 1766988803,
-        "narHash": "sha256-7CUuwXafpInikI2JwNbgc3kN/J1GpyXO2vXFq3W3sUM=",
+        "lastModified": 1767155686,
+        "narHash": "sha256-gjc+E5JzzIL+aUJv6joCwHG1+A1jubJLL614a/EMIm8=",
         "owner": "christopherjmiller",
         "repo": "nutune",
-        "rev": "7e8c90d369f88c0966059c190dbcfdd936f170d9",
+        "rev": "5c3287b6e622343a70e0f644c11e0f63e05932bd",
         "type": "github"
       },
       "original": {
