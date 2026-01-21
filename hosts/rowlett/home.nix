@@ -111,6 +111,7 @@ let
 
   custom-pkgs = with (customPackages pkgs); [
     mpc-autofill
+    voxtype
   ];
 in
 {
@@ -124,6 +125,16 @@ in
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
+
+  # Rootless Docker configuration for host.docker.internal support
+  # Containers use 10.0.2.2 (slirp4netns gateway) to reach host services
+  home.file.".config/docker/daemon.json".text = builtins.toJSON {
+    host-gateway-ip = "10.0.2.2";
+  };
+  home.file.".config/systemd/user/docker.service.d/override.conf".text = ''
+    [Service]
+    Environment="DOCKERD_ROOTLESS_ROOTLESSKIT_DISABLE_HOST_LOOPBACK=false"
+  '';
 
   services.vscode-server.enable = true;
 

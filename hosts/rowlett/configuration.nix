@@ -96,6 +96,7 @@
       "wheel"
       "docker"
       "dialout"
+      "input"
     ];
     shell = pkgs.zsh;
   };
