@@ -111,7 +111,6 @@ let
 
   custom-pkgs = with (customPackages pkgs); [
     mpc-autofill
-    voxtype
   ];
 in
 {
@@ -233,6 +232,49 @@ in
   programs.kitty = {
     enable = true;
     themeFile = "Catppuccin-Macchiato";
+  };
+
+  programs.plasma = {
+    enable = true;
+
+    # Full Ctrl/Win swap for mac-like behavior
+    # Physical Win → Ctrl, Physical Ctrl → Meta
+    input.keyboard.options = [ "ctrl:swap_lwin_lctl" ];
+
+    shortcuts = {
+      # Launcher opens with Ctrl+Space (press physical Win+Space)
+      plasmashell."activate application launcher" = "Ctrl+Space";
+    };
+  };
+
+  programs.voxtype = {
+    enable = true;
+    package = (customPackages pkgs).voxtype;
+    model.name = "small.en";
+    service.enable = true;
+
+    settings = {
+      hotkey = {
+        enabled = true;
+        key = "PAUSE";
+      };
+      audio = {
+        device = "default";
+        sample_rate = 16000;
+        max_duration_secs = 60;
+        feedback = {
+          enabled = true;
+          theme = "default";
+        };
+      };
+      whisper = {
+        language = "en";
+      };
+      output = {
+        mode = "type";
+        fallback_to_clipboard = true;
+      };
+    };
   };
 
   # This value determines the home Manager release that your

@@ -72,6 +72,7 @@
                 inputs.plasma-manager.homeModules.plasma-manager
                 inputs.vscode-server.homeModules.default
                 inputs.nix-flatpak.homeManagerModules.nix-flatpak
+                inputs.voxtype.homeManagerModules.default
               ];
             }
           ];
