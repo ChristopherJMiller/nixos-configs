@@ -83,6 +83,9 @@ let
     # productivity
     glow # markdown previewer in terminal
     kdePackages.kdenlive
+    freecad
+    cura-appimage
+    gh
 
     # btop/htop included as common system package
     iotop # io monitoring
