@@ -54,18 +54,21 @@ let
         };
       };
 
-      # Enable ralph-loop for rate-limit-aware autonomous looping
-      # Official Anthropic plugin with rate-limit detection.
-      # PR #120 on claude-plugins-official adds full auto-wait on rate limits.
+      # Official Anthropic plugins
+      # ralph-loop: rate-limit-aware autonomous looping (PR #120 adds full auto-wait)
+      # frontend-design: distinctive, production-grade frontend interfaces
       enabledPlugins = {
         "ralph-loop@claude-plugins-official" = true;
+        "frontend-design@claude-plugins-official" = true;
       };
     };
 
-    # Shared memory: tell Claude about the NixOS environment
+    # Shared memory (~/.claude/CLAUDE.md)
+    # This is loaded at the start of every Claude Code session.
+    # Add anything you want Claude to always know: preferences, conventions, context.
     memory = {
       text = ''
-        # User Environment
+        # Environment
 
         - NixOS with Home Manager (flake-based, 25.05 stable channel)
         - Three hosts: rowlett (desktop/AMD GPU), celebi (Framework 13 laptop), wailmer (desktop/NVIDIA)
@@ -76,6 +79,12 @@ let
         - Containers: rootless Docker
         - Desktop: KDE Plasma 6 / Wayland
         - Package manager: nix flakes (rebuild alias: `nixr`)
+
+        # Preferences
+
+        - Keep code simple and direct — avoid over-engineering
+        - Prefer explicit over clever
+        - Use nixfmt-rfc-style for Nix formatting
       '';
     };
   };
