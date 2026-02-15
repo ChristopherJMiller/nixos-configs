@@ -183,6 +183,7 @@
       "networkmanager"
       "wheel"
       "docker"
+      "ydotool"
     ];
     shell = pkgs.zsh;
   };
@@ -192,6 +193,7 @@
   # List services that you want to enable:
 
   programs.nix-ld.enable = true;
+  programs.ydotool.enable = true;
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
