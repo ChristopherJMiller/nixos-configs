@@ -108,7 +108,6 @@ let
 
   unstable-pkgs = with pkgs-unstable; [
     code-cursor
-    claude-code
     gemini-cli
   ];
 
@@ -228,6 +227,7 @@ in
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
+  programs.claude-code = (import ../../common/claude-code.nix pkgs-unstable).claude-code;
   programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;

@@ -124,7 +124,6 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
-    claude-code
     discord
   ];
 
@@ -232,6 +231,8 @@ in
       ++ (import ../../common/vscode.nix pkgs).extensions;
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
+
+  programs.claude-code = (import ../../common/claude-code.nix pkgs-unstable).claude-code;
 
   # Framework-specific zsh configuration
   programs.zsh = (import ../../common/zsh.nix).zsh // {

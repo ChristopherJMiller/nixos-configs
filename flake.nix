@@ -80,6 +80,7 @@
 
         wailmer = nixpkgs.lib.nixosSystem {
           inherit system;
+          specialArgs = { inherit customPackages; };
           modules = [
             ./hosts/wailmer/configuration.nix
 
@@ -93,6 +94,7 @@
 
               # Pass the configured unstable packages here
               home-manager.users.chris = (import ./hosts/wailmer/home.nix pkgs-unstable);
+              home-manager.extraSpecialArgs = { inherit customPackages; };
 
               # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
               home-manager.sharedModules = [
