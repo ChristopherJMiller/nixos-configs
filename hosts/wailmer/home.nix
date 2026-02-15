@@ -171,6 +171,7 @@ in
     };
   };
 
+  programs.claude-code = (import ../../common/claude-code.nix pkgs-unstable).claude-code;
   programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;
