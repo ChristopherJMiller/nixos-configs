@@ -48,7 +48,6 @@ let
     };
 
     enabledPlugins = {
-      "ralph-loop@claude-plugins-official" = true;
       "frontend-design@claude-plugins-official" = true;
     };
   };
