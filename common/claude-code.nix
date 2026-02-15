@@ -68,23 +68,11 @@ let
     # Add anything you want Claude to always know: preferences, conventions, context.
     memory = {
       text = ''
-        # Environment
+        # Tips
 
-        - NixOS with Home Manager (flake-based, 25.05 stable channel)
-        - Three hosts: rowlett (desktop/AMD GPU), celebi (Framework 13 laptop), wailmer (desktop/NVIDIA)
-        - Shell: zsh with PowerLevel10k
-        - Editor: neovim (EDITOR), VSCode
-        - Git: signed commits (GPG key 6BFB8037115ADE26), user Christopher Miller <git@chrismiller.xyz>
-        - Languages: Rust (rustup), Nix, occasional Python/JS
-        - Containers: rootless Docker
-        - Desktop: KDE Plasma 6 / Wayland
-        - Package manager: nix flakes (rebuild alias: `nixr`)
-
-        # Preferences
-
-        - Keep code simple and direct — avoid over-engineering
-        - Prefer explicit over clever
-        - Use nixfmt-rfc-style for Nix formatting
+        - Use `nixs` alias for `nix-shell`
+        - Use `gh` for GitHub interactions (PRs, issues, etc.)
+        - Use tasks to track your work over time
       '';
     };
   };
