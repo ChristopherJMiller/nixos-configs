@@ -128,6 +128,8 @@ let
   ];
 
   custom-pkgs = builtins.attrValues (customPackages pkgs);
+
+  claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
 in
 {
   home.username = "chris";
@@ -178,7 +180,7 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs;
+  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ [ claude-code-config.package ];
 
   # Flatpak configuration
   services.flatpak.packages = [
@@ -232,7 +234,8 @@ in
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
-  programs.claude-code = (import ../../common/claude-code.nix pkgs-unstable).claude-code;
+  home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
+  home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
 
   # Framework-specific zsh configuration
   programs.zsh = (import ../../common/zsh.nix).zsh // {

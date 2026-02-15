@@ -18,7 +18,7 @@ let
 
     # Creative
     gimp-with-plugins
-    kdenlive
+    kdePackages.kdenlive
     ardour
     blender-hip
     vlc
@@ -40,7 +40,6 @@ let
     git-crypt
     kubeseal
     ffmpeg
-    ventoy-full
     zfs
     imwheel
 
@@ -81,7 +80,7 @@ let
 
     # productivity
     glow # markdown previewer in terminal
-    kate
+    kdePackages.kate
 
     # btop/htop included as common system package
     iotop # io monitoring
@@ -108,6 +107,8 @@ let
     # Addons
     alacritty-theme
   ];
+
+  claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
 in
 {
   home.username = "chris";
@@ -154,24 +155,25 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs;
+  home.packages = stable-pkgs ++ unstable-pkgs ++ [ claude-code-config.package ];
 
   programs.vscode = {
     enable = true;
-    extensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-      {
-        name = "catppuccin-vsc";
-        publisher = "Catppuccin";
-        version = "3.14.0";
-        sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
-      }
-    ] ++ (import ../../common/vscode.nix pkgs).extensions;
-    globalSnippets = {
-      workbench.colorTheme = "Catppuccin Macchiato";
-    };
+    profiles.default.extensions =
+      pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+        {
+          name = "catppuccin-vsc";
+          publisher = "Catppuccin";
+          version = "3.14.0";
+          sha256 = "90d405475821745245e172d6085815a5e5c267f5e21c6aff3b5889c964d3dc18";
+        }
+      ]
+      ++ (import ../../common/vscode.nix pkgs).extensions;
+    profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
-  programs.claude-code = (import ../../common/claude-code.nix pkgs-unstable).claude-code;
+  home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
+  home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
   programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.alacritty = {
     enable = true;
