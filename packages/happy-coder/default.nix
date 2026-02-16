@@ -1,0 +1,67 @@
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  fetchYarnDeps,
+  yarnConfigHook,
+  yarnBuildHook,
+  yarnInstallHook,
+  nodejs,
+  makeWrapper,
+}:
+
+stdenv.mkDerivation (finalAttrs: {
+  pname = "happy-coder";
+  version = "0.13.0";
+
+  src = fetchFromGitHub {
+    owner = "slopus";
+    repo = "happy-cli";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-q4o8FHBhZsNL+D8rREjPzI1ky5+p3YNSxKc1OlA2pcs=";
+  };
+
+  yarnOfflineCache = fetchYarnDeps {
+    yarnLock = finalAttrs.src + "/yarn.lock";
+    hash = "sha256-DlUUAj5b47KFhUBsftLjxYJJxyCxW9/xfp3WUCCClDY=";
+  };
+
+  # Fix Claude detection to check PATH first (supports Nix installations)
+  postPatch = ''
+        sed -i '/^function findGlobalClaudeCliPath() {$/,/Check npm global/{
+          /Check npm global/i\
+        // Check PATH first (supports Nix and other package managers)\
+        try {\
+            const claudePath = require("child_process").execSync("which claude 2>/dev/null", { encoding: "utf8" }).trim();\
+            if (claudePath && require("fs").existsSync(claudePath)) {\
+                return { path: claudePath, source: "PATH" };\
+            }\
+        } catch (e) {}\
+    \
+
+        }' scripts/claude_version_utils.cjs
+  '';
+
+  nativeBuildInputs = [
+    nodejs
+    yarnConfigHook
+    yarnBuildHook
+    yarnInstallHook
+    makeWrapper
+  ];
+
+  postInstall = ''
+    wrapProgram $out/bin/happy \
+      --prefix PATH : ${lib.makeBinPath [ nodejs ]}
+    wrapProgram $out/bin/happy-mcp \
+      --prefix PATH : ${lib.makeBinPath [ nodejs ]}
+  '';
+
+  meta = {
+    description = "CLI to connect local Claude Code to mobile device";
+    homepage = "https://github.com/slopus/happy-cli";
+    license = lib.licenses.mit;
+    mainProgram = "happy";
+    platforms = lib.platforms.all;
+  };
+})

@@ -99,6 +99,7 @@
       "input"
     ];
     shell = pkgs.zsh;
+    linger = true;
   };
 
   # List services that you want to enable:
@@ -108,6 +109,14 @@
   services.openssh.settings.X11Forwarding = true;
 
   services.tailscale.enable = true;
+
+  # OOM safety net for development workloads
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 10;
+    enableNotifications = true;
+  };
 
   security.pam.services.kwallet = {
     name = "kwallet";

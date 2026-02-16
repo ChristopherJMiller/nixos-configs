@@ -116,6 +116,7 @@ let
   ];
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
+  happy-coder-pkg = pkgs.callPackage ../../packages/happy-coder {};
 in
 {
   home.username = "chris";
@@ -175,7 +176,10 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ [ claude-code-config.package ];
+  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ [
+    claude-code-config.package
+    happy-coder-pkg
+  ];
 
   # Flatpak configuration
   services.flatpak.packages = [
@@ -231,13 +235,58 @@ in
 
   home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
-  programs.zsh = (import ../../common/zsh.nix).zsh;
+  programs.zsh = (import ../../common/zsh.nix).zsh // {
+    shellAliases = {
+      cargo-limited = "systemd-run --user --scope --slice=dev.slice -p MemoryHigh=12G -p MemoryMax=14G -p CPUQuota=400% -p Nice=10 -- cargo";
+      claude-safe = "NODE_OPTIONS=--max-old-space-size=4096 MALLOC_ARENA_MAX=2 systemd-run --user --scope --slice=dev.slice -p MemoryHigh=6G -p MemoryMax=8G -p CPUQuota=400% -- claude";
+      happy-safe = "NODE_OPTIONS=--max-old-space-size=4096 MALLOC_ARENA_MAX=2 systemd-run --user --scope --slice=dev.slice -p MemoryHigh=6G -p MemoryMax=8G -p CPUQuota=400% -- happy";
+    };
+  };
   programs.alacritty = {
     enable = true;
   };
   programs.kitty = {
     enable = true;
     themeFile = "Catppuccin-Macchiato";
+  };
+
+  # Resource isolation for development workloads
+  systemd.user.slices.dev = {
+    Unit.Description = "Development workloads (builds, Claude Code)";
+    Slice = {
+      CPUQuota = "1200%";
+      MemoryHigh = "24G";
+      MemoryMax = "28G";
+      IOWeight = 50;
+      TasksMax = 4096;
+    };
+  };
+
+  # Happy Coder daemon for mobile Claude Code access
+  systemd.user.services.happy-daemon = {
+    Unit = {
+      Description = "Happy Coder daemon for mobile Claude Code access";
+      After = [ "default.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${happy-coder-pkg}/bin/happy daemon start";
+      Slice = "dev.slice";
+      MemoryHigh = "6G";
+      MemoryMax = "8G";
+      CPUQuota = "400%";
+      Environment = [
+        "NODE_OPTIONS=--max-old-space-size=4096"
+        "MALLOC_ARENA_MAX=2"
+        "HOME=${config.home.homeDirectory}"
+        "HAPPY_HOME_DIR=${config.home.homeDirectory}/.happy"
+        "PATH=${claude-code-config.package}/bin:${happy-coder-pkg}/bin:/run/current-system/sw/bin"
+      ];
+      Restart = "on-failure";
+      RestartSec = "30s";
+      WorkingDirectory = config.home.homeDirectory;
+    };
+    Install.WantedBy = [ "default.target" ];
   };
 
   programs.plasma = {
