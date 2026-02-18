@@ -245,10 +245,9 @@ in
   programs.alacritty = {
     enable = true;
   };
-  programs.kitty = {
-    enable = true;
-    themeFile = "Catppuccin-Macchiato";
-  };
+  programs.kitty = (import ../../common/kitty.nix).kitty;
+  programs.bash = (import ../../common/bash.nix).bash;
+  programs.readline = (import ../../common/bash.nix).readline;
 
   # Resource isolation for development workloads
   systemd.user.slices.dev = {

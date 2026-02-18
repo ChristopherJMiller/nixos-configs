@@ -175,6 +175,8 @@ in
   home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
   programs.zsh = (import ../../common/zsh.nix).zsh;
+  programs.bash = (import ../../common/bash.nix).bash;
+  programs.readline = (import ../../common/bash.nix).readline;
   programs.alacritty = {
     enable = true;
     package = pkgs-unstable.alacritty;

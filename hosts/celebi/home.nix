@@ -246,10 +246,9 @@ in
       fw-update = "fwupdmgr refresh && fwupdmgr update";
     };
   };
-  programs.kitty = {
-    enable = true;
-    themeFile = "Catppuccin-Macchiato";
-  };
+  programs.kitty = (import ../../common/kitty.nix).kitty;
+  programs.bash = (import ../../common/bash.nix).bash;
+  programs.readline = (import ../../common/bash.nix).readline;
 
   # This value determines the home Manager release that your
   # configuration is compatible with. This helps avoid breakage
