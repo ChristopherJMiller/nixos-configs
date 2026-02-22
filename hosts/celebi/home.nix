@@ -90,6 +90,7 @@ let
 
     # Games
     prismlauncher
+    jdk25
     runelite
 
     # nix related
@@ -167,10 +168,10 @@ in
   # basic configuration of git, please change to your own
   programs.git = {
     enable = true;
-    userName = "Christopher Miller";
-    userEmail = "git@chrismiller.xyz";
     lfs.enable = true;
-    extraConfig = {
+    settings = {
+      user.name = "Christopher Miller";
+      user.email = "git@chrismiller.xyz";
       init.defaultBranch = "main";
     };
     signing = {

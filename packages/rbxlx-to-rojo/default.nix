@@ -10,7 +10,7 @@
   pango,
   gdk-pixbuf,
   atk,
-  wrapGAppsHook,
+  wrapGAppsHook3,
   gsettings-desktop-schemas,
   makeDesktopItem,
   copyDesktopItems,
@@ -31,7 +31,7 @@ rustPlatform.buildRustPackage rec {
 
   nativeBuildInputs = [
     pkg-config
-    wrapGAppsHook
+    wrapGAppsHook3
     copyDesktopItems
   ];
 

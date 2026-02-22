@@ -199,7 +199,7 @@
       material-design-icons
       font-awesome
       noto-fonts
-      noto-fonts-emoji
+      noto-fonts-color-emoji
       source-sans
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
