@@ -16,6 +16,7 @@
     loreweaver.url = "github:christopherjmiller/loreweaver/main";
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
     voxtype.url = "github:peteonrails/voxtype";
+    claude-desktop.url = "github:ChristopherJMiller/claude-for-linux";
   };
 
   outputs =
@@ -28,6 +29,7 @@
       nutune,
       loreweaver,
       voxtype,
+      claude-desktop,
       ...
     }:
     let
@@ -46,6 +48,7 @@
         loreweaver = loreweaver.packages.x86_64-linux.default;
         nutune = nutune.packages.x86_64-linux.default;
         voxtype = voxtype.packages.x86_64-linux.vulkan;
+        claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
       };
     in
     {

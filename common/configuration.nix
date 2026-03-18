@@ -126,6 +126,10 @@
   nix.optimise.automatic = true;
   nix.optimise.dates = [ "daily" ];
 
+  # Allow flakes to configure substituters (for project-level binary caches)
+  nix.settings.trusted-users = [ "@wheel" ];
+  nix.settings.accept-flake-config = true;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
