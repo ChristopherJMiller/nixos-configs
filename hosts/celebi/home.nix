@@ -131,6 +131,7 @@ let
   custom-pkgs = builtins.attrValues (customPackages pkgs);
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
+  fastmail = import ../../common/fastmail.nix { inherit pkgs; };
 in
 {
   home.username = "chris";
@@ -251,10 +252,19 @@ in
   programs.bash = (import ../../common/bash.nix).bash;
   programs.readline = (import ../../common/bash.nix).readline;
 
+  # Fastmail integration (email, calendar, contacts, files)
+  accounts.email.accounts.fastmail = fastmail.emailAccount;
+  accounts.calendar.accounts.fastmail = fastmail.calendarAccount;
+  accounts.contact.accounts.fastmail = fastmail.contactAccount;
+  programs.thunderbird = fastmail.thunderbird;
+  xdg.desktopEntries.fastmail-files = fastmail.webdavDesktopEntry;
+
   # This value determines the home Manager release that your
   # configuration is compatible with. This helps avoid breakage
   # when a new home Manager release introduces backwards
   # incompatible changes.
+  services.trayscale.enable = true;
+
   #
   # You can update home Manager without changing this value. See
   # the home Manager release notes for a list of state version

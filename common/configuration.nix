@@ -174,9 +174,11 @@
   programs.zsh.shellAliases = {
     nixr = "sudo nixos-rebuild switch --flake ~/nixos";
     nixu = "nix flake update --flake ~/nixos --commit-lock-file && nixr";
+    nixuc = "nix flake update claude-desktop --flake ~/nixos --commit-lock-file && nixr";
     nixs = "nix-shell";
     nixclean = "sudo nix-collect-garbage -d";
     nixrepair = "sudo nix-store --verify --check-contents --repair";
+    kdereload = "killall plasmashell && kstart plasmashell";
     htop = "btop";
     ls = "eza";
   };
