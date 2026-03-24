@@ -14,8 +14,8 @@ buildNpmPackage rec {
   src = fetchFromGitHub {
     owner = "ChristopherJMiller";
     repo = "fastmail-mcp";
-    rev = "3130aea";
-    hash = "sha256-m9TFtT3/arssWuA/SGVOnIL5p+DHvPJuLyAbUPthjvE=";
+    rev = "50b89ef";
+    hash = "sha256-MrDOB1esDo/uriIw1f44iWGqCj7vvydVpVoMM3Bd7ww=";
   };
 
   npmDepsHash = "sha256-ePsmQRprbivPTAhD6AOtPLGlD8bOuMgC5OJ3J034fo4=";

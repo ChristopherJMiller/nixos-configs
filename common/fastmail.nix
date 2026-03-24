@@ -216,6 +216,25 @@ in
         # Calendar settings
         "calendar.caldav.sched.enabled" = true;
 
+        # CalDAV calendars (Fastmail)
+        # Primary calendar
+        "calendar.registry.fastmail-primary.type" = "caldav";
+        "calendar.registry.fastmail-primary.uri" = "${caldavBase}B5B41062-61E2-11EC-BF9A-FEF9F86E4CD5";
+        "calendar.registry.fastmail-primary.name" = "Calendar";
+        "calendar.registry.fastmail-primary.username" = email;
+        "calendar.registry.fastmail-primary.cache.enabled" = true;
+        "calendar.registry.fastmail-primary.calendar-main-in-composite" = true;
+
+
+
+        # CardDAV address book (Fastmail contacts)
+        "ldap_2.servers.fastmail.carddav.url" = carddavBase;
+        "ldap_2.servers.fastmail.carddav.username" = email;
+        "ldap_2.servers.fastmail.description" = "Fastmail Contacts";
+        "ldap_2.servers.fastmail.dirType" = 102;
+        "ldap_2.servers.fastmail.filename" = "abook-fastmail.sqlite";
+        "ldap_2.servers.fastmail.auth.method" = 3; # Normal password (same as IMAP)
+
         # Check for new mail every 3 minutes
         "mail.server.default.check_new_mail" = true;
         "mail.server.default.check_time" = 3;
