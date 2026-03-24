@@ -27,6 +27,11 @@ let
     notion-app-enhanced
     calibre
 
+    # Office
+    libreoffice-qt6-fresh
+    hunspell
+    hunspellDicts.en_US
+
     # archives
     zip
     xz
@@ -147,6 +152,7 @@ in
   home.file.".config/discord/settings.json".text = builtins.toJSON {
     SKIP_HOST_UPDATE = true;
   };
+  home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source = ../../common/catppuccin-macchiato-mauve.soc;
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
