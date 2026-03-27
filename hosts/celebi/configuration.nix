@@ -229,6 +229,15 @@
     };
   };
 
+  # Mount binderfs for Redroid (Android-in-Docker) emulator containers.
+  # Kernel has CONFIG_ANDROID_BINDER_IPC=y and CONFIG_ANDROID_BINDERFS=y built-in.
+  # Redroid needs this to provide binder IPC inside containers.
+  fileSystems."/dev/binderfs" = {
+    device = "binderfs";
+    fsType = "binder";
+    options = [ "nosuid" "nodev" "noexec" ];
+  };
+
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
