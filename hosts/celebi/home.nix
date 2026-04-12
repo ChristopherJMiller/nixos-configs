@@ -127,6 +127,7 @@ let
     pciutils # lspci
     usbutils # lsusb
     nixfmt-rfc-style
+
   ];
 
   unstable-pkgs = with pkgs-unstable; [
@@ -138,6 +139,7 @@ let
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
   webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
+  ipad-display = import ../../common/ipad-display-home.nix { inherit pkgs; };
 in
 {
   home.username = "chris";
@@ -150,6 +152,7 @@ in
   home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
+  home.file.".local/bin/ipad-display" = ipad-display.script.".local/bin/ipad-display";
   home.file.".config/discord/settings.json".text = builtins.toJSON {
     SKIP_HOST_UPDATE = true;
   };
@@ -189,7 +192,7 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ [ claude-code-config.package webdav-sync.package ];
+  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ ipad-display.packages ++ [ claude-code-config.package webdav-sync.package ];
 
   # Flatpak configuration
   services.flatpak.packages = [
@@ -270,6 +273,9 @@ in
   systemd.user.services.webdav-sync = webdav-sync.syncService;
   systemd.user.timers.webdav-sync = webdav-sync.syncTimer;
   systemd.user.services.webdav-watch = webdav-sync.watchService;
+
+  # iPad virtual display — started/stopped automatically by udev on plug/unplug
+  systemd.user.services.ipad-display = ipad-display.displayService;
 
   # This value determines the home Manager release that your
   # configuration is compatible with. This helps avoid breakage

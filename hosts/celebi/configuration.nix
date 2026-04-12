@@ -14,6 +14,7 @@
     # Include Common Configuration Options
     ../../common/configuration.nix
     ../../common/sddm-avatar.nix
+    ../../common/ipad-display.nix
   ];
 
   # Bootloader.
@@ -45,6 +46,17 @@
   networking.hostId = "f5ae0848";
 
   networking.hostName = "celebi"; # Define your hostname.
+
+  networking.hosts = {
+    "127.0.0.1" = [
+      "kanidm.hearth.local"
+      "api.hearth.local"
+      "chat.hearth.local"
+      "cloud.hearth.local"
+      "grafana.hearth.local"
+      "cache.hearth.local"
+    ];
+  };
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -184,6 +196,7 @@
       "wheel"
       "docker"
       "ydotool"
+      "usbmux"
     ];
     shell = pkgs.zsh;
   };

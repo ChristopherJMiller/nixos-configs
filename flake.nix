@@ -50,6 +50,7 @@
         voxtype = voxtype.packages.x86_64-linux.vulkan;
         claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
         fastmail-mcp = pkgs.callPackage ./packages/fastmail-mcp { };
+        sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
       };
     in
     {
