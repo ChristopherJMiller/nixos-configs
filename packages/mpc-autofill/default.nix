@@ -15,8 +15,8 @@ let
   
   # PyInstaller extractor
   pyinstxtractor = fetchurl {
-    url = "https://raw.githubusercontent.com/extremecoders-re/pyinstxtractor/master/pyinstxtractor.py";
-    sha256 = "sha256-K+jc1nekey1Hyzv0Si5fLvsoRlhz1F0sl6ZmYmVzrYI=";
+    url = "https://raw.githubusercontent.com/extremecoders-re/pyinstxtractor/af384e2eece497f20bff2b6826658752cc54c020/pyinstxtractor.py";
+    sha256 = "sha256-9U/VR2m5moTis/yddnxqEEqfuDq2Vmuw7bMPROI0sjk=";
   };
 
   # Download the release binary to extract client_secrets.json

@@ -1,23 +1,23 @@
 # Sunshine pre-release with PipeWire/xdg-desktop-portal screen capture support.
-# Based on nixpkgs sunshine package, pinned to v2026.412.25828.
+# Based on nixpkgs sunshine package, pinned to v2026.415.34134.
 { pkgs }:
 
 let
-  version = "2026.412.25828";
+  version = "2026.415.34134";
 
   src = pkgs.fetchFromGitHub {
     owner = "LizardByte";
     repo = "Sunshine";
     tag = "v${version}";
-    hash = "sha256-pCxm/y4v7eArPp1IoF6/h9SKqwRyM4BnZplJzJTELs4=";
+    hash = "sha256-nwX763aUcsE/FsEvXOJqEzVftasULC+fFZ6PpxPI33E=";
     fetchSubmodules = true;
   };
 
   # Pre-fetch ffmpeg static binaries (can't download in sandbox).
-  # Tag v2026.221.143859 matches the build-deps submodule commit.
+  # Tag v2026.323.141148 matches the build-deps submodule commit.
   ffmpegBinaries = pkgs.fetchurl {
-    url = "https://github.com/LizardByte/build-deps/releases/download/v2026.221.143859/Linux-x86_64-ffmpeg.tar.gz";
-    hash = "sha256-zr96BpvxRICIlr7+jQ2dLR4dnrHJrETmkGtyxhUKIWo=";
+    url = "https://github.com/LizardByte/build-deps/releases/download/v2026.323.141148/Linux-x86_64-ffmpeg.tar.gz";
+    hash = "sha256-ZjGXBqlNFgdJLm68UQYJGPzlEZfVicrDE96MUyFDoYQ=";
   };
 in
 pkgs.sunshine.overrideAttrs (oldAttrs: {
@@ -26,7 +26,7 @@ pkgs.sunshine.overrideAttrs (oldAttrs: {
   ui = pkgs.buildNpmPackage {
     inherit src version;
     pname = "sunshine-ui";
-    npmDepsHash = "sha256-xTCS5j54kUhVITqbfx0mvtx0+Nzb0fmYdA3UXXjmmuw=";
+    npmDepsHash = "sha256-Wrcow9f/z6tiJc2Y1zsXjfoQMmpTi0vjp56Mhmyj8sM=";
 
     postPatch = ''
       cp ${./package-lock.json} ./package-lock.json
@@ -60,6 +60,11 @@ pkgs.sunshine.overrideAttrs (oldAttrs: {
       substituteInPlace src/platform/linux/portalgrab.cpp \
         --replace-fail 'bool use_screencast_only = !try_remote_desktop_session(loop, &session_path, session_token);' \
                        'bool use_screencast_only = true;'
+    ''
+    # Fix NVENC SDK 13.0 compatibility (nv-codec-headers 12.1.x)
+    # Based on upstream PR LizardByte/Sunshine#4892
+    + ''
+      patch -p1 < ${./nvenc-sdk-13.patch}
     ''
     # Pre-extract ffmpeg binaries so cmake doesn't try to download them.
     # Tarball contains ffmpeg/ dir, extract to $NIX_BUILD_TOP so it lands at /build/ffmpeg/
