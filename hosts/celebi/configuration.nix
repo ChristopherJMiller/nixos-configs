@@ -219,6 +219,11 @@
     });
   };
 
+  services.mullvad-vpn = {
+    enable = true;
+    package = pkgs.mullvad-vpn;
+  };
+
   security.pam.services.kwallet = {
     name = "kwallet";
     enableKwallet = true;
@@ -256,6 +261,36 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+
+  # VPN-friendly networking defaults.
+  # Without these, any non-trivial WireGuard tunnel (wg-quick configs,
+  # Mullvad, ad-hoc dev VPNs) will handshake successfully but silently drop
+  # return traffic because strict rpfilter rejects decrypted packets whose
+  # src IP doesn't match the kernel FIB's expected interface.
+  networking.firewall.checkReversePath = "loose";
+
+  # systemd-resolved so per-interface DNS (resolvectl dns <iface> <ip>) works
+  # cleanly. Without it, wg-quick's `DNS = ...` line is silently a no-op on
+  # NixOS (nixpkgs#139526) and Mullvad DNS is hit-or-miss.
+  services.resolved = {
+    enable = true;
+    # Last-resort resolvers so the box keeps DNS when every tunnel is down
+    # or a tunnel pushed a private resolver that is unreachable.
+    fallbackDns = [ "1.1.1.1" "9.9.9.9" ];
+  };
+
+  # Make USB-tethered phone hotspots a low-priority default route so wifi
+  # wins when both are up. Regular wired ethernet (docks, onboard NICs) is
+  # unaffected because systemd's predictable naming only appends "u<N>" for
+  # USB-attached network devices. `mountthor-up` still pins specific host
+  # routes via the tether explicitly.
+  networking.networkmanager.settings = {
+    "connection-usb-tether-low-priority" = {
+      match-device = "interface-name:enp*u*";
+      "ipv4.route-metric" = 700;
+      "ipv6.route-metric" = 700;
+    };
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

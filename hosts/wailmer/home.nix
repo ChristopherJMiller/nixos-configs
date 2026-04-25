@@ -112,6 +112,21 @@ let
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
 in
 {
+  imports = [
+    (import ../../common/plasma.nix {
+      launchers = [
+        "preferred://browser"
+        "preferred://filemanager"
+        "file:///etc/profiles/per-user/chris/share/applications/kitty.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/code.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/spotify.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/discord.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/element-desktop.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/org.telegram.desktop.desktop"
+      ];
+    })
+  ];
+
   home.username = "chris";
   home.homeDirectory = "/home/chris";
 
@@ -119,7 +134,6 @@ in
   # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
 
   home.file.".p10k.zsh".source = ../../common/p10k.zsh;
-  home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ../../common/icon.png;
 
   # link all files in `./scripts` to `~/.config/i3/scripts`

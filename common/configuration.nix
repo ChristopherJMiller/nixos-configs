@@ -178,7 +178,8 @@
     nixs = "nix-shell";
     nixclean = "sudo nix-collect-garbage -d";
     nixrepair = "sudo nix-store --verify --check-contents --repair";
-    kdereload = "killall plasmashell && kstart plasmashell";
+    kdereload = "systemctl --user restart plasma-plasmashell.service";
+    nixrk = "nixr && kdereload";
     htop = "btop";
     ls = "eza";
   };

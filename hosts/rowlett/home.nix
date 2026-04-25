@@ -120,6 +120,28 @@ let
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
 in
 {
+  imports = [
+    (import ../../common/plasma.nix {
+      wallpaper = "/home/chris/Pictures/Wallpapers/center.jpg";
+      launchers = [
+        "preferred://browser"
+        "preferred://filemanager"
+        "applications:Alacritty.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/code.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/spotify.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/discord.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/element-desktop.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/org.telegram.desktop.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/slack.desktop"
+      ];
+      extraSystrayItems = [ "org.kde.plasma.nightcolorcontrol" ];
+      keyboardOptions = [ "ctrl:swap_lwin_lctl" ];
+      extraShortcuts = {
+        plasmashell."activate application launcher" = "Ctrl+Space";
+      };
+    })
+  ];
+
   home.username = "chris";
   home.homeDirectory = "/home/chris";
 
@@ -127,7 +149,6 @@ in
   # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
 
   home.file.".p10k.zsh".source = ../../common/p10k.zsh;
-  home.file.".config/plasma-org.kde.plasma.desktop-appletsrc".source = ./plasma-applets.txt;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
 
@@ -294,19 +315,6 @@ in
       WorkingDirectory = config.home.homeDirectory;
     };
     Install.WantedBy = [ "default.target" ];
-  };
-
-  programs.plasma = {
-    enable = true;
-
-    # Full Ctrl/Win swap for mac-like behavior
-    # Physical Win → Ctrl, Physical Ctrl → Meta
-    input.keyboard.options = [ "ctrl:swap_lwin_lctl" ];
-
-    shortcuts = {
-      # Launcher opens with Ctrl+Space (press physical Win+Space)
-      plasmashell."activate application launcher" = "Ctrl+Space";
-    };
   };
 
   programs.voxtype = {

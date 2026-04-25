@@ -17,6 +17,7 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
     voxtype.url = "github:peteonrails/voxtype";
     claude-desktop.url = "github:ChristopherJMiller/claude-for-linux";
+    timekeeper.url = "github:ChristopherJMiller/timekeeper";
   };
 
   outputs =
@@ -30,6 +31,7 @@
       loreweaver,
       voxtype,
       claude-desktop,
+      timekeeper,
       ...
     }:
     let
@@ -51,6 +53,7 @@
         claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
         fastmail-mcp = pkgs.callPackage ./packages/fastmail-mcp { };
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
+        timekeeper = timekeeper.packages.x86_64-linux.default;
       };
     in
     {
