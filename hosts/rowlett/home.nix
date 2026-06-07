@@ -133,22 +133,42 @@ let
     nixfmt-rfc-style
   ];
 
+  # The pinned nixpkgs-unstable feed lags behind upstream GitHub Copilot CLI
+  # releases. Override the version/src here to track the latest release until
+  # the feed catches up.
+  github-copilot-cli-latest = pkgs-unstable.github-copilot-cli.overrideAttrs (old: rec {
+    version = "1.0.60";
+    src = pkgs-unstable.fetchurl {
+      url = "https://github.com/github/copilot-cli/releases/download/v${version}/github-copilot-${version}.tgz";
+      hash = "sha256-wUEBstKx8Yb9m6ynIi137ZXR7dO39uepnv/yGFVE/qQ=";
+    };
+    # 1.0.60 bundles musl prebuilds of keytar that reference
+    # libc.musl-x86_64.so.1; these are never used on this glibc host, so
+    # ignore the unsatisfiable musl dependency rather than fail the build.
+    autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
+      "libc.musl-x86_64.so.1"
+    ];
+  });
+
   unstable-pkgs = with pkgs-unstable; [
     discord
     code-cursor
     gemini-cli
+    github-copilot-cli-latest
   ];
 
   # Exclude celebi/laptop-specific custom packages:
   # - sunshine-prerelease: iPad-as-second-display dock (laptop only)
   # - bluez-patched: Galaxy Buds3 Pro LE Audio fix (used by celebi system bluez)
-  custom-pkgs = builtins.attrValues (builtins.removeAttrs (customPackages pkgs) [
-    "sunshine-prerelease"
-    "bluez-patched"
-  ]);
+  custom-pkgs = builtins.attrValues (
+    builtins.removeAttrs (customPackages pkgs) [
+      "sunshine-prerelease"
+      "bluez-patched"
+    ]
+  );
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
-  happy-coder-pkg = pkgs.callPackage ../../packages/happy-coder {};
+  happy-coder-pkg = pkgs.callPackage ../../packages/happy-coder { };
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
   webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
 
@@ -197,7 +217,8 @@ in
   home.file.".config/discord/settings.json".text = builtins.toJSON {
     SKIP_HOST_UPDATE = true;
   };
-  home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source = ../../common/catppuccin-macchiato-mauve.soc;
+  home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source =
+    ../../common/catppuccin-macchiato-mauve.soc;
 
   home.file.".local/share/cura/5.11/plugins/OctoPrintPlugin".source = cura-octoprint-plugin;
 
@@ -247,11 +268,15 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ [
-    claude-code-config.package
-    happy-coder-pkg
-    webdav-sync.package
-  ];
+  home.packages =
+    stable-pkgs
+    ++ unstable-pkgs
+    ++ custom-pkgs
+    ++ [
+      claude-code-config.package
+      happy-coder-pkg
+      webdav-sync.package
+    ];
 
   # Flatpak configuration
   services.flatpak.packages = [
