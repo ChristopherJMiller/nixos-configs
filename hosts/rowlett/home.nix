@@ -11,20 +11,26 @@ let
   stable-pkgs = with pkgs; [
     # Social
     spotify
-    discord
     element-desktop
     telegram-desktop
     mumble
     steam
     slack
+    zoom-us
 
     # Creative
     gimp-with-plugins
     kdePackages.kdenlive
-    ardour
+    # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
     blender-hip
     vlc
     notion-app-enhanced
+    calibre
+
+    # Office
+    libreoffice-qt6-fresh
+    hunspell
+    hunspellDicts.en_US
 
     # archives
     zip
@@ -43,6 +49,14 @@ let
     kubeseal
     ffmpeg
     zfs
+    imwheel
+    xclip
+
+    # Virtualization
+    qemu
+    quickemu
+    spice
+    spice-vdagent
 
     # networking tools
     mtr # A network diagnostic tool
@@ -53,8 +67,11 @@ let
     socat # replacement of openbsd-netcat
     nmap # A utility for network discovery and security auditing
     ipcalc # it is a calculator for the IPv4/v6 addresses
-    firefox
     chromium
+    firefox
+    remmina
+    gh
+    strawberry
 
     # misc
     cowsay
@@ -66,13 +83,21 @@ let
     gawk
     zstd
     gnupg
-    xclip
 
     openrgb-with-all-plugins
     rustup
+    stm32cubemx
+    stm32flash
+    stlink
+    dfu-util
+    platformio
+    openocd
+    espflash
 
     # Games
     prismlauncher
+    jdk25
+    runelite
 
     # nix related
     #
@@ -82,10 +107,11 @@ let
 
     # productivity
     glow # markdown previewer in terminal
-    kdePackages.kdenlive
+    kdePackages.kate
+    kdePackages.ksshaskpass # GUI sudo/ssh password prompt (SUDO_ASKPASS target)
+    transmission_4-qt
     freecad
     cura-appimage
-    gh
 
     # btop/htop included as common system package
     iotop # io monitoring
@@ -98,6 +124,7 @@ let
     lsof # list open files
 
     # system tools
+    minikube
     sysstat
     lm_sensors # for `sensors` command
     ethtool
@@ -107,17 +134,33 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
+    discord
     code-cursor
     gemini-cli
   ];
 
-  custom-pkgs = with (customPackages pkgs); [
-    mpc-autofill
-  ];
+  # Exclude celebi/laptop-specific custom packages:
+  # - sunshine-prerelease: iPad-as-second-display dock (laptop only)
+  # - bluez-patched: Galaxy Buds3 Pro LE Audio fix (used by celebi system bluez)
+  custom-pkgs = builtins.attrValues (builtins.removeAttrs (customPackages pkgs) [
+    "sunshine-prerelease"
+    "bluez-patched"
+  ]);
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
   happy-coder-pkg = pkgs.callPackage ../../packages/happy-coder {};
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
+  webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
+
+  # Cura plugins: Cura has no declarative plugin API, but the AppImage scans
+  # ~/.local/share/cura/<version>/plugins/ at startup, so we drop sources there.
+  # Bump the version path when cura-appimage moves past 5.11.
+  cura-octoprint-plugin = pkgs.fetchFromGitHub {
+    owner = "fieldOfView";
+    repo = "Cura-OctoPrintPlugin";
+    rev = "v3.7.3";
+    hash = "sha256-OFfXzjd8MeXEa/pDi4SUzsPh/XNeWBKO1cmBgoZN+SI=";
+  };
 in
 {
   imports = [
@@ -126,7 +169,7 @@ in
       launchers = [
         "preferred://browser"
         "preferred://filemanager"
-        "applications:Alacritty.desktop"
+        "file:///etc/profiles/per-user/chris/share/applications/kitty.desktop"
         "file:///etc/profiles/per-user/chris/share/applications/code.desktop"
         "file:///etc/profiles/per-user/chris/share/applications/spotify.desktop"
         "file:///etc/profiles/per-user/chris/share/applications/discord.desktop"
@@ -151,6 +194,12 @@ in
   home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
+  home.file.".config/discord/settings.json".text = builtins.toJSON {
+    SKIP_HOST_UPDATE = true;
+  };
+  home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source = ../../common/catppuccin-macchiato-mauve.soc;
+
+  home.file.".local/share/cura/5.11/plugins/OctoPrintPlugin".source = cura-octoprint-plugin;
 
   # Rootless Docker configuration for host.docker.internal support
   # Containers use 10.0.2.2 (slirp4netns gateway) to reach host services
@@ -201,6 +250,7 @@ in
   home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ [
     claude-code-config.package
     happy-coder-pkg
+    webdav-sync.package
   ];
 
   # Flatpak configuration
@@ -278,6 +328,11 @@ in
   programs.thunderbird = fastmail.thunderbird;
   xdg.desktopEntries.fastmail-files = fastmail.webdavDesktopEntry;
 
+  # Fastmail WebDAV bidirectional sync (rclone bisync + inotify watcher)
+  systemd.user.services.webdav-sync = webdav-sync.syncService;
+  systemd.user.timers.webdav-sync = webdav-sync.syncTimer;
+  systemd.user.services.webdav-watch = webdav-sync.watchService;
+
   # Resource isolation for development workloads
   systemd.user.slices.dev = {
     Unit.Description = "Development workloads (builds, Claude Code)";
@@ -315,36 +370,6 @@ in
       WorkingDirectory = config.home.homeDirectory;
     };
     Install.WantedBy = [ "default.target" ];
-  };
-
-  programs.voxtype = {
-    enable = true;
-    package = (customPackages pkgs).voxtype;
-    model.name = "small.en";
-    service.enable = true;
-
-    settings = {
-      hotkey = {
-        enabled = true;
-        key = "PAUSE";
-      };
-      audio = {
-        device = "default";
-        sample_rate = 16000;
-        max_duration_secs = 60;
-        feedback = {
-          enabled = true;
-          theme = "default";
-        };
-      };
-      whisper = {
-        language = "en";
-      };
-      output = {
-        mode = "type";
-        fallback_to_clipboard = true;
-      };
-    };
   };
 
   # This value determines the home Manager release that your

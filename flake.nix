@@ -15,9 +15,18 @@
     nutune.url = "github:christopherjmiller/nutune/main";
     loreweaver.url = "github:christopherjmiller/loreweaver/main";
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
-    voxtype.url = "github:peteonrails/voxtype";
     claude-desktop.url = "github:ChristopherJMiller/claude-for-linux";
     timekeeper.url = "github:ChristopherJMiller/timekeeper";
+    # Upstream Ardour's .gitattributes has `/* export-ignore`, which makes
+    # GitHub release tarballs ship a single README. Use git+https:// so Nix
+    # does a full clone instead of going through the archive API.
+    ardour-mcp.url = "git+https://github.com/ChristopherJMiller/ardour.git";
+    ardour-mcp.inputs.nixpkgs.follows = "nixpkgs";
+    # cmspam/nixcache-oci provides the cache-proxy nixos module that talks to
+    # GHCR-hosted OCI nix caches. The ChristopherJMiller/ardour fork publishes
+    # its prebuilt ardour into ghcr.io/christopherjmiller/ardour/nix-cache so
+    # we don't have to rebuild it on each host.
+    nixcache-oci.url = "github:cmspam/nixcache-oci";
   };
 
   outputs =
@@ -29,9 +38,10 @@
       bandcamp-sync,
       nutune,
       loreweaver,
-      voxtype,
       claude-desktop,
       timekeeper,
+      ardour-mcp,
+      nixcache-oci,
       ...
     }:
     let
@@ -49,11 +59,25 @@
         bluez-patched = pkgs.callPackage ./packages/bluez-patched { };
         loreweaver = loreweaver.packages.x86_64-linux.default;
         nutune = nutune.packages.x86_64-linux.default;
-        voxtype = voxtype.packages.x86_64-linux.vulkan;
         claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
         fastmail-mcp = pkgs.callPackage ./packages/fastmail-mcp { };
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
         timekeeper = timekeeper.packages.x86_64-linux.default;
+        ardour-mcp = ardour-mcp.packages.x86_64-linux.default;
+      };
+      # Shared module wiring up the nixcache-oci proxy so all hosts pull the
+      # prebuilt ardour-mcp NARs from ghcr.io instead of compiling from source.
+      # Until a signing key is configured in the ardour fork's CI, the cache
+      # is unsigned — requireSignatures = false matches.
+      ardourCacheModule = { ... }: {
+        imports = [ nixcache-oci.nixosModules.default ];
+        services.nixcache-proxy = {
+          enable = true;
+          repo = "ChristopherJMiller/ardour";
+          requireSignatures = false;
+        };
+        # The proxy listens on localhost:37515; the substituter URL is added
+        # automatically by the module.
       };
     in
     {
@@ -63,6 +87,7 @@
           specialArgs = { inherit customPackages; };
           modules = [
             ./hosts/rowlett/configuration.nix
+            ardourCacheModule
 
             # make home-manager as a module of nixos
             # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
@@ -80,7 +105,6 @@
                 inputs.plasma-manager.homeModules.plasma-manager
                 inputs.vscode-server.homeModules.default
                 inputs.nix-flatpak.homeManagerModules.nix-flatpak
-                inputs.voxtype.homeManagerModules.default
               ];
             }
           ];
@@ -91,6 +115,7 @@
           specialArgs = { inherit customPackages; };
           modules = [
             ./hosts/wailmer/configuration.nix
+            ardourCacheModule
 
             # make home-manager as a module of nixos
             # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
@@ -118,6 +143,7 @@
           specialArgs = { inherit customPackages; };
           modules = [
             ./hosts/celebi/configuration.nix
+            ardourCacheModule
 
             # Framework 13 AMD 7040 hardware optimizations
             nixos-hardware.nixosModules.framework-13-7040-amd

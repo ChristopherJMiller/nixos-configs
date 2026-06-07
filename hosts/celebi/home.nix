@@ -21,7 +21,7 @@ let
     # Creative
     gimp-with-plugins
     kdePackages.kdenlive
-    ardour
+    # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
     blender-hip
     vlc
     notion-app-enhanced

@@ -1,6 +1,6 @@
 pkgs-unstable:
 
-{ config, pkgs, ... }:
+{ config, pkgs, customPackages, ... }:
 
 let
   stable-pkgs = with pkgs; [
@@ -19,7 +19,7 @@ let
     # Creative
     gimp-with-plugins
     kdePackages.kdenlive
-    ardour
+    # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
     blender-hip
     vlc
     notion-app-enhanced
@@ -170,7 +170,10 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ [ claude-code-config.package ];
+  home.packages = stable-pkgs ++ unstable-pkgs ++ [
+    claude-code-config.package
+    (customPackages pkgs).ardour-mcp
+  ];
 
   programs.vscode = {
     enable = true;
