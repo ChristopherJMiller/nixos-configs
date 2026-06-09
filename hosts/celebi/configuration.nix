@@ -176,11 +176,39 @@
   };
 
   # GPU Support
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  # "displaylink" adds the unfree DisplayLink userspace driver + evdi kernel module
+  # + udev rules, needed for USB-attached displays through the hub.
+  services.xserver.videoDrivers = [ "amdgpu" "displaylink" "modesetting" ];
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
   };
+
+  # Load evdi (the DisplayLink virtual DRM driver) early so the hub is detected
+  # immediately on plug-in instead of waiting for first hotplug.
+  boot.extraModulePackages = [ config.boot.kernelPackages.evdi ];
+  boot.initrd.kernelModules = [ "evdi" ];
+
+  # KDE Plasma 6 Wayland needs DisplayLinkManager running constantly (not the
+  # hotplug-triggered dlm.service that ships with the displaylink module).
+  # Source: nixos.wiki/wiki/DisplayLink — KDE Plasma section.
+  # Disable dlm to avoid two DisplayLinkManager processes fighting over /tmp/PmMessagesPort_*.
+  systemd.services.dlm.enable = false;
+  systemd.services.displaylink-server = {
+    enable = true;
+    requires = [ "systemd-udevd.service" ];
+    after = [ "systemd-udevd.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.displaylink}/bin/DisplayLinkManager";
+      User = "root";
+      Group = "root";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
+  environment.variables.KWIN_DRM_PREFER_COLOR_DEPTH = "24";
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -232,6 +260,7 @@
   # Enable Docker
   virtualisation.docker = {
     enable = true;
+    package = pkgs.docker_29;
     enableOnBoot = false;
     autoPrune = {
       enable = true;
@@ -239,6 +268,7 @@
     rootless = {
       enable = true;
       setSocketVariable = true;
+      package = pkgs.docker_29;
     };
     daemon.settings = {
       features = {

@@ -4,6 +4,7 @@
   extraSystrayItems ? [ ],
   extraShortcuts ? { },
   keyboardOptions ? [ ],
+  virtualDesktops ? 4,
 }:
 
 { lib, ... }:
@@ -14,6 +15,8 @@
 
     input.keyboard.options = keyboardOptions;
 
+    kwin.virtualDesktops.number = virtualDesktops;
+
     workspace = lib.optionalAttrs (wallpaper != null) { inherit wallpaper; };
 
     panels = [
@@ -21,7 +24,6 @@
         location = "bottom";
         widgets = [
           "org.kde.plasma.kickoff"
-          "org.kde.plasma.pager"
           {
             name = "org.kde.plasma.icontasks";
             extraConfig = ''

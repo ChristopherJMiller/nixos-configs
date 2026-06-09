@@ -48,6 +48,7 @@ let
     git-crypt
     kubeseal
     ffmpeg
+    sox
     zfs
     imwheel
     xclip
