@@ -21,7 +21,6 @@ let
     # Creative
     gimp-with-plugins
     kdePackages.kdenlive
-    # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
     blender-hip
     vlc
     notion-app-enhanced
@@ -135,7 +134,9 @@ let
     discord
   ];
 
-  custom-pkgs = builtins.attrValues (customPackages pkgs);
+  # ardour-mcp is excluded on celebi (Framework 13 laptop); it is only used on
+  # desktop hosts with the MCP HTTP control surface.
+  custom-pkgs = builtins.attrValues (builtins.removeAttrs (customPackages pkgs) [ "ardour-mcp" ]);
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };

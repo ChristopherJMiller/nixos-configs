@@ -143,7 +143,6 @@
           specialArgs = { inherit customPackages; };
           modules = [
             ./hosts/celebi/configuration.nix
-            ardourCacheModule
 
             # Framework 13 AMD 7040 hardware optimizations
             nixos-hardware.nixosModules.framework-13-7040-amd
