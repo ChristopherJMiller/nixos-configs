@@ -320,6 +320,17 @@
       "ipv4.route-metric" = 700;
       "ipv6.route-metric" = 700;
     };
+
+    # Ignore DHCP-provided resolvers (some routers, e.g. 192.168.18.1, drop
+    # ~1/3 of queries -> intermittent SERVFAIL). resolved's fallbackDns is NOT
+    # failover -- it only fires when zero links have DNS -- so a flaky uplink
+    # resolver isn't covered. NM global DNS overrides per-connection (DHCP) DNS
+    # and pushes these two reliable upstreams to resolved instead. The dns
+    # backend stays systemd-resolved (set by the NixOS module), so the stub and
+    # per-interface/tunnel split-DNS are unaffected.
+    "global-dns-domain-*" = {
+      servers = "1.1.1.1,9.9.9.9";
+    };
   };
 
   # This value determines the NixOS release from which the default

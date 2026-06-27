@@ -11,7 +11,6 @@ let
   stable-pkgs = with pkgs; [
     # Social
     spotify
-    element-desktop
     telegram-desktop
     mumble
     steam
@@ -130,8 +129,27 @@ let
 
   ];
 
+  github-copilot-cli-latest = pkgs-unstable.github-copilot-cli.overrideAttrs (old: rec {
+    version = "1.0.63";
+    src = pkgs-unstable.fetchurl {
+      url = "https://github.com/github/copilot-cli/releases/download/v${version}/github-copilot-${version}.tgz";
+      hash = "sha256-0K+uVsaG9cndsqRhxIV8K399WsLjvVZAgbLreJdmJbs=";
+    };
+    # 1.0.60 bundles musl prebuilds of keytar that reference
+    # libc.musl-x86_64.so.1; these are never used on this glibc host, so
+    # ignore the unsatisfiable musl dependency rather than fail the build.
+    autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
+      "libc.musl-x86_64.so.1"
+    ];
+  });
+
   unstable-pkgs = with pkgs-unstable; [
     discord
+    github-copilot-cli-latest
+    # Sourced from unstable because stable's electron-unwrapped-41.7.2 is not
+    # in cache.nixos.org and would force a full from-source electron build;
+    # the unstable element-desktop and its electron are cached.
+    element-desktop
   ];
 
   # ardour-mcp is excluded on celebi (Framework 13 laptop); it is only used on
@@ -263,8 +281,9 @@ in
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
-  home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
-  home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
+  # NOTE: ~/.claude/settings.json and ~/.claude/CLAUDE.md are intentionally
+  # NOT managed here so they can be edited manually on this host.
+  # (claude-code-config.files still available if you want to re-enable.)
 
   # Framework-specific zsh configuration
   programs.zsh = (import ../../common/zsh.nix).zsh // {
