@@ -330,7 +330,6 @@ in
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
-  home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
   programs.zsh = (import ../../common/zsh.nix).zsh // {
     shellAliases = {

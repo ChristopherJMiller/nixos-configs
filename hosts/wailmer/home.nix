@@ -172,7 +172,7 @@ in
   # Packages that should be installed to the user profile.
   home.packages = stable-pkgs ++ unstable-pkgs ++ [
     claude-code-config.package
-    (customPackages pkgs).ardour-mcp
+    # (customPackages pkgs).ardour-mcp  # disabled until prebuilt cache is ready
   ];
 
   programs.vscode = {
@@ -190,7 +190,6 @@ in
     profiles.default.globalSnippets = (import ../../common/vscode.nix pkgs).globalSnippets;
   };
 
-  home.file.".claude/settings.json" = claude-code-config.files.".claude/settings.json";
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
   programs.zsh = (import ../../common/zsh.nix).zsh;
   programs.bash = (import ../../common/bash.nix).bash;

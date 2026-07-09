@@ -157,12 +157,14 @@
   # Enable Docker
   virtualisation.docker = {
     enable = true;
+    package = pkgs.docker_29;
     autoPrune = {
       enable = true;
     };
     rootless = {
       enable = true;
       setSocketVariable = true;
+      package = pkgs.docker_29;
     };
     daemon.settings = {
       features = {
