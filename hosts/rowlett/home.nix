@@ -19,7 +19,8 @@ let
     zoom-us
 
     # Creative
-    gimp-with-plugins
+    # GIMP is provided via the `photogimp` custom package (Photoshop-like
+    # config overlay on gimp-with-plugins); see packages/photogimp.
     kdePackages.kdenlive
     # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
     blender-hip

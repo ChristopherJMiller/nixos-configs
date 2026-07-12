@@ -17,7 +17,8 @@ let
     slack
 
     # Creative
-    gimp-with-plugins
+    # GIMP is provided via the `photogimp` custom package (Photoshop-like
+    # config overlay on gimp-with-plugins); see packages/photogimp.
     kdePackages.kdenlive
     # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
     blender-hip
@@ -172,6 +173,7 @@ in
   # Packages that should be installed to the user profile.
   home.packages = stable-pkgs ++ unstable-pkgs ++ [
     claude-code-config.package
+    (customPackages pkgs).photogimp
     # (customPackages pkgs).ardour-mcp  # disabled until prebuilt cache is ready
   ];
 

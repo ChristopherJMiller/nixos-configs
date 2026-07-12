@@ -63,6 +63,7 @@
         nutune = nutune.packages.x86_64-linux.default;
         claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
         fastmail-mcp = pkgs.callPackage ./packages/fastmail-mcp { };
+        photogimp = pkgs.callPackage ./packages/photogimp { };
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
         timekeeper = timekeeper.packages.x86_64-linux.default;
         # ardour-mcp = ardour-mcp.packages.x86_64-linux.default;
