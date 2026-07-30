@@ -121,6 +121,14 @@
   };
   boot.kernelModules = [ "tun" ]; # tailscale needs /dev/net/tun
 
+  # The home-dev volume mounts as a fresh, root-owned ext4 at /home/dev, so the
+  # `dev` user (and home-manager activation) can't write to its own home. chown
+  # it via tmpfiles, which runs after the mount. Without this, first-boot
+  # home-manager fails and `gh auth login` / mkdir hit "permission denied".
+  systemd.tmpfiles.rules = [
+    "d /home/dev 0700 dev users - -"
+  ];
+
   # VM has no LAN footprint; 22/3389 are reachable only via tailscale or the
   # loopback forwards, so opening them here is safe.
   networking.firewall.enable = true;
