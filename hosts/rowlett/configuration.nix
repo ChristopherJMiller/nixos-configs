@@ -151,9 +151,12 @@
     devvm-down = "sudo systemctl stop microvm@devbox";
     devvm-status = "systemctl status microvm@devbox";
     devvm-log = "journalctl -u microvm@devbox -f";
-    # Must run the runner FROM the state dir — it does a relative `touch
-    # home-dev.img`, so a wrong cwd fails with a confusing permission error.
-    devvm-console = "sudo systemctl stop microvm@devbox && ( cd /var/lib/microvms/devbox && sudo -u microvm ./current/bin/microvm-run )";
+    # Foreground console for first-boot/break-glass. Two gotchas baked in:
+    #  1) virtiofsd is PartOf microvm@devbox, so stopping the service kills the
+    #     store-share daemon — start it back up before the foreground run.
+    #  2) the runner does a relative `touch home-dev.img`, so cwd must be the
+    #     state dir. Quit qemu with Ctrl-a x, then `devvm-up`.
+    devvm-console = "sudo systemctl stop microvm@devbox && sudo systemctl start microvm-virtiofsd@devbox && ( cd /var/lib/microvms/devbox && sudo -u microvm ./current/bin/microvm-run )";
   };
 
   # OOM safety net for development workloads
