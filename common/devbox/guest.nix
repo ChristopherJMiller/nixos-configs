@@ -8,8 +8,9 @@
 #   * Primary — the VM's own tailscale makes it `devbox` on the tailnet:
 #     RDP (xfreerdp / Remmina / KRDC) or `ssh dev@devbox` from anywhere on it.
 #   * Bootstrap / break-glass — qemu user-mode networking forwards, on
-#     rowlett's LOOPBACK only, 127.0.0.1:2222 -> :22 and :3389 -> :3389; plus
-#     serial-console autologin (ttyS0). Nothing is exposed on the LAN.
+#     rowlett's LOOPBACK only, 127.0.0.1:2222 -> :22 and :13389 -> :3389 (host
+#     13389, since rowlett's own xrdp holds 3389); plus serial-console
+#     autologin (ttyS0). Nothing is exposed on the LAN.
 #
 # Git is HTTPS-via-`gh` with NO gpg/ssh signing (see /etc/gitconfig below), so
 # pushes never wait on an ssh agent or pinentry — agents can drive everything.
@@ -35,7 +36,11 @@
     }
   ];
   # Convenience host->guest forwards on rowlett's loopback only (pre-tailscale
-  # bootstrap + fallback). qemu + single user interface (asserted).
+  # bootstrap + fallback). qemu + single user interface (asserted). NOTE: the
+  # RDP forward uses host port 13389, NOT 3389 — rowlett runs its OWN xrdp on
+  # 3389, so binding 3389 here collides and qemu refuses to start. Reach the
+  # guest's RDP locally via `xfreerdp /port:13389 /v:127.0.0.1`; the primary
+  # path is still RDP to `devbox` over the tailnet (unaffected).
   microvm.forwardPorts = [
     {
       host = {
@@ -47,7 +52,7 @@
     {
       host = {
         address = "127.0.0.1";
-        port = 3389;
+        port = 13389;
       };
       guest.port = 3389;
     }
