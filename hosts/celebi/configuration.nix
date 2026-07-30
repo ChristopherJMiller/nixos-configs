@@ -236,6 +236,14 @@
   programs.nix-ld.enable = true;
   programs.ydotool.enable = true;
 
+  # RDP clients for reaching the `devbox` microVM on rowlett over Tailscale.
+  # freerdp = xfreerdp (scriptable CLI, full text+image clipboard); remmina =
+  # GUI with saved connections. KRDC is already available via Plasma.
+  environment.systemPackages = with pkgs; [
+    freerdp
+    remmina
+  ];
+
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 

@@ -194,6 +194,32 @@ in
   };
   home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source = ../../common/catppuccin-macchiato-mauve.soc;
 
+  # Pre-loaded Remmina connection for the `devbox` dev VM on rowlett. Uses the
+  # tailscale MagicDNS name (`devbox`) so there's no IP to hardcode — it
+  # resolves to whatever tailnet address the VM gets. Reached over the tailnet
+  # only. Clipboard on (text+image via RDP cliprdr), self-signed cert accepted
+  # (xrdp uses one), dynamic resolution. Login user `dev` / password set via
+  # the VM's initialPassword (`passwd` to change). This file is read-only
+  # (Nix store); to tweak the connection, edit it here rather than in Remmina.
+  xdg.dataFile."remmina/devbox.remmina".text = ''
+    [remmina]
+    name=devbox (dev VM)
+    group=dev
+    protocol=RDP
+    server=devbox
+    username=dev
+    domain=
+    resolution_mode=2
+    color_depth=32
+    sound=off
+    microphone=off
+    disableclipboard=0
+    cert_ignore=1
+    glyph-cache=1
+    disableautoreconnect=0
+    window_maximize=1
+  '';
+
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
   #   source = ./scripts;

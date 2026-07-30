@@ -141,6 +141,19 @@
     });
   };
 
+  # devbox dev VM controls (off-by-default microVM; see common/devbox/).
+  # `devvm-up` wakes it, its tailscale lights up, then RDP/SSH over the tailnet.
+  # `devvm-console` is break-glass: it stops the service and runs the qemu
+  # runner in the foreground so you get the autologin serial console (Ctrl-a x
+  # to quit) — used for first-boot `tailscale up` / `gh auth login`.
+  programs.zsh.shellAliases = {
+    devvm-up = "sudo systemctl start microvm@devbox";
+    devvm-down = "sudo systemctl stop microvm@devbox";
+    devvm-status = "systemctl status microvm@devbox";
+    devvm-log = "journalctl -u microvm@devbox -f";
+    devvm-console = "sudo systemctl stop microvm@devbox; sudo -u microvm /var/lib/microvms/devbox/current/bin/microvm-run";
+  };
+
   # OOM safety net for development workloads
   services.earlyoom = {
     enable = true;

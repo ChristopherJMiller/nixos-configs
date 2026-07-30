@@ -7,6 +7,8 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    microvm.url = "github:microvm-nix/microvm.nix";
+    microvm.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.url = "github:pjones/plasma-manager";
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
@@ -37,6 +39,7 @@
       nixpkgs-unstable,
       nixos-hardware,
       home-manager,
+      microvm,
       bandcamp-sync,
       nutune,
       loreweaver,
@@ -91,6 +94,28 @@
           modules = [
             ./hosts/rowlett/configuration.nix
             # ardourCacheModule
+
+            # devbox dev VM — off-by-default qemu microVM (see common/devbox/).
+            # Fully-declarative: rebuilds/restarts with `nixos-rebuild switch`,
+            # but autostart=false keeps it out of boot. Start with `devvm-up`.
+            microvm.nixosModules.host
+            {
+              microvm.vms.devbox = {
+                autostart = false;
+                config = {
+                  imports = [
+                    ./common/devbox/guest.nix
+                    home-manager.nixosModules.home-manager
+                    {
+                      home-manager.useGlobalPkgs = true;
+                      home-manager.useUserPackages = true;
+                      home-manager.backupFileExtension = "old";
+                      home-manager.users.dev = import ./common/devbox/home.nix pkgs-unstable;
+                    }
+                  ];
+                };
+              };
+            }
 
             # make home-manager as a module of nixos
             # so that home-manager configuration will be deployed automatically when executing `nixos-rebuild switch`
