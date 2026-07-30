@@ -212,9 +212,15 @@
     git
     git-lfs
     gh
-    # terminal + browser
+    # terminal + browsers
     kitty
     firefox
+    chromium
+    # desktop apps + panel plugins (launchers wired up in ./xfce-panel.nix)
+    xfce.thunar # file manager ("directory")
+    xfce.xfce4-whiskermenu-plugin # searchable app menu
+    xfce.xfce4-taskmanager # system monitor (resource-capped VM)
+    xfce.xfce4-screenshooter # screenshots
     # clipboard bits (RDP cliprdr does text+image; these help CLI + xfce)
     xfce.xfce4-clipman-plugin
     xclip
