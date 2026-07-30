@@ -151,7 +151,9 @@
     devvm-down = "sudo systemctl stop microvm@devbox";
     devvm-status = "systemctl status microvm@devbox";
     devvm-log = "journalctl -u microvm@devbox -f";
-    devvm-console = "sudo systemctl stop microvm@devbox; sudo -u microvm /var/lib/microvms/devbox/current/bin/microvm-run";
+    # Must run the runner FROM the state dir — it does a relative `touch
+    # home-dev.img`, so a wrong cwd fails with a confusing permission error.
+    devvm-console = "sudo systemctl stop microvm@devbox && ( cd /var/lib/microvms/devbox && sudo -u microvm ./current/bin/microvm-run )";
   };
 
   # OOM safety net for development workloads
