@@ -4,7 +4,7 @@
 # bottom panel:
 #
 #   [Whisker menu] | kitty  firefox  thunar  chromium  sysmon  screenshot
-#       … window buttons (tasklist) … | systray  clipman  clock
+#       … window buttons (tasklist) … | systray (incl. clipman)  clock
 #
 # XFCE stores panel config in xfconf-backed XML. We ship it read-only from the
 # Nix store: xfce4-panel loads it fine at session start and renders the layout;
@@ -53,7 +53,6 @@ in
               <value type="int" value="8"/>
               <value type="int" value="9"/>
               <value type="int" value="10"/>
-              <value type="int" value="11"/>
               <value type="int" value="12"/>
             </property>
           </property>
@@ -100,7 +99,6 @@ in
           <property name="plugin-10" type="string" value="systray">
             <property name="square-icons" type="bool" value="true"/>
           </property>
-          <property name="plugin-11" type="string" value="clipman"/>
           <property name="plugin-12" type="string" value="clock">
             <property name="digital-layout" type="uint" value="3"/>
             <property name="digital-time-format" type="string" value="%a %b %-d  %H:%M"/>
@@ -118,5 +116,18 @@ in
       launcher "System Monitor" "xfce4-taskmanager" "org.xfce.taskmanager";
     "xfce4/panel/launcher-8/screenshooter.desktop".text =
       launcher "Screenshot" "xfce4-screenshooter" "org.xfce.screenshooter";
+
+    # Clipman as a standalone tray daemon — the panel *plugin* "clipman"
+    # doesn't load on current XFCE, so run the daemon and let it live in the
+    # systray instead. Clipboard history works the same.
+    "autostart/xfce4-clipman.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Name=Clipman
+      Exec=xfce4-clipman
+      Terminal=false
+      StartupNotify=false
+      X-XFCE-Autostart-enabled=true
+    '';
   };
 }
