@@ -2,6 +2,7 @@ pkgs-unstable:
 
 {
   config,
+  lib,
   pkgs,
   customPackages,
   ...
@@ -22,6 +23,10 @@ let
     # config overlay on gimp-with-plugins); see packages/photogimp.
     kdePackages.kdenlive
     blender-hip
+    # Photo triage (SD card culling): mark images with 1-9 while browsing,
+    # then batch move/delete by mark. Handles large dirs and RAW files
+    # better than gwenview.
+    geeqie
     vlc
     notion-app-enhanced
     calibre
@@ -155,7 +160,22 @@ let
 
   # ardour-mcp is excluded on celebi (Framework 13 laptop); it is only used on
   # desktop hosts with the MCP HTTP control surface.
-  custom-pkgs = builtins.attrValues (builtins.removeAttrs (customPackages pkgs) [ "ardour-mcp" ]);
+  #
+  # calibre-acsm is excluded from the generic package list because it isn't a
+  # runnable program — it's a Calibre plugin zip installed via an activation
+  # script (see below). Referencing it here by name keeps the zip out of the
+  # user profile's share dir.
+  custom-pkgs = builtins.attrValues (
+    builtins.removeAttrs (customPackages pkgs) [
+      "ardour-mcp"
+      "calibre-acsm"
+    ]
+  );
+
+  # Calibre ACSM plugin: on import of an Adobe `.acsm` token, fulfills the book
+  # and strips ADEPT DRM using native libgourou tools (no bundled oscrypto, so
+  # it actually works on NixOS). See packages/calibre-acsm/.
+  calibre-acsm = (customPackages pkgs).calibre-acsm;
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
@@ -199,8 +219,12 @@ in
   # resolves to whatever tailnet address the VM gets. Reached over the tailnet
   # only. Clipboard on (text+image via RDP cliprdr), self-signed cert accepted
   # (xrdp uses one), dynamic resolution. Login user `dev` / password set via
-  # the VM's initialPassword (`passwd` to change). This file is read-only
-  # (Nix store); to tweak the connection, edit it here rather than in Remmina.
+  # the VM's initialPassword (`passwd` to change). To tweak the connection,
+  # edit it here rather than in Remmina: Remmina writes runtime state (window
+  # geometry, view mode) back into this file whenever the connection is used,
+  # so `force = true` lets rebuilds overwrite that drift instead of failing
+  # on the backup collision.
+  xdg.dataFile."remmina/devbox.remmina".force = true;
   xdg.dataFile."remmina/devbox.remmina".text = ''
     [remmina]
     name=devbox (dev VM)
@@ -254,7 +278,38 @@ in
   };
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ custom-pkgs ++ ipad-display.packages ++ [ claude-code-config.package webdav-sync.package ];
+  home.packages =
+    stable-pkgs
+    ++ unstable-pkgs
+    ++ custom-pkgs
+    ++ ipad-display.packages
+    ++ [
+      claude-code-config.package
+      webdav-sync.package
+      # Native ADEPT tools (acsmdownloader / adept_activate / adept_remove) the
+      # Calibre ACSM plugin drives — also on $PATH for manual fulfillment.
+      calibre-acsm.adeptTools
+    ];
+
+  # Install/refresh the Calibre ACSM plugin. Calibre keeps plugins as a copy
+  # inside ~/.config/calibre (imperative state), so we (re)install with
+  # calibre-customize whenever the built zip's store path changes — recorded in
+  # a marker file to keep ordinary rebuilds fast. A failure only warns; it must
+  # not abort the whole home-manager switch.
+  home.activation.calibreAcsmPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    pluginZip="${calibre-acsm}/${calibre-acsm.pluginZip}"
+    marker="$HOME/.config/calibre/.acsm-plugin-nix-path"
+    if [ "$(cat "$marker" 2>/dev/null || true)" != "$pluginZip" ]; then
+      run echo "Installing Calibre plugin: ${calibre-acsm.pluginName}"
+      run ${pkgs.calibre}/bin/calibre-customize -r "${calibre-acsm.pluginName}" > /dev/null 2>&1 || true
+      if run ${pkgs.calibre}/bin/calibre-customize -a "$pluginZip"; then
+        run mkdir -p "$(dirname "$marker")"
+        run sh -c "printf '%s' '$pluginZip' > '$marker'"
+      else
+        run echo "warning: failed to install the ${calibre-acsm.pluginName} Calibre plugin" >&2
+      fi
+    fi
+  '';
 
   # Flatpak configuration
   services.flatpak.packages = [

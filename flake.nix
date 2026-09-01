@@ -62,6 +62,7 @@
         bandcamp-sync = bandcamp-sync.packages.x86_64-linux.with-firefox;
         rbxlx-to-rojo = pkgs.callPackage ./packages/rbxlx-to-rojo { };
         bluez-patched = pkgs.callPackage ./packages/bluez-patched { };
+        calibre-acsm = pkgs.callPackage ./packages/calibre-acsm { };
         loreweaver = loreweaver.packages.x86_64-linux.default;
         nutune = nutune.packages.x86_64-linux.default;
         claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
