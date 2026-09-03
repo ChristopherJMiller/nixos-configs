@@ -23,8 +23,8 @@
 
   # ---- microVM shape -------------------------------------------------------
   microvm.hypervisor = "qemu";
-  microvm.vcpu = 6; # of rowlett's 16 threads
-  microvm.mem = 12288; # 12 GiB (Rust/link-heavy builds); rowlett keeps ~19 GiB
+  microvm.vcpu = 12; # of rowlett's 16 threads
+  microvm.mem = 26624; # 26 GiB (Rust/link-heavy builds); rowlett keeps ~5 GiB
 
   # Outbound-only user-mode networking: no LAN presence. In-guest tailscale
   # reaches the tailnet via slirp NAT (+ DERP); nothing is exposed on the LAN.
@@ -82,8 +82,8 @@
     {
       image = "nix-overlay.img";
       mountPoint = config.microvm.writableStoreOverlay;
-      size = 24576;
-    } # 24 GiB
+      size = 49152;
+    } # 48 GiB
     {
       image = "tailscale-state.img";
       mountPoint = "/var/lib/tailscale";

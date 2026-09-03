@@ -63,6 +63,7 @@ in
     bat
     xclip
     gnumake
+    forgejo-cli
   ]);
 
   programs.home-manager.enable = true;
