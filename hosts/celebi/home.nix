@@ -185,6 +185,7 @@ in
 {
   imports = [
     ../../common/git.nix
+    ../../common/remmina.nix
     (import ../../common/plasma.nix {
       wallpaper = "/home/chris/Pictures/Wallpapers/1.jpg";
       launchers = [

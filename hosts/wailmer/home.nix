@@ -115,6 +115,7 @@ in
 {
   imports = [
     ../../common/git.nix
+    ../../common/remmina.nix
     (import ../../common/plasma.nix {
       launchers = [
         "preferred://browser"

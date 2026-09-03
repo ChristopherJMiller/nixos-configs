@@ -70,7 +70,6 @@ let
     ipcalc # it is a calculator for the IPv4/v6 addresses
     chromium
     firefox
-    remmina
     gh
     strawberry
 
@@ -185,6 +184,7 @@ in
 {
   imports = [
     ../../common/git.nix
+    ../../common/remmina.nix
     (import ../../common/plasma.nix {
       wallpaper = "/home/chris/Pictures/Wallpapers/center.jpg";
       launchers = [
@@ -223,64 +223,8 @@ in
 
   home.file.".local/share/cura/5.11/plugins/OctoPrintPlugin".source = cura-octoprint-plugin;
 
-  # Pre-loaded Remmina connections over the tailnet (MagicDNS names, so no IPs
-  # to hardcode). Clipboard on (text+image via RDP cliprdr), self-signed cert
-  # accepted (xrdp uses one), dynamic resolution. These files are read-only
-  # (Nix store) — tweak connections here, not in Remmina.
-  #
-  # `force = true`: Remmina rewrites its .remmina files at runtime (window
-  # geometry, last-used, ...), so home-manager would otherwise try to back the
-  # file up on every activation and eventually fail with "would be clobbered by
-  # backing up ...". force overwrites unconditionally with no backup, which is
-  # what we want since the declared config is authoritative.
-
-  # devbox dev VM — login `dev` / password from the VM's initialPassword
-  # (`passwd` to change).
-  xdg.dataFile."remmina/devbox.remmina" = {
-    force = true;
-    text = ''
-      [remmina]
-      name=devbox (dev VM)
-      group=dev
-      protocol=RDP
-      server=devbox
-      username=dev
-      domain=
-      resolution_mode=2
-      color_depth=32
-      sound=off
-      microphone=off
-      disableclipboard=0
-      cert_ignore=1
-      glyph-cache=1
-      disableautoreconnect=0
-      window_maximize=1
-    '';
-  };
-
-  # rowlett host — Plasma session over xrdp (services.xrdp, port 3389), login
-  # `chris` with your normal account password.
-  xdg.dataFile."remmina/rowlett.remmina" = {
-    force = true;
-    text = ''
-      [remmina]
-      name=rowlett (host)
-      group=hosts
-      protocol=RDP
-      server=rowlett
-      username=chris
-      domain=
-      resolution_mode=2
-      color_depth=32
-      sound=off
-      microphone=off
-      disableclipboard=0
-      cert_ignore=1
-      glyph-cache=1
-      disableautoreconnect=0
-      window_maximize=1
-    '';
-  };
+  # Remmina RDP connection profiles (devbox + rowlett) live in the shared
+  # ../../common/remmina.nix, imported at the top of this file.
 
   # Rootless Docker configuration for host.docker.internal support
   # Containers use 10.0.2.2 (slirp4netns gateway) to reach host services
