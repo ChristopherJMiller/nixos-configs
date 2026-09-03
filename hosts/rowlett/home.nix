@@ -154,7 +154,6 @@ let
   unstable-pkgs = with pkgs-unstable; [
     discord
     code-cursor
-    gemini-cli
     github-copilot-cli-latest
   ];
 
