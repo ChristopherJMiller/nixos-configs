@@ -133,12 +133,14 @@
   # Enable Docker
   virtualisation.docker = {
     enable = true;
+    package = pkgs.docker_29; # docker_28 (the default) is flagged insecure
     autoPrune = {
       enable = true;
     };
     rootless = {
       enable = true;
       setSocketVariable = true;
+      package = pkgs.docker_29;
     };
     daemon.settings = {
       features = {
