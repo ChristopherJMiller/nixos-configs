@@ -223,6 +223,32 @@ in
 
   home.file.".local/share/cura/5.11/plugins/OctoPrintPlugin".source = cura-octoprint-plugin;
 
+  # Pre-loaded Remmina connection for the `devbox` dev VM on rowlett. Uses the
+  # tailscale MagicDNS name (`devbox`) so there's no IP to hardcode — it
+  # resolves to whatever tailnet address the VM gets. Reached over the tailnet
+  # only. Clipboard on (text+image via RDP cliprdr), self-signed cert accepted
+  # (xrdp uses one), dynamic resolution. Login user `dev` / password set via
+  # the VM's initialPassword (`passwd` to change). This file is read-only
+  # (Nix store); to tweak the connection, edit it here rather than in Remmina.
+  xdg.dataFile."remmina/devbox.remmina".text = ''
+    [remmina]
+    name=devbox (dev VM)
+    group=dev
+    protocol=RDP
+    server=devbox
+    username=dev
+    domain=
+    resolution_mode=2
+    color_depth=32
+    sound=off
+    microphone=off
+    disableclipboard=0
+    cert_ignore=1
+    glyph-cache=1
+    disableautoreconnect=0
+    window_maximize=1
+  '';
+
   # Rootless Docker configuration for host.docker.internal support
   # Containers use 10.0.2.2 (slirp4netns gateway) to reach host services
   home.file.".config/docker/daemon.json".text = builtins.toJSON {

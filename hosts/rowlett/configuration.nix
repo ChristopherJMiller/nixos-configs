@@ -157,6 +157,16 @@
     #  2) the runner does a relative `touch home-dev.img`, so cwd must be the
     #     state dir. Quit qemu with Ctrl-a x, then `devvm-up`.
     devvm-console = "sudo systemctl stop microvm@devbox && sudo systemctl start microvm-virtiofsd@devbox && ( cd /var/lib/microvms/devbox && sudo -u microvm ./current/bin/microvm-run )";
+    # Recovery for a corrupt writable store overlay. Symptom: the VM restart-
+    # loops into emergency mode, `devvm-log` showing "[FAILED] Failed to start
+    # Find NixOS closure" every boot (an unclean guest shutdown corrupts the
+    # Nix store DB in nix-overlay.img; the boot closure itself is fine on the
+    # host, so a host rebuild does NOT fix it). This wipes that overlay — it
+    # holds only guest-built, rebuildable store paths and is never needed to
+    # boot — and lets microvm recreate it fresh on start. /home/dev (repos,
+    # docker, sccache/cargo caches) and tailscale-state are on separate volumes
+    # and are untouched.
+    devvm-reset-overlay = "echo 'Wipes nix-overlay.img (guest nix build cache; rebuildable). /home/dev + tailscale state untouched.' && read -q 'REPLY?Proceed? [y/N] ' && echo && sudo systemctl stop microvm@devbox && sudo rm -f /var/lib/microvms/devbox/nix-overlay.img && sudo systemctl start microvm@devbox && echo 'overlay recreated; devvm-log to watch it boot'";
   };
 
   # OOM safety net for development workloads
