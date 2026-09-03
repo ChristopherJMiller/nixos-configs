@@ -37,11 +37,29 @@ in
   home.homeDirectory = "/home/dev";
   home.stateVersion = "25.11";
 
-  # Shared terminal experience (identical to celebi/rowlett).
+  # Shared terminal experience (identical to celebi/rowlett)...
   programs.kitty = (import ../kitty.nix).kitty;
-  programs.zsh = (import ../zsh.nix).zsh;
+  # ...except p10k: in the VM the prompt loads from the read-only nix store
+  # instead of zplug's runtime clone under ~/.zplug. That clone lives on the
+  # /home/dev volume and gets corrupted/half-written whenever the disk fills,
+  # which is the "my zsh config just got nuked" symptom. Sourcing the theme
+  # from the store makes it structurally impossible to lose to ENOSPC, and a
+  # home-manager re-activation (guest boot, or `dev-fix-shell`) always restores
+  # it. Everything else in zsh.nix is inherited unchanged.
+  programs.zsh = (import ../zsh.nix).zsh // {
+    zplug.enable = false;
+    plugins = [
+      {
+        name = "powerlevel10k";
+        src = pkgs.zsh-powerlevel10k;
+        file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+      }
+    ];
+  };
   programs.bash = bashCfg.bash;
   programs.readline = bashCfg.readline;
+  # Persistent sessions for remote work (mosh is enabled in guest.nix).
+  programs.tmux = (import ../tmux.nix).tmux;
 
   # p10k prompt sourced by zsh.nix's initContent (`source ~/.p10k.zsh`), plus
   # the shared user CLAUDE.md extended with the devbox-specific tips above.

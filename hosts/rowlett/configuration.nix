@@ -151,6 +151,12 @@
     devvm-down = "sudo systemctl stop microvm@devbox";
     devvm-status = "systemctl status microvm@devbox";
     devvm-log = "journalctl -u microvm@devbox -f";
+    # Apply a rebuilt devbox config to the RUNNING VM. `nixos-rebuild switch`
+    # on rowlett rebuilds and stages the guest (updates the `current` symlink),
+    # but the live VM keeps running its old `booted` closure until restarted —
+    # this restarts it into the staged config. (If the VM is off, `devvm-up`
+    # already starts it on the new config; no need for this.)
+    devvm-update = "sudo systemctl restart microvm@devbox && echo 'devbox restarted into current config; devvm-log to watch it boot'";
     # Foreground console for first-boot/break-glass. Two gotchas baked in:
     #  1) virtiofsd is PartOf microvm@devbox, so stopping the service kills the
     #     store-share daemon — start it back up before the foreground run.
@@ -165,7 +171,10 @@
     # holds only guest-built, rebuildable store paths and is never needed to
     # boot — and lets microvm recreate it fresh on start. /home/dev (repos,
     # docker, sccache/cargo caches) and tailscale-state are on separate volumes
-    # and are untouched.
+    # and are untouched. The dev user's shell config is store-managed, so
+    # home-manager activation on the fresh boot restores it automatically. If
+    # the VM boots fine and only the shell is broken, DON'T wipe the overlay —
+    # run `dev-fix-shell` inside the VM instead.
     devvm-reset-overlay = "echo 'Wipes nix-overlay.img (guest nix build cache; rebuildable). /home/dev + tailscale state untouched.' && read -q 'REPLY?Proceed? [y/N] ' && echo && sudo systemctl stop microvm@devbox && sudo rm -f /var/lib/microvms/devbox/nix-overlay.img && sudo systemctl start microvm@devbox && echo 'overlay recreated; devvm-log to watch it boot'";
   };
 
@@ -206,6 +215,8 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  # (mosh — resilient remote shells — is enabled fleet-wide in
+  # ../../common/configuration.nix, which opens its UDP range.)
 
   # VPN-friendly networking defaults.
   # Without these, any non-trivial WireGuard tunnel (wg-quick configs,

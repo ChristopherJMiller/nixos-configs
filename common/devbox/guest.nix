@@ -71,8 +71,12 @@
   microvm.writableStoreOverlay = "/nix/.rw-store";
 
   # Persistent, sparse disks (backing images under /var/lib/microvms/devbox/).
-  # Sizes are MiB. Sum (~205 GiB) stays under rowlett's free space so the VM
-  # can never exhaust the host: worst case it hits ENOSPC inside the guest.
+  # Sizes are MiB (max apparent size; images are sparse, so real host usage
+  # tracks only what's written). WARNING: these sum to ~229 GiB and rowlett's
+  # disk runs nearly full — if the guest fills home-dev AND the store overlay
+  # it CAN exhaust the host, not just hit ENOSPC in the guest. The nix
+  # min-free/GC settings below (plus `dev-prune`) keep the overlay bounded;
+  # check `df -h /` on the host before growing any of these.
   microvm.volumes = [
     {
       image = "home-dev.img";
@@ -103,14 +107,25 @@
     "dev"
   ];
 
-  # Automatic GC of the writable store overlay so guest-built paths don't fill
-  # the 24 GiB nix-overlay volume. (auto-optimise stays off — required with
-  # writableStoreOverlay — but GC is independent and safe.)
+  # Keep the 48 GiB writable store overlay from filling up — a full overlay is
+  # what corrupts this VM (failed/half-written builds) and cascades into the
+  # dev user's shell state. Two independent layers:
+  #   1) min-free/max-free: DURING a build, if free store space drops below
+  #      min-free, nix garbage-collects until max-free is available. This is
+  #      the important one — it prevents ENOSPC mid-build without waiting for
+  #      a timer, which is the usual "ran out of space and everything broke"
+  #      trigger.
+  #   2) a scheduled GC every 6h with short retention, as a background floor.
+  # (auto-optimise stays off — required with writableStoreOverlay — but GC and
+  # min-free are independent of it and safe.)
   nix.gc = {
     automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 14d";
+    dates = "*-*-* 00/6:00:00"; # every 6 hours
+    options = "--delete-older-than 3d";
+    persistent = true; # run a missed GC on next boot (VM is off-by-default)
   };
+  nix.settings.min-free = 5368709120; # 5 GiB — GC triggers below this free
+  nix.settings.max-free = 10737418240; # 10 GiB — GC frees up to this much
 
   # ---- In-guest networking -------------------------------------------------
   networking.useNetworkd = true;
@@ -136,6 +151,11 @@
     22
     3389
   ];
+  # mosh for resilient shells into the VM over the tailnet (survives roaming /
+  # flaky links). Installs mosh system-wide and opens its UDP range
+  # (60000-61000); no LAN footprint here, so it's safe. Pair with tmux for
+  # persistence: `mosh dev@devbox -- tmux new -A -s main`.
+  programs.mosh.enable = true;
 
   # ---- Tailscale (its own tailnet node) ------------------------------------
   services.tailscale = {
@@ -191,15 +211,25 @@
   # System-wide defaults; ~/.gitconfig stays writable so `gh auth setup-git`
   # and agents can adjust freely. A fresh HTTPS clone carries no repo-level
   # commit.gpgsign, so the signing headache can't follow a repo in here.
+  # Identity is the mounthor account (chris@mounthor.com) — this VM is for
+  # mounthor work; `gh auth login` here should use that GitHub account.
+  # url.insteadOf routes any git@github.com: remote through HTTPS+gh, since
+  # the VM has no SSH keys (mirrors ../../common/git.nix on the hosts).
   environment.etc."gitconfig".text = ''
     [init]
         defaultBranch = main
+    [user]
+        name = Christopher Miller
+        email = chris@mounthor.com
     [commit]
         gpgsign = false
     [tag]
         gpgSign = false
     [push]
         autoSetupRemote = true
+    [url "https://github.com/"]
+        insteadOf = git@github.com:
+        insteadOf = ssh://git@github.com/
     [credential "https://github.com"]
         helper = !${pkgs.gh}/bin/gh auth git-credential
     [credential "https://gist.github.com"]
@@ -230,7 +260,7 @@
     wget
     htop
     btop
-    tmux
+    # tmux is provided per-user with config via home-manager (common/tmux.nix)
     neovim
     ripgrep
     jq
@@ -269,6 +299,22 @@
       df -h /home/dev
       echo "-- largest dirs under /home/dev --"
       du -sh /home/dev/* 2>/dev/null | sort -rh | head -20
+    '')
+    # Repair the dev user's shell after a disk-full / corruption event WITHOUT
+    # touching the VM. Clears only regenerable zsh runtime state (never the
+    # shell history) and re-runs home-manager activation, which relinks every
+    # managed dotfile from the read-only store. Run it INSIDE the VM
+    # (`ssh dev@devbox`, then `dev-fix-shell`) when the prompt/completion breaks
+    # but the VM still boots. If the VM won't boot at all (corrupt store
+    # overlay), use the host's `devvm-reset-overlay` instead.
+    (pkgs.writeShellScriptBin "dev-fix-shell" ''
+      set -euo pipefail
+      echo "== clearing regenerable zsh state (history is kept) =="
+      rm -rf "$HOME/.zplug" "$HOME/.cache/gitstatus" "$HOME/.cache/p10k"* \
+             "$HOME"/.zcompdump* "$HOME/.zcompcache" 2>/dev/null || true
+      echo "== re-running home-manager activation (relinks managed dotfiles) =="
+      sudo systemctl restart home-manager-dev.service
+      echo "== done — run 'exec zsh' or open a new terminal for a clean shell =="
     '')
   ];
 
