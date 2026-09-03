@@ -114,6 +114,7 @@ let
 in
 {
   imports = [
+    ../../common/git.nix
     (import ../../common/plasma.nix {
       launchers = [
         "preferred://browser"
@@ -155,24 +156,12 @@ in
    "Xft.dpi" = 172;
   };
 
-  # basic configuration of git, please change to your own
-  programs.git = {
-    enable = true;
-    lfs.enable = true;
-    settings = {
-      user.name = "Christopher Miller";
-      user.email = "git@chrismiller.xyz";
-      init.defaultBranch = "main";
-    };
-    signing = {
-      key = "6BFB8037115ADE26";
-      signByDefault = true;
-    };
-  };
+  # git config (no signing, HTTPS-via-gh) lives in ../../common/git.nix.
 
   # Packages that should be installed to the user profile.
   home.packages = stable-pkgs ++ unstable-pkgs ++ [
     claude-code-config.package
+    pkgs.gh # GitHub CLI — also the git HTTPS credential helper (common/git.nix)
     (customPackages pkgs).photogimp
     # (customPackages pkgs).ardour-mcp  # disabled until prebuilt cache is ready
   ];

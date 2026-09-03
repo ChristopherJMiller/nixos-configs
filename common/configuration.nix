@@ -192,6 +192,15 @@
     enableSSHSupport = true;
   };
 
+  # mosh: resilient remote shells for flaky/roaming links (plane wifi, phone
+  # tethering, tailnet). Enabled fleet-wide so every host is both a server (you
+  # can reach it) and a client (it can reach the others); the module also opens
+  # mosh's UDP range (60000-61000). mosh-server only starts after an
+  # authenticated SSH handshake and ignores unkeyed packets, so the open range
+  # is safe. Pair with tmux for persistence across a full drop — the `rtmux`
+  # helper (common/zsh.nix) wraps `mosh <host> -- tmux new -A -s <session>`.
+  programs.mosh.enable = true;
+
   # Enable Nix Flakes
   nix = {
     package = pkgs.nixVersions.stable;

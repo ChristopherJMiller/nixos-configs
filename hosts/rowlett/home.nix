@@ -185,6 +185,7 @@ let
 in
 {
   imports = [
+    ../../common/git.nix
     (import ../../common/plasma.nix {
       wallpaper = "/home/chris/Pictures/Wallpapers/center.jpg";
       launchers = [
@@ -279,20 +280,7 @@ in
   #  "Xft.dpi" = 172;
   #};
 
-  # basic configuration of git, please change to your own
-  programs.git = {
-    enable = true;
-    lfs.enable = true;
-    settings = {
-      user.name = "Christopher Miller";
-      user.email = "git@chrismiller.xyz";
-      init.defaultBranch = "main";
-    };
-    signing = {
-      key = "6BFB8037115ADE26";
-      signByDefault = true;
-    };
-  };
+  # git config (no signing, HTTPS-via-gh) lives in ../../common/git.nix.
 
   # Packages that should be installed to the user profile.
   home.packages =
@@ -371,6 +359,8 @@ in
   programs.kitty = (import ../../common/kitty.nix).kitty;
   programs.bash = (import ../../common/bash.nix).bash;
   programs.readline = (import ../../common/bash.nix).readline;
+  # Persistent sessions for remote work (mosh is enabled in configuration.nix).
+  programs.tmux = (import ../../common/tmux.nix).tmux;
 
   # Fastmail integration (email, calendar, contacts, files)
   accounts.email.accounts.fastmail = fastmail.emailAccount;
