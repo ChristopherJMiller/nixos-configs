@@ -67,8 +67,44 @@
   # session's values, breaking the local Plasma session's services.
   services.xserver.desktopManager.xfce.enable = true;
   services.xrdp.enable = true;
-  services.xrdp.defaultWindowManager = "xfce4-session";
+  # The session is launched through a wrapper, for two reasons:
+  #  1) Force X11 backends. The local Plasma Wayland session's socket
+  #     ($XDG_RUNTIME_DIR/wayland-0) is visible to the RDP session, and
+  #     libwayland falls back to exactly that name when WAYLAND_DISPLAY is
+  #     unset. GTK3/4 and Qt prefer Wayland when a socket is reachable, so
+  #     without this every XFCE component attaches to the LOCAL compositor
+  #     (panel + desktop pop up on the physical screen, xfwm4 never starts)
+  #     and the RDP display stays black.
+  #  2) Indirect through /run/current-system so the xrdp.conf derivation --
+  #     and therefore xrdp-sesman's unit -- does not change when the wrapper
+  #     does. The NixOS module sets X-RestartIfChanged=false on sesman (a
+  #     restart drops live RDP sessions), so any change to the *literal*
+  #     startwm command silently keeps the OLD one until
+  #     `sudo systemctl restart xrdp-sesman`. With the indirection, wrapper
+  #     edits apply on the next RDP login.
+  services.xrdp.defaultWindowManager = "/run/current-system/sw/bin/xrdp-xfce-session";
   services.xrdp.openFirewall = true;
+  environment.systemPackages = [
+    # Searchable app menu for the xrdp XFCE panel (./xfce-panel.nix in home).
+    pkgs.xfce.xfce4-whiskermenu-plugin
+    (pkgs.writeShellScriptBin "xrdp-xfce-session" ''
+      unset WAYLAND_DISPLAY
+      export GDK_BACKEND=x11
+      export QT_QPA_PLATFORM=xcb
+      export SDL_VIDEODRIVER=x11
+      export CLUTTER_BACKEND=x11
+      export MOZ_ENABLE_WAYLAND=0
+      export ELECTRON_OZONE_PLATFORM_HINT=x11
+      export XDG_SESSION_TYPE=x11
+      # Do not let xfce4-session spawn its own ssh-agent: it exports the new
+      # SSH_AUTH_SOCK into the shared user systemd manager, replacing the
+      # gpg-agent socket the local Plasma session (and everything dbus- or
+      # systemd-started) relies on. gpg-agent already serves SSH here.
+      ${pkgs.xfce.xfconf}/bin/xfconf-query -c xfce4-session \
+        -p /startup/ssh-agent/enabled -n -t bool -s false
+      exec xfce4-session
+    '')
+  ];
 
   # Configure keymap in X11
   services.xserver.xkb = {

@@ -185,6 +185,8 @@ in
   imports = [
     ../../common/git.nix
     ../../common/remmina.nix
+    # XFCE panel for the xrdp session (Plasma stays the local desktop).
+    ./xfce-panel.nix
     (import ../../common/plasma.nix {
       wallpaper = "/home/chris/Pictures/Wallpapers/center.jpg";
       launchers = [
