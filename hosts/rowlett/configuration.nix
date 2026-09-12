@@ -51,9 +51,23 @@
 
   services.desktopManager.plasma6.enable = true;
 
-  # Enable RDP
+  # Enable RDP. The xrdp session runs XFCE, NOT Plasma. Plasma 6 boots through
+  # the per-user systemd manager and owns single-instance D-Bus names
+  # (org.kde.KWin, org.kde.plasmashell, org.kde.ksmserver ...), so a second
+  # Plasma session for the same user -- which is exactly what xrdp spawns while
+  # you are logged into Plasma locally on seat0 -- black-screens: plasmashell
+  # never starts on the new display and kwin_x11 restart-loops forever. XFCE
+  # has no such conflict, so this yields a separate remote desktop alongside
+  # the local Plasma session (same approach as the devbox guest, see
+  # common/devbox/guest.nix). SDDM gains an extra "Xfce Session" entry; the
+  # default session stays Plasma. Deliberately `xfce4-session`, NOT
+  # `startxfce4`: the latter runs xinitrc, which does
+  # `dbus-update-activation-environment --systemd --all` and would overwrite
+  # DISPLAY / XDG_SESSION_* in the shared user systemd manager with the RDP
+  # session's values, breaking the local Plasma session's services.
+  services.xserver.desktopManager.xfce.enable = true;
   services.xrdp.enable = true;
-  services.xrdp.defaultWindowManager = "startplasma-x11";
+  services.xrdp.defaultWindowManager = "xfce4-session";
   services.xrdp.openFirewall = true;
 
   # Configure keymap in X11

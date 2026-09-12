@@ -56,8 +56,10 @@ in
     username = "dev";
   };
 
-  # rowlett host — Plasma session over xrdp (services.xrdp, port 3389), login
-  # `chris` with your normal account password.
+  # rowlett host — XFCE session over xrdp (services.xrdp, port 3389), login
+  # `chris` with your normal account password. XFCE rather than Plasma because
+  # Plasma 6 cannot run a second session for a user already logged in locally
+  # (see hosts/rowlett/configuration.nix).
   xdg.dataFile."remmina/rowlett.remmina" = rdpProfile {
     name = "rowlett (host)";
     group = "hosts";
