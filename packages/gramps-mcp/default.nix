@@ -40,7 +40,21 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # parent/child link was silently discarded - family views showed no children
   # and ancestor/descendant traversal stopped there.
   # Reported upstream: https://github.com/cabout-me/gramps-mcp
-  patches = [ ./child-ref-list.patch ];
+  patches = [
+    ./child-ref-list.patch
+
+    # get_type(type="person") crashed for anyone with notes: the detail
+    # handlers sliced note.text as a string, but Gramps models a note body as
+    # StyledText, serialised as {"string": ..., "tags": [...]}. Same shape of
+    # bug as the child_handles one: a Gramps structure assumed to be a scalar.
+    ./note-styled-text.patch
+
+    # Range and span dates were stored correctly but displayed as their start
+    # alone, so "between 1963 and 1967" read back as "between 1963". The tool
+    # description also never documented the eight element dateval, so callers
+    # fell back to 3 (about) and put the real window in a note.
+    ./date-range-display.patch
+  ];
 
   nativeBuildInputs = [ makeWrapper ];
 

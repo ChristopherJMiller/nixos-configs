@@ -1,0 +1,109 @@
+diff --git a/src/gramps_mcp/handlers/family_detail_handler.py b/src/gramps_mcp/handlers/family_detail_handler.py
+index fb1022e..955e23f 100644
+--- a/src/gramps_mcp/handlers/family_detail_handler.py
++++ b/src/gramps_mcp/handlers/family_detail_handler.py
+@@ -3,6 +3,7 @@ Family detail handler for Gramps MCP operations.
+ """
+ 
+ from ..models.api_calls import ApiCalls
++from ..utils import note_plain_text
+ from .date_handler import format_date
+ from .place_handler import format_place
+ 
+@@ -198,8 +199,9 @@ async def format_family_detail(client, tree_id: str, handle: str) -> str:
+                 )
+                 note_type = note_data.get("type", "")
+                 note_id = note_data.get("gramps_id", "")
+-                note_text = note_data.get("text", "")[:50]  # First 50 chars
+-                if len(note_data.get("text", "")) > 50:
++                note_full = note_plain_text(note_data)
++                note_text = note_full[:50]  # First 50 chars
++                if len(note_full) > 50:
+                     note_text += "..."
+                 result += f"- {note_type}: {note_text} ({note_id})\n"
+             except Exception:
+diff --git a/src/gramps_mcp/handlers/note_handler.py b/src/gramps_mcp/handlers/note_handler.py
+index 10adcc9..b979d9b 100644
+--- a/src/gramps_mcp/handlers/note_handler.py
++++ b/src/gramps_mcp/handlers/note_handler.py
+@@ -6,6 +6,8 @@ Provides clean, direct formatting of note data from handles.
+ 
+ import logging
+ 
++from ..utils import note_plain_text
++
+ logger = logging.getLogger(__name__)
+ 
+ # Constants
+@@ -38,7 +40,7 @@ async def format_note(client, tree_id: str, handle: str) -> str:
+ 
+         gramps_id = note_data.get("gramps_id")
+         note_type = note_data.get("type")
+-        text = note_data.get("text", {}).get("string")
++        text = note_plain_text(note_data)
+ 
+         if not text:
+             return ""
+diff --git a/src/gramps_mcp/handlers/person_detail_handler.py b/src/gramps_mcp/handlers/person_detail_handler.py
+index e2b7f6c..e063e6e 100644
+--- a/src/gramps_mcp/handlers/person_detail_handler.py
++++ b/src/gramps_mcp/handlers/person_detail_handler.py
+@@ -3,6 +3,7 @@ Person detail handler for Gramps MCP operations.
+ """
+ 
+ from ..models.api_calls import ApiCalls
++from ..utils import note_plain_text
+ from .date_handler import format_date
+ from .place_handler import format_place
+ 
+@@ -265,8 +266,9 @@ async def format_person_detail(client, tree_id: str, handle: str) -> str:
+         )
+         note_type = note_data.get("type", "")
+         note_id = note_data.get("gramps_id", "")
+-        note_text = note_data.get("text", "")[:50]
+-        if len(note_data.get("text", "")) > 50:
++        note_full = note_plain_text(note_data)
++        note_text = note_full[:50]
++        if len(note_full) > 50:
+             note_text += "..."
+         result += f"- {note_type}: {note_text} ({note_id})\n"
+ 
+diff --git a/src/gramps_mcp/utils.py b/src/gramps_mcp/utils.py
+index 13aa42f..7e419c1 100644
+--- a/src/gramps_mcp/utils.py
++++ b/src/gramps_mcp/utils.py
+@@ -2,6 +2,8 @@
+ Utility functions for gramps_mcp.
+ """
+ 
++from typing import Any, Dict
++
+ from markdownify import markdownify as md
+ 
+ from .models.api_calls import ApiCalls
+@@ -115,3 +117,25 @@ async def get_gramps_id_from_handle(
+     except Exception:
+         # If we can't resolve it, just return the handle
+         return obj_handle
++
++
++def note_plain_text(note_data: Dict[str, Any]) -> str:
++    """
++    Return a note's body as plain text.
++
++    Gramps models a note body as StyledText, which the Web API serialises as
++    {"string": ..., "tags": [...]} rather than as a bare string. Code that
++    treated it as a string raised TypeError as soon as it sliced or measured
++    it, which took down any caller formatting a person who had notes. Accept
++    either shape so older and newer payloads both work.
++
++    Args:
++        note_data: A note object as returned by the Gramps Web API
++
++    Returns:
++        The note text, or "" when there is none
++    """
++    text = (note_data or {}).get("text", "")
++    if isinstance(text, dict):
++        text = text.get("string", "")
++    return text if isinstance(text, str) else ""
