@@ -32,6 +32,7 @@ let
     name = "gramps-mcp-local";
     runtimeInputs = [
       coreutils
+      gnugrep
       systemd
       gramps-mcp
     ];

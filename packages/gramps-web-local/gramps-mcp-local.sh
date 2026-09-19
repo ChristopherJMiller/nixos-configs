@@ -24,8 +24,30 @@ export XDG_RUNTIME_DIR
 UNIT="${GRAMPS_WEB_LOCAL_UNIT:-gramps-web.service}"
 STATE_DIR="${GRAMPS_WEB_LOCAL_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/gramps-web-local}"
 
+# StopWhenUnneeded means a stop job for the unit can still be in flight when a
+# new client arrives, and systemd then refuses to create our scope, because
+# reversing a queued stop makes the transaction destructive:
+#   Transaction for ....scope/start is destructive
+#   (gramps-web.service has 'stop' job queued, but 'start' is included ...)
+# Ending one session and starting another inside the shutdown window would
+# otherwise fail to launch the server at all, so wait for the unit to settle.
+wait_for_settle() {
+  local state
+  for _ in $(seq 1 240); do
+    state=$(systemctl --user is-active "$UNIT" 2>/dev/null || true)
+    if [ "$state" != "deactivating" ] && [ "$state" != "activating" ] &&
+      ! systemctl --user list-jobs --no-legend 2>/dev/null |
+        grep -qE "[[:space:]]${UNIT}[[:space:]]+stop"; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  return 0
+}
+
 if [ -z "${GRAMPS_MCP_LOCAL_IN_SCOPE:-}" ]; then
   export GRAMPS_MCP_LOCAL_IN_SCOPE=1
+  wait_for_settle
   exec systemd-run --user --quiet --collect --scope \
     -p "Requires=$UNIT" -p "After=$UNIT" \
     -- "$0" "$@"
