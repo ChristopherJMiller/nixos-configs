@@ -1,0 +1,200 @@
+diff --git a/src/gramps_mcp/handlers/family_detail_handler.py b/src/gramps_mcp/handlers/family_detail_handler.py
+index 955e23f..e016b0a 100644
+--- a/src/gramps_mcp/handlers/family_detail_handler.py
++++ b/src/gramps_mcp/handlers/family_detail_handler.py
+@@ -3,7 +3,7 @@ Family detail handler for Gramps MCP operations.
+ """
+ 
+ from ..models.api_calls import ApiCalls
+-from ..utils import note_plain_text
++from ..utils import gender_letter, note_plain_text
+ from .date_handler import format_date
+ from .place_handler import format_place
+ 
+@@ -37,7 +37,7 @@ async def format_family_detail(client, tree_id: str, handle: str) -> str:
+     father = extended.get("father", {})
+     if father:
+         father_name = _extract_person_name(father)
+-        father_gender = _get_gender_letter(father.get("gender", 2))
++        father_gender = gender_letter(father.get("gender", 2))
+         father_id = father.get("gramps_id", "")
+         father_birth, father_death = await _get_birth_death_dates(
+             client, tree_id, father
+@@ -49,7 +49,7 @@ async def format_family_detail(client, tree_id: str, handle: str) -> str:
+     mother = extended.get("mother", {})
+     if mother:
+         mother_name = _extract_person_name(mother)
+-        mother_gender = _get_gender_letter(mother.get("gender", 2))
++        mother_gender = gender_letter(mother.get("gender", 2))
+         mother_id = mother.get("gramps_id", "")
+         mother_birth, mother_death = await _get_birth_death_dates(
+             client, tree_id, mother
+@@ -63,7 +63,7 @@ async def format_family_detail(client, tree_id: str, handle: str) -> str:
+         result += "\nCHILDREN:\n"
+         for child in children:
+             child_name = _extract_person_name(child)
+-            child_gender = _get_gender_letter(child.get("gender", 2))
++            child_gender = gender_letter(child.get("gender", 2))
+             child_id = child.get("gramps_id", "")
+             child_birth, child_death = await _get_birth_death_dates(
+                 client, tree_id, child
+@@ -221,10 +221,6 @@ def _extract_person_name(person_data: dict) -> str:
+     return "Unknown"
+ 
+ 
+-def _get_gender_letter(gender: int) -> str:
+-    """Convert gender number to letter."""
+-    return {0: "F", 1: "M", 2: "U"}.get(gender, "U")
+-
+ 
+ async def _get_birth_death_dates(client, tree_id: str, person_data: dict) -> tuple:
+     """Get birth and death dates with places for a person."""
+diff --git a/src/gramps_mcp/handlers/family_handler.py b/src/gramps_mcp/handlers/family_handler.py
+index 3c115bb..2654d00 100644
+--- a/src/gramps_mcp/handlers/family_handler.py
++++ b/src/gramps_mcp/handlers/family_handler.py
+@@ -7,6 +7,7 @@ Provides clean, direct formatting of family data from handles.
+ import logging
+ 
+ from ..models.api_calls import ApiCalls
++from ..utils import gender_letter
+ from .date_handler import format_date
+ from .place_handler import format_place
+ 
+@@ -55,7 +56,7 @@ async def format_family(client, tree_id: str, handle: str) -> str:
+                 )
+                 if father_data:
+                     father_name = _extract_person_name(father_data)
+-                    father_gender = _get_gender_letter(father_data.get("gender", 2))
++                    father_gender = gender_letter(father_data.get("gender", 2))
+                     father_id = father_data.get("gramps_id", "")
+                     family_members.append(
+                         f"Father: {father_name} ({father_gender}) - {father_id}"
+@@ -72,7 +73,7 @@ async def format_family(client, tree_id: str, handle: str) -> str:
+                 )
+                 if mother_data:
+                     mother_name = _extract_person_name(mother_data)
+-                    mother_gender = _get_gender_letter(mother_data.get("gender", 2))
++                    mother_gender = gender_letter(mother_data.get("gender", 2))
+                     mother_id = mother_data.get("gramps_id", "")
+                     family_members.append(
+                         f"Mother: {mother_name} ({mother_gender}) - {mother_id}"
+@@ -131,7 +132,7 @@ async def format_family(client, tree_id: str, handle: str) -> str:
+                         )
+                         if child_data:
+                             child_name = _extract_person_name(child_data)
+-                            child_gender = _get_gender_letter(
++                            child_gender = gender_letter(
+                                 child_data.get("gender", 2)
+                             )
+                             child_id = child_data.get("gramps_id", "")
+@@ -239,7 +240,3 @@ def _extract_person_name(person_data: dict) -> str:
+         return full_name if full_name else ""
+     return ""
+ 
+-
+-def _get_gender_letter(gender: int) -> str:
+-    """Convert gender number to letter."""
+-    return {0: "F", 1: "M", 2: "U"}.get(gender, "U")
+diff --git a/src/gramps_mcp/handlers/person_detail_handler.py b/src/gramps_mcp/handlers/person_detail_handler.py
+index e063e6e..499c5a3 100644
+--- a/src/gramps_mcp/handlers/person_detail_handler.py
++++ b/src/gramps_mcp/handlers/person_detail_handler.py
+@@ -3,7 +3,7 @@ Person detail handler for Gramps MCP operations.
+ """
+ 
+ from ..models.api_calls import ApiCalls
+-from ..utils import note_plain_text
++from ..utils import gender_letter, note_plain_text
+ from .date_handler import format_date
+ from .place_handler import format_place
+ 
+@@ -28,7 +28,7 @@ async def format_person_detail(client, tree_id: str, handle: str) -> str:
+     # Extract basic info
+     gramps_id = person_data.get("gramps_id", "")
+     name = _extract_person_name(person_data)
+-    gender_display = _get_gender_letter(person_data.get("gender", 2))
++    gender_display = gender_letter(person_data.get("gender", 2))
+ 
+     result += f"{name} ({gender_display}) - {gramps_id} - [{handle}]\n"
+ 
+@@ -286,10 +286,6 @@ def _extract_person_name(person_data: dict) -> str:
+     return "Unknown"
+ 
+ 
+-def _get_gender_letter(gender: int) -> str:
+-    """Convert gender number to letter."""
+-    return {0: "F", 1: "M", 2: "U"}.get(gender, "U")
+-
+ 
+ async def _get_birth_death_dates(client, tree_id: str, person_data: dict) -> tuple:
+     """Get birth and death dates for a person."""
+diff --git a/src/gramps_mcp/handlers/person_handler.py b/src/gramps_mcp/handlers/person_handler.py
+index 667c4e8..85d11dc 100644
+--- a/src/gramps_mcp/handlers/person_handler.py
++++ b/src/gramps_mcp/handlers/person_handler.py
+@@ -7,6 +7,7 @@ Provides clean, direct formatting of person data from handles.
+ import logging
+ 
+ from ..models.api_calls import ApiCalls
++from ..utils import gender_letter
+ from .date_handler import format_date
+ from .place_handler import format_place
+ 
+@@ -52,8 +53,7 @@ async def format_person(client, tree_id: str, handle: str) -> str:
+ 
+         # Get gender information
+         gender = person_data.get("gender", 2)  # Default to Unknown
+-        gender_letter = {0: "F", 1: "M", 2: "U"}
+-        gender_display = gender_letter.get(gender, "U")
++        gender_display = gender_letter(gender)
+ 
+         # First line: Name (gender) - gramps_id - [handle]
+         result = f"{name} ({gender_display}) - {gramps_id} - [{handle}]\n"
+diff --git a/src/gramps_mcp/models/parameters/people_params.py b/src/gramps_mcp/models/parameters/people_params.py
+index 7b530cf..75acb90 100644
+--- a/src/gramps_mcp/models/parameters/people_params.py
++++ b/src/gramps_mcp/models/parameters/people_params.py
+@@ -32,7 +32,14 @@ class PersonData(BaseDataModel):
+         ..., description="Person's primary name object with first_name and surname_list"
+     )
+     gender: int = Field(
+-        ..., ge=0, le=2, description="Gender (0=Female, 1=Male, 2=Unknown)"
++        ...,
++        ge=0,
++        le=3,
++        description=(
++            "Gender (0=Female, 1=Male, 2=Unknown, 3=Other). Gramps has "
++            "supported Other since 6.0; 2 means not recorded, so do not use it "
++            "in place of 3."
++        ),
+     )
+     event_ref_list: Optional[List[EventReference]] = Field(
+         None, description="List of references to events the person participated in"
+diff --git a/src/gramps_mcp/utils.py b/src/gramps_mcp/utils.py
+index 7e419c1..f2f7c95 100644
+--- a/src/gramps_mcp/utils.py
++++ b/src/gramps_mcp/utils.py
+@@ -139,3 +139,22 @@ def note_plain_text(note_data: Dict[str, Any]) -> str:
+     if isinstance(text, dict):
+         text = text.get("string", "")
+     return text if isinstance(text, str) else ""
++
++
++def gender_letter(gender: Any) -> str:
++    """
++    Render a Gramps gender code as a single letter.
++
++    Gramps defines Person.FEMALE 0, MALE 1, UNKNOWN 2 and OTHER 3. Four
++    separate copies of this mapping stopped at 2 and fell back to "U", so a
++    person recorded as Other displayed identically to one whose gender was
++    never recorded. Those mean different things, and collapsing them
++    misrepresents the record.
++
++    Args:
++        gender: Gramps gender code
++
++    Returns:
++        "F", "M", "O", or "U" when the code is Unknown or unrecognised
++    """
++    return {0: "F", 1: "M", 2: "U", 3: "O"}.get(gender, "U")

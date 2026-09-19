@@ -54,6 +54,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # description also never documented the eight element dateval, so callers
     # fell back to 3 (about) and put the real window in a note.
     ./date-range-display.patch
+
+    # PersonData capped gender at le=2, so Gramps' OTHER (3) was rejected at
+    # validation time and never reached the API, which accepts it happily.
+    # Four separate copies of the display map also stopped at 2 and fell back
+    # to "U", which would have rendered a person recorded as Other
+    # indistinguishably from one whose gender was never recorded.
+    ./gender-other.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];
