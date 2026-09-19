@@ -170,6 +170,7 @@ let
   happy-coder-pkg = pkgs.callPackage ../../packages/happy-coder { };
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
   webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
+  genealogy = import ../../common/genealogy.nix { inherit pkgs; };
 
   # Cura plugins: Cura has no declarative plugin API, but the AppImage scans
   # ~/.local/share/cura/<version>/plugins/ at startup, so we drop sources there.
@@ -265,6 +266,7 @@ in
     stable-pkgs
     ++ unstable-pkgs
     ++ custom-pkgs
+    ++ genealogy.packages
     ++ [
       claude-code-config.package
       happy-coder-pkg
@@ -351,6 +353,10 @@ in
   systemd.user.services.webdav-sync = webdav-sync.syncService;
   systemd.user.timers.webdav-sync = webdav-sync.syncTimer;
   systemd.user.services.webdav-watch = webdav-sync.watchService;
+
+  # Gramps Web for the genealogy MCP server. On demand: `gramps-mcp-local`
+  # starts it and systemd reports it started only once the API answers.
+  systemd.user.services.gramps-web = genealogy.grampsWebService;
 
   # Resource isolation for development workloads
   systemd.user.slices.dev = {
