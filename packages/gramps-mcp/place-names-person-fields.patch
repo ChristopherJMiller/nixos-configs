@@ -1,0 +1,80 @@
+diff --git a/src/gramps_mcp/models/parameters/people_params.py b/src/gramps_mcp/models/parameters/people_params.py
+index 75acb90..f4699f6 100644
+--- a/src/gramps_mcp/models/parameters/people_params.py
++++ b/src/gramps_mcp/models/parameters/people_params.py
+@@ -41,6 +41,22 @@ class PersonData(BaseDataModel):
+             "in place of 3."
+         ),
+     )
++    alternate_names: Optional[List[Dict[str, Any]]] = Field(
++        None,
++        description=(
++            "Other names the person was known by, as Name objects shaped like "
++            "primary_name plus an optional type such as 'Married Name' or "
++            "'Birth Name'. Recording a married name here is preferable to "
++            "noting it in free text."
++        ),
++    )
++    citation_list: Optional[List[str]] = Field(
++        None,
++        description=(
++            "Citation handles supporting the person as a whole, separate from "
++            "the citations carried by their individual events"
++        ),
++    )
+     event_ref_list: Optional[List[EventReference]] = Field(
+         None, description="List of references to events the person participated in"
+     )
+diff --git a/src/gramps_mcp/models/parameters/place_params.py b/src/gramps_mcp/models/parameters/place_params.py
+index 0e9be11..5c02c59 100644
+--- a/src/gramps_mcp/models/parameters/place_params.py
++++ b/src/gramps_mcp/models/parameters/place_params.py
+@@ -9,9 +9,9 @@ API calls supported in this category:
+ - DELETE_PLACE: Delete the place
+ """
+ 
+-from typing import List, Optional
++from typing import Any, Dict, List, Optional, Union
+ 
+-from pydantic import BaseModel, Field
++from pydantic import BaseModel, Field, model_validator
+ 
+ from .base_params import BaseGetMultipleParams, BaseGetSingleParams
+ 
+@@ -46,7 +46,15 @@ class PlaceSaveParams(BaseModel):
+     placeref_list: Optional[List[dict]] = Field(
+         None, description="List of place references"
+     )
+-    alt_names: Optional[List[str]] = Field(None, description="Alternative names")
++    alt_names: Optional[List[Union[str, Dict[str, Any]]]] = Field(
++        None,
++        description=(
++            "Alternative names, as PlaceName objects rather than strings. "
++            "Each entry needs a value key and may also carry lang, date "
++            "and type. A bare string is rejected by the Gramps API with "
++            "'is not of type object'."
++        ),
++    )
+     lat: Optional[str] = Field(None, description="Latitude coordinate")
+     long: Optional[str] = Field(None, description="Longitude coordinate")
+     urls: Optional[List[dict]] = Field(None, description="Associated URLs")
+@@ -57,3 +65,19 @@ class PlaceSaveParams(BaseModel):
+     note_list: Optional[List[str]] = Field(None, description="List of note handles")
+     tag_list: Optional[List[str]] = Field(None, description="List of tag handles")
+     private: Optional[bool] = Field(None, description="Mark as private")
++
++    @model_validator(mode="after")
++    def _normalise_alt_names(self) -> "PlaceSaveParams":
++        """Accept plain strings for alt_names and wrap them as PlaceName objects.
++
++        Gramps stores alternative place names as PlaceName objects, so the API
++        rejects a bare string with "is not of type object". Callers reach for
++        strings anyway, and the intent is unambiguous, so normalise rather than
++        fail: "Dade County" becomes {"value": "Dade County"}.
++        """
++        if self.alt_names:
++            self.alt_names = [
++                {"value": name} if isinstance(name, str) else name
++                for name in self.alt_names
++            ]
++        return self

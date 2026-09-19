@@ -1,0 +1,88 @@
+diff --git a/src/gramps_mcp/auth.py b/src/gramps_mcp/auth.py
+index b492333..aeb5189 100644
+--- a/src/gramps_mcp/auth.py
++++ b/src/gramps_mcp/auth.py
+@@ -154,23 +154,48 @@ class AuthManager:
+         except Exception as e:
+             raise ValueError(f"Authentication error: {e}")
+ 
++    def _token_is_valid(self) -> bool:
++        """Whether a cached, unexpired token is available."""
++        if not self._access_token or not self._token_expires_at:
++            return False
++        return datetime.now(timezone.utc) < self._token_expires_at
++
++    def _get_token_lock(self) -> asyncio.Lock:
++        """Per event loop lock guarding token acquisition."""
++        try:
++            loop = asyncio.get_running_loop()
++        except RuntimeError:
++            loop = None
++        if (
++            getattr(self, "_token_lock_obj", None) is None
++            or getattr(self, "_token_lock_loop", None) is not loop
++        ):
++            self._token_lock_obj = asyncio.Lock()
++            self._token_lock_loop = loop
++        return self._token_lock_obj
++
+     async def get_token(self) -> str:
+         """
+         Get a valid access token, authenticating if needed.
+ 
++        The MCP server handles tool calls concurrently and they share this
++        singleton. Without a lock every call in a batch saw an empty cache and
++        authenticated at once, and Gramps Web rate limits /api/token/, so all
++        but the first came back "Authentication failed: HTTP 429". Serialise
++        acquisition so one call fetches the token and the rest reuse it.
++
+         Returns:
+             Valid access token
+         """
+-        # Check if we need to authenticate
+-        if not self._access_token or not self._token_expires_at:
+-            return await self.authenticate()
++        if self._token_is_valid():
++            return self._access_token
+ 
+-        # Check if token is expired
+-        if datetime.now(timezone.utc) >= self._token_expires_at:
++        async with self._get_token_lock():
++            # Another caller may have authenticated while we waited.
++            if self._token_is_valid():
++                return self._access_token
+             return await self.authenticate()
+ 
+-        return self._access_token
+-
+     def get_headers(self) -> dict:
+         """
+         Get authentication headers for API requests.
+diff --git a/src/gramps_mcp/client.py b/src/gramps_mcp/client.py
+index 8df8f39..806167f 100644
+--- a/src/gramps_mcp/client.py
++++ b/src/gramps_mcp/client.py
+@@ -43,8 +43,21 @@ class GrampsWebAPIClient:
+         self.base_url = base_url
+ 
+     async def close(self):
+-        """Close the HTTP client and auth manager."""
+-        await self.auth_manager.close()
++        """Release this client.
++
++        Deliberately does not close the AuthManager's HTTP client. AuthManager
++        is a process wide singleton holding one shared httpx.AsyncClient, while
++        every tool builds a GrampsWebAPIClient and closes it in a finally
++        block. Because the MCP server handles tool calls concurrently, the
++        first call to finish was tearing the shared client out from under any
++        call still in flight, which surfaced as a bare "Unexpected error:" with
++        no message, since anyio.ClosedResourceError stringifies to "".
++
++        The singleton's client property already recreates the client when the
++        event loop changes, so leaving it open between calls is both correct
++        and cheaper. Call AuthManager.close() directly for a real shutdown.
++        """
++        return None
+ 
+     async def _get_headers(self) -> Dict[str, str]:
+         """Get authentication headers for API requests."""

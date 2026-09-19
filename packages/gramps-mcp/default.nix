@@ -61,6 +61,22 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # to "U", which would have rendered a person recorded as Other
     # indistinguishably from one whose gender was never recorded.
     ./gender-other.patch
+
+    # place alt_names was typed as List[str], but Gramps stores alternative
+    # place names as PlaceName objects, so the only shape the model accepted
+    # was the one the API rejects with "is not of type object" - unusable in
+    # both directions. Now takes objects, and wraps a bare string as
+    # {"value": ...} rather than failing. Also exposes two PersonData fields
+    # that existed in the data but not in the tool: alternate_names, which is
+    # what a married name belongs in, and person level citation_list.
+    ./place-names-person-fields.patch
+
+    # AuthManager is a process wide singleton holding one shared httpx client,
+    # but every tool closed it in a finally block. The MCP server handles tool
+    # calls concurrently, so whichever finished first tore the client out from
+    # under the others; the loser reported a bare "Unexpected error:" with no
+    # message, because anyio.ClosedResourceError stringifies to "".
+    ./shared-client-lifetime.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];
