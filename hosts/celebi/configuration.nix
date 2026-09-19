@@ -220,6 +220,8 @@
     isNormalUser = true;
     description = "Chris";
     extraGroups = [
+      "scanner"
+      "lp"
       "networkmanager"
       "wheel"
       "docker"
@@ -235,6 +237,15 @@
 
   programs.nix-ld.enable = true;
   programs.ydotool.enable = true;
+
+  # Scanner support (SANE) for digitising source documents — see
+  # ../../common/genealogy.nix, which installs simple-scan + OCR tooling.
+  # sane-airscan covers modern driverless network scanners (eSCL/WSD);
+  # USB devices come from the default backends plus the udev rules this
+  # option installs. Chris is in the "scanner" and "lp" groups above so the
+  # devices are reachable without root.
+  hardware.sane.enable = true;
+  hardware.sane.extraBackends = [ pkgs.sane-airscan ];
 
   # RDP clients for reaching the `devbox` microVM on rowlett over Tailscale.
   # freerdp = xfreerdp (scriptable CLI, full text+image clipboard); remmina =
