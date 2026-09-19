@@ -77,6 +77,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # under the others; the loser reported a bare "Unexpected error:" with no
     # message, because anyio.ClosedResourceError stringifies to "".
     ./shared-client-lifetime.patch
+
+    # Writing alternate_names was only half of it: no read path displayed them,
+    # so a married name recorded the way Gramps intends was invisible once
+    # written. The person detail view now shows the primary name type and any
+    # alternate names with theirs.
+    ./show-alternate-names.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];

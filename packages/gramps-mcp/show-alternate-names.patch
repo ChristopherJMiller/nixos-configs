@@ -1,0 +1,56 @@
+diff --git a/src/gramps_mcp/handlers/person_detail_handler.py b/src/gramps_mcp/handlers/person_detail_handler.py
+index 499c5a3..b9d33af 100644
+--- a/src/gramps_mcp/handlers/person_detail_handler.py
++++ b/src/gramps_mcp/handlers/person_detail_handler.py
+@@ -32,6 +32,24 @@ async def format_person_detail(client, tree_id: str, handle: str) -> str:
+ 
+     result += f"{name} ({gender_display}) - {gramps_id} - [{handle}]\n"
+ 
++    # Gramps records a married name as an alternate Name with type
++    # "Married Name", alongside a primary of type "Birth Name". Nothing here
++    # used to display alternate_names at all, so that convention was invisible
++    # once written, which is why married names ended up in free text notes.
++    primary_type = (person_data.get("primary_name") or {}).get("type")
++    if primary_type:
++        result += f"Name type: {primary_type}\n"
++
++    alternate_names = person_data.get("alternate_names") or []
++    if alternate_names:
++        result += "Also known as:\n"
++        for alt in alternate_names:
++            alt_name = _format_name(alt)
++            if not alt_name:
++                continue
++            alt_type = alt.get("type")
++            result += f"- {alt_name}" + (f" ({alt_type})" if alt_type else "") + "\n"
++
+     # Birth and death from extended data
+     extended = person_data.get("extended", {})
+     events = extended.get("events", [])
+@@ -275,15 +293,19 @@ async def format_person_detail(client, tree_id: str, handle: str) -> str:
+     return result
+ 
+ 
++def _format_name(name_obj: dict) -> str:
++    """Format one Gramps Name object as "Given Surname"."""
++    if not name_obj:
++        return ""
++    given_name = name_obj.get("first_name", "")
++    surname_list = name_obj.get("surname_list", []) or []
++    surname = surname_list[0].get("surname", "") if surname_list else ""
++    return f"{given_name} {surname}".strip()
++
++
+ def _extract_person_name(person_data: dict) -> str:
+     """Extract full name from person data."""
+-    primary_name = person_data.get("primary_name", {})
+-    if primary_name:
+-        given_name = primary_name.get("first_name", "")
+-        surname_list = primary_name.get("surname_list", [])
+-        surname = surname_list[0].get("surname", "") if surname_list else ""
+-        return f"{given_name} {surname}".strip()
+-    return "Unknown"
++    return _format_name(person_data.get("primary_name", {})) or "Unknown"
+ 
+ 
+ 
