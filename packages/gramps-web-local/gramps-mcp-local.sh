@@ -14,6 +14,13 @@
 
 set -euo pipefail
 
+# An MCP client may launch us with a reduced environment. systemd-run needs a
+# route to the user bus, and XDG_RUNTIME_DIR alone is enough; without it and
+# without DBUS_SESSION_BUS_ADDRESS it fails with "Failed to connect to user
+# scope bus".
+: "${XDG_RUNTIME_DIR:=/run/user/$(id -u)}"
+export XDG_RUNTIME_DIR
+
 UNIT="${GRAMPS_WEB_LOCAL_UNIT:-gramps-web.service}"
 STATE_DIR="${GRAMPS_WEB_LOCAL_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/gramps-web-local}"
 
