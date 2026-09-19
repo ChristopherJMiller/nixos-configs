@@ -34,6 +34,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     hash = "sha256-7dj8Ol4MBkDFOhUXXM8tctWHrmDVGVQg/jEkRBFFLyA=";
   };
 
+  # Upstream bug: create_family accepts child_handles, reports success and
+  # drops it. The request body is a plain model_dump of FamilySaveParams, and
+  # Gramps stores children as child_ref_list, so the family half of every
+  # parent/child link was silently discarded - family views showed no children
+  # and ancestor/descendant traversal stopped there.
+  # Reported upstream: https://github.com/cabout-me/gramps-mcp
+  patches = [ ./child-ref-list.patch ];
+
   nativeBuildInputs = [ makeWrapper ];
 
   dontConfigure = true;
