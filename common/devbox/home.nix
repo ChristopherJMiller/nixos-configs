@@ -28,6 +28,15 @@ let
       signing in this VM: `git push` over HTTPS just works. Do NOT switch
       remotes to SSH, and do NOT enable commit/tag signing.
     - Docker is available for builds and containers.
+    - **Networking / tailnets.** The VM's real network interface (`tailscale0`)
+      is the WORK tailnet: work hosts (`*.tail8f0356.ts.net`, company names
+      like `tkndash.mountthor.dev` that resolve to `100.x`, subnet routes)
+      just work from any program — curl, kubectl, ssh, docker. `tswork status`
+      / `tswork ping host` inspect it. The PERSONAL tailnet (`tailscale`, no
+      prefix; `*.taildca8.ts.net`) is inbound-only in userspace mode: it
+      cannot be reached directly from here — for the rare outbound trip to a
+      personal peer, prefix the command with `via-home` or use `home-ssh`.
+      Never set proxy env globally.
   '';
 in
 {

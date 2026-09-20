@@ -202,6 +202,20 @@
     });
   };
 
+  # Give the devbox guest time to shut down cleanly. microvm.nix's template
+  # sets TimeoutSec=150 (start AND stop); the guest's own shutdown can take
+  # longer than that when an RDP session is up — the xrdp `thinclient_drives`
+  # and gvfs FUSE mounts stall the /home/dev unmount for its full 90 s job
+  # timeout before systemd gives up on them (seen 2026-09-14: stop requested
+  # 11:04:20, SIGKILLed by the host at 11:06:53 mid-shutdown). Every such kill
+  # is an unclean unmount of home-dev.img and nix-overlay.img, which is the
+  # "corrupt nix DB / half-written state" failure `devvm-reset-overlay` exists
+  # for. Only the stop side is raised; startup keeps microvm's default.
+  systemd.services."microvm@devbox" = {
+    overrideStrategy = "asDropin";
+    serviceConfig.TimeoutStopSec = "10min";
+  };
+
   # devbox dev VM controls (off-by-default microVM; see common/devbox/).
   # `devvm-up` wakes it, its tailscale lights up, then RDP/SSH over the tailnet.
   # `devvm-console` is break-glass: it stops the service and runs the qemu

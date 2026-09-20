@@ -1,12 +1,16 @@
 # common/devbox/guest.nix
 #
-# The `devbox` dev VM: a headless XFCE desktop reached over RDP, joined to the
-# tailnet by its OWN tailscale. Runs as an OFF-BY-DEFAULT qemu microVM on
+# The `devbox` dev VM: a headless XFCE desktop reached over RDP, on TWO
+# tailnets (see ./tailnets.nix). Runs as an OFF-BY-DEFAULT qemu microVM on
 # rowlett (see flake.nix: `microvm.vms.devbox`, autostart = false).
 #
 # Access model:
-#   * Primary — the VM's own tailscale makes it `devbox` on the tailnet:
-#     RDP (xfreerdp / Remmina / KRDC) or `ssh dev@devbox` from anywhere on it.
+#   * In — the PERSONAL tailnet makes it `devbox`: RDP (xfreerdp / Remmina /
+#     KRDC) or `ssh dev@devbox` from anywhere on it. That daemon runs in
+#     userspace mode (no TUN) purely as the inbound door.
+#   * Out — the WORK tailnet owns the VM's real TUN (tailscale0): work peers,
+#     subnet routes and MagicDNS are transparent to every program, incl.
+#     docker. Shields up, so work peers can't reach in.
 #   * Bootstrap / break-glass — qemu user-mode networking forwards, on
 #     rowlett's LOOPBACK only, 127.0.0.1:2222 -> :22 and :13389 -> :3389 (host
 #     13389, since rowlett's own xrdp holds 3389); plus serial-console
@@ -18,6 +22,8 @@
 { config, pkgs, lib, ... }:
 
 {
+  imports = [ ./tailnets.nix ];
+
   networking.hostName = "devbox";
   system.stateVersion = "25.11";
 
@@ -72,11 +78,12 @@
 
   # Persistent, sparse disks (backing images under /var/lib/microvms/devbox/).
   # Sizes are MiB (max apparent size; images are sparse, so real host usage
-  # tracks only what's written). WARNING: these sum to ~229 GiB and rowlett's
-  # disk runs nearly full — if the guest fills home-dev AND the store overlay
-  # it CAN exhaust the host, not just hit ENOSPC in the guest. The nix
-  # min-free/GC settings below (plus `dev-prune`) keep the overlay bounded;
-  # check `df -h /` on the host before growing any of these.
+  # tracks only what's written — AND what was written-then-freed until the
+  # guest TRIMs; see services.fstrim below). WARNING: these sum to ~230 GiB
+  # and rowlett's disk runs nearly full — if the guest fills home-dev AND the
+  # store overlay it CAN exhaust the host, not just hit ENOSPC in the guest.
+  # The nix min-free/GC settings below (plus `dev-prune`) keep the overlay
+  # bounded; check `df -h /` on the host before growing any of these.
   microvm.volumes = [
     {
       image = "home-dev.img";
@@ -92,8 +99,32 @@
       image = "tailscale-state.img";
       mountPoint = "/var/lib/tailscale";
       size = 1024;
-    } # 1 GiB
+    } # 1 GiB — personal tailnet node key/prefs
+    {
+      image = "tailscale-work-state.img";
+      mountPoint = "/var/lib/tailscale-work";
+      size = 1024;
+    } # 1 GiB — work tailnet node key/prefs (./tailnets.nix); rootfs is
+    #   tmpfs, so without this the SSO login would be lost on every boot
   ];
+
+  # Hand freed blocks back to rowlett. qemu runs these volumes with
+  # discard=unmap, but nothing in the guest ever issued a TRIM, so every block
+  # the guest freed (docker prune, nix GC, cargo clean…) stayed allocated in
+  # the sparse image on the host. Found 2026-09-20: /home/dev held 44 GiB
+  # inside the guest while home-dev.img occupied 157 GiB on rowlett (+40 GiB
+  # of the same in nix-overlay.img) — that's the "rowlett disk mysteriously
+  # near-full" pressure. Monotonic timer (boot + every 6h) instead of the
+  # module's weekly OnCalendar: the rootfs is tmpfs so Persistent= has no
+  # stamp to catch up from, and a wall-clock slot would rarely coincide with
+  # this off-by-default VM being up. `sudo fstrim -av` runs it by hand.
+  services.fstrim.enable = true;
+  systemd.timers.fstrim.timerConfig = {
+    OnBootSec = "5min";
+    OnUnitActiveSec = "6h";
+    AccuracySec = "1min"; # upstream timer: 1h
+    RandomizedDelaySec = "1min"; # upstream timer: 100min
+  };
 
   # writableStoreOverlay is incompatible with store optimisation (asserted).
   nix.optimise.automatic = false;
@@ -107,9 +138,11 @@
     "dev"
   ];
 
-  # Keep the 48 GiB writable store overlay from filling up — a full overlay is
-  # what corrupts this VM (failed/half-written builds) and cascades into the
-  # dev user's shell state. Two independent layers:
+  # Keep the 48 GiB writable store overlay from filling up — a full overlay
+  # means failed/half-written builds and a guest that can't stage a new
+  # closure. (The "my shell config got nuked" symptom turned out to be
+  # separate: home-manager activation silently failing at boot — see the
+  # `home-manager.overwriteBackup` note in flake.nix.) Two independent layers:
   #   1) min-free/max-free: DURING a build, if free store space drops below
   #      min-free, nix garbage-collects until max-free is available. This is
   #      the important one — it prevents ENOSPC mid-build without waiting for
@@ -134,7 +167,7 @@
     matchConfig.Type = "ether";
     networkConfig.DHCP = "yes";
   };
-  boot.kernelModules = [ "tun" ]; # tailscale needs /dev/net/tun
+  boot.kernelModules = [ "tun" ]; # the work tailscale's TUN (tailnets.nix)
 
   # The home-dev volume mounts as a fresh, root-owned ext4 at /home/dev, so the
   # `dev` user (and home-manager activation) can't write to its own home. chown
@@ -144,8 +177,10 @@
     "d /home/dev 0700 dev users - -"
   ];
 
-  # VM has no LAN footprint; 22/3389 are reachable only via tailscale or the
-  # loopback forwards, so opening them here is safe.
+  # VM has no LAN footprint. Personal-tailnet inbound arrives via loopback
+  # (userspace daemon, see tailnets.nix) and never meets these rules; they
+  # matter only for rowlett's loopback forwards, which land on the slirp NIC.
+  # The work TUN is covered by that node's shields-up packet filter.
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [
     22
@@ -157,12 +192,9 @@
   # persistence: `mosh dev@devbox -- tmux new -A -s main`.
   programs.mosh.enable = true;
 
-  # ---- Tailscale (its own tailnet node) ------------------------------------
-  services.tailscale = {
-    enable = true;
-    # Match the rest of the fleet's test-disabling override.
-    package = pkgs.tailscale.overrideAttrs (_: { doCheck = false; });
-  };
+  # ---- Tailscale -----------------------------------------------------------
+  # Both daemons (personal = inbound door, work = the VM's TUN) live in
+  # ./tailnets.nix, together with the reasoning for that split.
 
   # ---- Desktop over RDP ----------------------------------------------------
   services.xserver.enable = true;
@@ -236,15 +268,19 @@
         helper = !${pkgs.gh}/bin/gh auth git-credential
   '';
 
+  # Firefox as a NixOS program (not a bare package) so policies can be
+  # attached declaratively — the personal-tailnet PAC in ./tailnets.nix.
+  programs.firefox.enable = true;
+
   # ---- Tooling -------------------------------------------------------------
   environment.systemPackages = with pkgs; [
     # git + github (HTTPS auth via gh)
     git
     git-lfs
     gh
-    # terminal + browsers
+    # terminal + browsers (firefox comes via programs.firefox below so
+    # ./tailnets.nix can attach a proxy policy to it)
     kitty
-    firefox
     chromium
     # desktop apps + panel plugins (launchers wired up in ./xfce-panel.nix)
     xfce.thunar # file manager ("directory")
@@ -306,7 +342,10 @@
     # managed dotfile from the read-only store. Run it INSIDE the VM
     # (`ssh dev@devbox`, then `dev-fix-shell`) when the prompt/completion breaks
     # but the VM still boots. If the VM won't boot at all (corrupt store
-    # overlay), use the host's `devvm-reset-overlay` instead.
+    # overlay), use the host's `devvm-reset-overlay` instead. If the
+    # activation step fails, `journalctl -u home-manager-dev` has the reason —
+    # for weeks it was an xfconf-vs-home-manager file collision that
+    # `home-manager.overwriteBackup` (flake.nix) now resolves.
     (pkgs.writeShellScriptBin "dev-fix-shell" ''
       set -euo pipefail
       echo "== clearing regenerable zsh state (history is kept) =="

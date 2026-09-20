@@ -111,6 +111,18 @@
                       home-manager.useGlobalPkgs = true;
                       home-manager.useUserPackages = true;
                       home-manager.backupFileExtension = "old";
+                      # xfconfd rewrites its channel files atomically (temp +
+                      # rename), which turns the home-manager symlink for
+                      # xfce4-panel.xml into a regular file every session. HM
+                      # backs that up to `.old` and relinks — but the SECOND
+                      # time, its pre-flight check refuses to clobber the
+                      # existing `.old` and aborts activation BEFORE linking
+                      # anything, on every boot thereafter. That is how the
+                      # guest silently ran the Jul-30 dev home (zplug prompt,
+                      # no tmux.conf…) for weeks while every rebuild "worked".
+                      # This makes the check a warning: the declarative config
+                      # always wins at boot, which is the point of this VM.
+                      home-manager.overwriteBackup = true;
                       home-manager.users.dev = import ./common/devbox/home.nix pkgs-unstable;
                     }
                   ];
