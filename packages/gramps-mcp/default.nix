@@ -83,6 +83,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # written. The person detail view now shows the primary name type and any
     # alternate names with theirs.
     ./show-alternate-names.patch
+
+    # Tags were web UI only: upstream defined TagSaveParams, the tag API calls
+    # and the POST_TAGS mapping, but never registered a tool, and only some
+    # models exposed tag_list. Adds create_tag and puts tag_list on family,
+    # event, note and media, plus attribute_list on family and event, both
+    # confirmed accepted by the API. Tags were already queryable via GQL.
+    ./tags.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];

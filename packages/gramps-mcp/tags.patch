@@ -1,0 +1,188 @@
+diff --git a/src/gramps_mcp/models/parameters/event_params.py b/src/gramps_mcp/models/parameters/event_params.py
+index 0c0246b..c6e6565 100644
+--- a/src/gramps_mcp/models/parameters/event_params.py
++++ b/src/gramps_mcp/models/parameters/event_params.py
+@@ -49,6 +49,17 @@ class EventSaveParams(BaseModel):
+     place: Optional[str] = Field(None, description="Place handle where event occurred")
+     citation_list: List[str] = Field(..., description="List of citation handles")
+     note_list: Optional[List[str]] = Field(None, description="List of note handles")
++    tag_list: Optional[List[str]] = Field(
++        None,
++        description=(
++            "Tag handles. Create a tag with create_tag first, then reference "
++            "its handle here"
++        ),
++    )
++    attribute_list: Optional[List[Dict[str, Any]]] = Field(
++        None,
++        description='Attributes as [{"type": ..., "value": ...}]',
++    )
+ 
+ 
+ class EventSpanParams(BaseModel):
+diff --git a/src/gramps_mcp/models/parameters/family_params.py b/src/gramps_mcp/models/parameters/family_params.py
+index 918474e..9fd4610 100644
+--- a/src/gramps_mcp/models/parameters/family_params.py
++++ b/src/gramps_mcp/models/parameters/family_params.py
+@@ -46,6 +46,18 @@ class FamilySaveParams(BaseModel):
+         None, description="List of media references"
+     )
+ 
++    tag_list: Optional[List[str]] = Field(
++        None,
++        description=(
++            "Tag handles. Create a tag with create_tag first, then reference "
++            "its handle here"
++        ),
++    )
++    attribute_list: Optional[List[Dict[str, Any]]] = Field(
++        None,
++        description='Attributes as [{"type": ..., "value": ...}]',
++    )
++
+     @model_validator(mode="after")
+     def _child_handles_to_child_refs(self) -> "FamilySaveParams":
+         """Map child_handles onto the child_ref_list the Gramps API expects.
+diff --git a/src/gramps_mcp/models/parameters/media_params.py b/src/gramps_mcp/models/parameters/media_params.py
+index 90f02b4..4df0891 100644
+--- a/src/gramps_mcp/models/parameters/media_params.py
++++ b/src/gramps_mcp/models/parameters/media_params.py
+@@ -63,3 +63,10 @@ class MediaSaveParams(BaseModel):
+             "the source gives a window rather than a single estimate."
+         ),
+     )
++    tag_list: Optional[List[str]] = Field(
++        None,
++        description=(
++            "Tag handles. Create a tag with create_tag first, then reference "
++            "its handle here"
++        ),
++    )
+diff --git a/src/gramps_mcp/models/parameters/note_params.py b/src/gramps_mcp/models/parameters/note_params.py
+index 0b08a47..9cbea94 100644
+--- a/src/gramps_mcp/models/parameters/note_params.py
++++ b/src/gramps_mcp/models/parameters/note_params.py
+@@ -8,7 +8,7 @@ API calls supported in this category:
+ - DELETE_NOTE: Delete the note
+ """
+ 
+-from typing import Any
++from typing import Any, List, Optional
+ 
+ from pydantic import BaseModel, Field
+ 
+@@ -61,3 +61,10 @@ class NoteSaveParams(BaseModel):
+                 "string": data["text"],
+             }
+         return data
++    tag_list: Optional[List[str]] = Field(
++        None,
++        description=(
++            "Tag handles. Create a tag with create_tag first, then reference "
++            "its handle here"
++        ),
++    )
+diff --git a/src/gramps_mcp/server.py b/src/gramps_mcp/server.py
+index 76086c8..d26501b 100644
+--- a/src/gramps_mcp/server.py
++++ b/src/gramps_mcp/server.py
+@@ -23,6 +23,7 @@ from .models.parameters.event_params import EventSaveParams
+ from .models.parameters.family_params import FamilySaveParams
+ from .models.parameters.media_params import MediaSaveParams
+ from .models.parameters.note_params import NoteSaveParams
++from .models.parameters.tag_params import TagSaveParams
+ from .models.parameters.people_params import PersonData
+ from .models.parameters.place_params import PlaceSaveParams
+ from .models.parameters.repository_params import RepositoryData
+@@ -41,6 +42,7 @@ from .tools import (
+     create_family_tool,
+     create_media_tool,
+     create_note_tool,
++    create_tag_tool,
+     create_person_tool,
+     create_place_tool,
+     create_repository_tool,
+@@ -152,6 +154,14 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
+         "schema": NoteSaveParams,
+         "handler": create_note_tool,
+     },
++    "create_tag": {
++        "description": (
++            "Create or update a tag. Attach it by putting the returned handle "
++            "in an object's tag_list"
++        ),
++        "schema": TagSaveParams,
++        "handler": create_tag_tool,
++    },
+     "create_media": {
+         "description": "Create or update media files including object associations",
+         "schema": MediaSaveParams,
+diff --git a/src/gramps_mcp/tools/__init__.py b/src/gramps_mcp/tools/__init__.py
+index 8e75914..637e4eb 100644
+--- a/src/gramps_mcp/tools/__init__.py
++++ b/src/gramps_mcp/tools/__init__.py
+@@ -23,6 +23,7 @@ from .data_management import (
+     create_family_tool,
+     create_media_tool,
+     create_note_tool,
++    create_tag_tool,
+     create_person_tool,
+     create_place_tool,
+     create_repository_tool,
+@@ -66,6 +67,7 @@ __all__ = [
+     "create_source_tool",
+     "create_citation_tool",
+     "create_note_tool",
++    "create_tag_tool",
+     "create_media_tool",
+     "create_repository_tool",
+     # Analysis Tools
+diff --git a/src/gramps_mcp/tools/data_management.py b/src/gramps_mcp/tools/data_management.py
+index 7f35643..db05b53 100644
+--- a/src/gramps_mcp/tools/data_management.py
++++ b/src/gramps_mcp/tools/data_management.py
+@@ -31,6 +31,7 @@ from ..models.parameters.people_params import PersonData
+ from ..models.parameters.place_params import PlaceSaveParams
+ from ..models.parameters.repository_params import RepositoryData
+ from ..models.parameters.source_params import SourceSaveParams
++from ..models.parameters.tag_params import TagSaveParams
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -145,6 +146,15 @@ async def _format_save_response(
+             formatted_details = await format_note(client, tree_id, handle)
+         elif entity_type == "repository":
+             formatted_details = await format_repository(client, tree_id, handle)
++        elif entity_type == "tag":
++            # Tags carry no gramps_id, and the handle is what a caller needs
++            # next, since that is what goes into an object's tag_list.
++            tag_name = entity_data.get("name", "")
++            tag_color = entity_data.get("color", "")
++            formatted_details = f"{tag_name} - [{handle}]"
++            if tag_color:
++                formatted_details += f" ({tag_color})"
++            formatted_details += "\n\n"
+         else:
+             # Fallback for unknown types
+             formatted_details = (
+@@ -278,6 +288,20 @@ async def create_note_tool(arguments: Dict) -> List[TextContent]:
+     )
+ 
+ 
++async def create_tag_tool(arguments: Dict) -> List[TextContent]:
++    """
++    Create or update a tag.
++
++    Upstream defined TagSaveParams and the tag API calls, and mapped
++    POST_TAGS/PUT_TAG to the model, but never registered a tool, so tags could
++    only be made in the web UI. Attaching one is a separate step: put the
++    returned handle into the target object's tag_list.
++    """
++    return await _handle_crud_operation(
++        arguments, "tag", ApiCalls.POST_TAGS, ApiCalls.PUT_TAG, TagSaveParams
++    )
++
++
+ async def create_media_tool(arguments: Dict) -> List[TextContent]:
+     """
+     Create or update media files including object associations.
