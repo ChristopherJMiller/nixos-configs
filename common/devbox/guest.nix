@@ -30,7 +30,32 @@
   # ---- microVM shape -------------------------------------------------------
   microvm.hypervisor = "qemu";
   microvm.vcpu = 12; # of rowlett's 16 threads
-  microvm.mem = 26624; # 26 GiB (Rust/link-heavy builds); rowlett keeps ~5 GiB
+
+  # ---- Memory ---------------------------------------------------------------
+  # rowlett has 31 GiB and its own desktop wants ~13 of them. The guest's RAM
+  # is a host memfd that the host can only reclaim by SWAPPING it out, and the
+  # guest fills whatever it is given with page cache within a day. At 26 GiB
+  # that ended (2026-09-21) with 15 GiB of guest memory in rowlett's swap, a
+  # guest thrashing so hard that sshd dropped connections at key exchange
+  # ("can't reach devbox" — tailscale and the loopback forward were both fine),
+  # and a `devvm-down` that crawled while the host paged it all back in at
+  # ~80 MB/s. Three levers, all needed:
+  #  1) mem: a ceiling rowlett can actually back. 16 GiB touched-set worst
+  #     case leaves the host ~15 GiB — headroom over what it uses.
+  #  2) balloon: virtio-balloon with free-page-reporting. The guest hands
+  #     freed pages (a finished build, evicted cache) back to the host instead
+  #     of them staying resident-or-swapped until the VM stops. Nothing ever
+  #     inflates it from the host (no initialBalloonMem, no `microvm-balloon`
+  #     calls) — only the reporting side is in play. qemu 10.x no longer
+  #     inhibits balloon discards for vhost-user devices, so the virtiofs
+  #     ro-store share below doesn't defeat it.
+  #  3) direct on the data volumes (below): qemu opens them O_DIRECT so the
+  #     host doesn't ALSO page-cache home-dev.img / nix-overlay.img. That
+  #     second copy of the guest's disk data was ~17 GiB of the host's RAM
+  #     while the guest's own copy of the same data sat in swap.
+  # `devvm-mem` on rowlett shows the guest's resident/swapped footprint.
+  microvm.mem = 16384; # 16 GiB
+  microvm.balloon = true; # -device virtio-balloon-pci,free-page-reporting=on
 
   # Outbound-only user-mode networking: no LAN presence. In-guest tailscale
   # reaches the tailnet via slirp NAT (+ DERP); nothing is exposed on the LAN.
@@ -84,16 +109,21 @@
   # store overlay it CAN exhaust the host, not just hit ENOSPC in the guest.
   # The nix min-free/GC settings below (plus `dev-prune`) keep the overlay
   # bounded; check `df -h /` on the host before growing any of these.
+  # `direct` = O_DIRECT (cache=none): the guest already page-caches its own
+  # disks, so a host-side copy is pure double-caching (see Memory above).
+  # Guest flushes are still honoured; this is the standard VM-disk mode.
   microvm.volumes = [
     {
       image = "home-dev.img";
       mountPoint = "/home/dev";
       size = 184320;
+      direct = true;
     } # 180 GiB — repos, caches, docker data
     {
       image = "nix-overlay.img";
       mountPoint = config.microvm.writableStoreOverlay;
       size = 49152;
+      direct = true;
     } # 48 GiB
     {
       image = "tailscale-state.img";
@@ -167,7 +197,10 @@
     matchConfig.Type = "ether";
     networkConfig.DHCP = "yes";
   };
-  boot.kernelModules = [ "tun" ]; # the work tailscale's TUN (tailnets.nix)
+  boot.kernelModules = [
+    "tun" # the work tailscale's TUN (tailnets.nix)
+    "virtio_balloon" # free-page-reporting (udev would autoload it; be explicit)
+  ];
 
   # The home-dev volume mounts as a fresh, root-owned ext4 at /home/dev, so the
   # `dev` user (and home-manager activation) can't write to its own home. chown
@@ -378,4 +411,19 @@
   # ---- Self-healing --------------------------------------------------------
   systemd.services.xrdp.serviceConfig.Restart = lib.mkDefault "on-failure";
   systemd.services.xrdp.serviceConfig.RestartSec = lib.mkDefault "3s";
+
+  # ---- Shutdown ------------------------------------------------------------
+  # The `dev` user's `systemd --user` instance never stops cleanly under an RDP
+  # session (gvfs FUSE / xfce user services) and holds the ENTIRE shutdown for
+  # user@.service's default 120 s stop timeout: 2026-09-21 console trace,
+  # "Stopping User Manager for UID 1000" 09:06:40 → next line 09:08:41. Until
+  # it dies, /home/dev can't unmount, so every `devvm-down` paid those two
+  # minutes (and before the host-side TimeoutStopSec was raised, got SIGKILLed
+  # mid-unmount instead). Nothing here needs the grace: the session scope has
+  # already been SIGTERMed by this point, repos live on ext4, and tmux/editors
+  # die with the VM regardless. Cap it.
+  systemd.services."user@" = {
+    overrideStrategy = "asDropin";
+    serviceConfig.TimeoutStopSec = "30s";
+  };
 }

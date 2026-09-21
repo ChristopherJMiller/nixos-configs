@@ -204,16 +204,32 @@
 
   # Give the devbox guest time to shut down cleanly. microvm.nix's template
   # sets TimeoutSec=150 (start AND stop); the guest's own shutdown can take
-  # longer than that when an RDP session is up — the xrdp `thinclient_drives`
-  # and gvfs FUSE mounts stall the /home/dev unmount for its full 90 s job
-  # timeout before systemd gives up on them (seen 2026-09-14: stop requested
+  # longer than that when an RDP session is up (seen 2026-09-14: stop requested
   # 11:04:20, SIGKILLed by the host at 11:06:53 mid-shutdown). Every such kill
   # is an unclean unmount of home-dev.img and nix-overlay.img, which is the
   # "corrupt nix DB / half-written state" failure `devvm-reset-overlay` exists
-  # for. Only the stop side is raised; startup keeps microvm's default.
+  # for. The 2026-09-21 trace pinned the stall on the dev user's `systemd
+  # --user` instance eating user@.service's full 120 s stop timeout (now
+  # capped at 30 s in common/devbox/guest.nix), followed by the host paging
+  # the guest's swapped-out RAM back in for the final reboot (now bounded by
+  # the guest's memory settings there). This stays as the safety net. Only
+  # the stop side is raised; startup keeps microvm's default.
+  #
+  # OOMScoreAdjust: the VM is the largest process on the box by far, so both
+  # the kernel OOM killer and earlyoom (below) would pick qemu first — and a
+  # SIGTERM/SIGKILL to qemu is exactly the unclean-unmount corruption above.
+  # 2026-09-21 came within 2 % of earlyoom's swap threshold. -900 makes its
+  # oom_score read 0 unless it alone exceeds ~90 % of RAM: everything on the
+  # desktop is cheaper to lose than the guest's filesystems. virtiofsd gets
+  # the same: losing the ro-store share hangs the guest, same outcome.
   systemd.services."microvm@devbox" = {
     overrideStrategy = "asDropin";
     serviceConfig.TimeoutStopSec = "10min";
+    serviceConfig.OOMScoreAdjust = -900;
+  };
+  systemd.services."microvm-virtiofsd@devbox" = {
+    overrideStrategy = "asDropin";
+    serviceConfig.OOMScoreAdjust = -900;
   };
 
   # devbox dev VM controls (off-by-default microVM; see common/devbox/).
@@ -226,6 +242,10 @@
     devvm-down = "sudo systemctl stop microvm@devbox";
     devvm-status = "systemctl status microvm@devbox";
     devvm-log = "journalctl -u microvm@devbox -f";
+    # Is rowlett swapping the guest? MemorySwapCurrent should stay near 0; if
+    # it climbs into the GiBs the guest is about to become unreachable (sshd
+    # dropping at kex) — see the Memory notes in common/devbox/guest.nix.
+    devvm-mem = "echo '== devbox (host cgroup) ==' && systemctl show microvm@devbox -p MemoryCurrent -p MemoryPeak -p MemorySwapCurrent -p MemorySwapPeak | numfmt --delimiter== --field=2 --to=iec --invalid=ignore && echo '== rowlett ==' && free -h";
     # Apply a rebuilt devbox config to the RUNNING VM. `nixos-rebuild switch`
     # on rowlett rebuilds and stages the guest (updates the `current` symlink),
     # but the live VM keeps running its old `booted` closure until restarted —
