@@ -426,4 +426,34 @@
     overrideStrategy = "asDropin";
     serviceConfig.TimeoutStopSec = "30s";
   };
+
+  # TEMPORARY INSTRUMENTATION (added 2026-09-22) — remove once the shutdown
+  # freeze described here is root-caused.
+  #
+  # Twice now (2026-09-14, 2026-09-22) the guest has frozen at the very end of
+  # shutdown: "[!!!!!!] Failed to execute shutdown binary." → "Freezing
+  # execution." qemu then never exits, so the host burns the whole
+  # TimeoutStopSec=10min net and SIGKILLs it with every volume still mounted
+  # rw. From t=0 of the stop, nothing needing fork+exec of a store binary
+  # worked — run-initramfs.mount and save-hwclock failed instantly (neither is
+  # sandboxed; both just spawn a plain store binary), every umount failed in
+  # the same second, then PID 1's own execv of systemd-shutdown failed. Both
+  # freezes had an xrdp session with drive redirection live
+  # (/home/dev/thinclient_drives mounted); the six clean shutdowns had none.
+  # virtiofsd stayed connected throughout and there was no guest OOM, so the
+  # store backend and the 09-21 memory changes are both ruled out.
+  #
+  # What's missing is the errno, and we can't get it after the fact: / is
+  # tmpfs, so the guest journal dies with the VM, and PID 1 is frozen by the
+  # time we notice. Mirroring the journal to ttyS0 puts it in the host's
+  # `journalctl -u microvm@devbox`, which survives. info (not warning) on
+  # purpose: this fires maybe once a week, so catch the reason on the first
+  # reproduction rather than re-instrumenting. Costs a chunk of host journal
+  # volume while it's on, and rowlett has been tight on disk.
+  #
+  # To reproduce: connect RDP with drive redirection, then `devvm-down`.
+  services.journald.extraConfig = ''
+    ForwardToConsole=yes
+    MaxLevelConsole=info
+  '';
 }
