@@ -1,6 +1,6 @@
 # Sunshine (newer than nixpkgs) with PipeWire/xdg-desktop-portal screen capture support.
-# Based on nixpkgs sunshine package, pinned to v2026.914.233613 (a stable release —
-# pre-release tags get pruned upstream, which breaks rebuilds).
+# Based on nixpkgs sunshine package, pinned to v2026.914.233613 by commit —
+# LizardByte prunes pre-release tags, but commits on master stay fetchable.
 { pkgs }:
 
 let
@@ -9,7 +9,7 @@ let
   src = pkgs.fetchFromGitHub {
     owner = "LizardByte";
     repo = "Sunshine";
-    tag = "v${version}";
+    rev = "63d35f702ee9e362e43263742981836ec0710384"; # v${version}
     hash = "sha256-HqbswLvX/UiY3nOwxSesBMqnFAF0zKP1ueE6PwDtTNs=";
     fetchSubmodules = true;
   };
