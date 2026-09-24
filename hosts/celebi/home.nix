@@ -22,7 +22,7 @@ let
     # GIMP is provided via the `photogimp` custom package (Photoshop-like
     # config overlay on gimp-with-plugins); see packages/photogimp.
     kdePackages.kdenlive
-    blender-hip
+    pkgsRocm.blender # HIP (AMD GPU) Cycles; blender-hip was removed in 26.05
     # Photo triage (SD card culling): mark images with 1-9 while browsing,
     # then batch move/delete by mark. Handles large dirs and RAW files
     # better than gwenview.
@@ -131,27 +131,13 @@ let
     ethtool
     pciutils # lspci
     usbutils # lsusb
-    nixfmt-rfc-style
+    nixfmt
 
   ];
 
-  github-copilot-cli-latest = pkgs-unstable.github-copilot-cli.overrideAttrs (old: rec {
-    version = "1.0.63";
-    src = pkgs-unstable.fetchurl {
-      url = "https://github.com/github/copilot-cli/releases/download/v${version}/github-copilot-${version}.tgz";
-      hash = "sha256-0K+uVsaG9cndsqRhxIV8K399WsLjvVZAgbLreJdmJbs=";
-    };
-    # 1.0.60 bundles musl prebuilds of keytar that reference
-    # libc.musl-x86_64.so.1; these are never used on this glibc host, so
-    # ignore the unsatisfiable musl dependency rather than fail the build.
-    autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
-      "libc.musl-x86_64.so.1"
-    ];
-  });
-
   unstable-pkgs = with pkgs-unstable; [
     discord
-    github-copilot-cli-latest
+    github-copilot-cli
     # Sourced from unstable because stable's electron-unwrapped-41.7.2 is not
     # in cache.nixos.org and would force a full from-source electron build;
     # the unstable element-desktop and its electron are cached.
@@ -360,6 +346,8 @@ in
 
   # Framework-specific zsh configuration
   programs.zsh = (import ../../common/zsh.nix).zsh // {
+    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
+    dotDir = config.home.homeDirectory;
     shellAliases = {
       # Check for firmware updates after rebuild
       nixr-fw = "nixr && fwupdmgr refresh && fwupdmgr get-updates";

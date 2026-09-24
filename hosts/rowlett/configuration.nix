@@ -86,7 +86,7 @@
   services.xrdp.openFirewall = true;
   environment.systemPackages = [
     # Searchable app menu for the xrdp XFCE panel (./xfce-panel.nix in home).
-    pkgs.xfce.xfce4-whiskermenu-plugin
+    pkgs.xfce4-whiskermenu-plugin
     (pkgs.writeShellScriptBin "xrdp-xfce-session" ''
       unset WAYLAND_DISPLAY
       export GDK_BACKEND=x11
@@ -100,7 +100,7 @@
       # SSH_AUTH_SOCK into the shared user systemd manager, replacing the
       # gpg-agent socket the local Plasma session (and everything dbus- or
       # systemd-started) relies on. gpg-agent already serves SSH here.
-      ${pkgs.xfce.xfconf}/bin/xfconf-query -c xfce4-session \
+      ${pkgs.xfconf}/bin/xfconf-query -c xfce4-session \
         -p /startup/ssh-agent/enabled -n -t bool -s false
       exec xfce4-session
     '')
@@ -194,13 +194,7 @@
   services.openssh.enable = true;
   services.openssh.settings.X11Forwarding = true;
 
-  services.tailscale = {
-    enable = true;
-    # Disable tests to work around build failures
-    package = pkgs.tailscale.overrideAttrs (oldAttrs: {
-      doCheck = false;
-    });
-  };
+  services.tailscale.enable = true;
 
   # Give the devbox guest time to shut down cleanly. microvm.nix's template
   # sets TimeoutSec=150 (start AND stop); the guest's own shutdown can take
@@ -289,14 +283,12 @@
   # Enable Docker
   virtualisation.docker = {
     enable = true;
-    package = pkgs.docker_29;
     autoPrune = {
       enable = true;
     };
     rootless = {
       enable = true;
       setSocketVariable = true;
-      package = pkgs.docker_29;
     };
     daemon.settings = {
       features = {
@@ -327,7 +319,7 @@
     enable = true;
     # Last-resort resolvers so the box keeps DNS when every tunnel is down
     # or a tunnel pushed a private resolver that is unreachable.
-    fallbackDns = [ "1.1.1.1" "9.9.9.9" ];
+    settings.Resolve.FallbackDNS = [ "1.1.1.1" "9.9.9.9" ];
   };
 
   # This value determines the NixOS release from which the default

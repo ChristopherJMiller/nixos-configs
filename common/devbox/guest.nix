@@ -316,12 +316,12 @@
     kitty
     chromium
     # desktop apps + panel plugins (launchers wired up in ./xfce-panel.nix)
-    xfce.thunar # file manager ("directory")
-    xfce.xfce4-whiskermenu-plugin # searchable app menu
-    xfce.xfce4-taskmanager # system monitor (resource-capped VM)
-    xfce.xfce4-screenshooter # screenshots
+    thunar # file manager ("directory")
+    xfce4-whiskermenu-plugin # searchable app menu
+    xfce4-taskmanager # system monitor (resource-capped VM)
+    xfce4-screenshooter # screenshots
     # clipboard bits (RDP cliprdr does text+image; these help CLI + xfce)
-    xfce.xfce4-clipman-plugin
+    xfce4-clipman-plugin
     xclip
     xsel
     # dev baseline
@@ -403,7 +403,6 @@
   # ---- Docker (rootful; data on the persistent dev volume) -----------------
   virtualisation.docker = {
     enable = true;
-    package = pkgs.docker_29; # docker_28 is flagged insecure; match the fleet
     autoPrune.enable = true;
     daemon.settings.data-root = "/home/dev/.docker";
   };

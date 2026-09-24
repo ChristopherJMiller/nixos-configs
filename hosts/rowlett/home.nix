@@ -23,7 +23,7 @@ let
     # config overlay on gimp-with-plugins); see packages/photogimp.
     kdePackages.kdenlive
     # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
-    blender-hip
+    pkgsRocm.blender # HIP (AMD GPU) Cycles; blender-hip was removed in 26.05
     vlc
     notion-app-enhanced
     calibre
@@ -130,30 +130,13 @@ let
     ethtool
     pciutils # lspci
     usbutils # lsusb
-    nixfmt-rfc-style
+    nixfmt
   ];
-
-  # The pinned nixpkgs-unstable feed lags behind upstream GitHub Copilot CLI
-  # releases. Override the version/src here to track the latest release until
-  # the feed catches up.
-  github-copilot-cli-latest = pkgs-unstable.github-copilot-cli.overrideAttrs (old: rec {
-    version = "1.0.60";
-    src = pkgs-unstable.fetchurl {
-      url = "https://github.com/github/copilot-cli/releases/download/v${version}/github-copilot-${version}.tgz";
-      hash = "sha256-wUEBstKx8Yb9m6ynIi137ZXR7dO39uepnv/yGFVE/qQ=";
-    };
-    # 1.0.60 bundles musl prebuilds of keytar that reference
-    # libc.musl-x86_64.so.1; these are never used on this glibc host, so
-    # ignore the unsatisfiable musl dependency rather than fail the build.
-    autoPatchelfIgnoreMissingDeps = (old.autoPatchelfIgnoreMissingDeps or [ ]) ++ [
-      "libc.musl-x86_64.so.1"
-    ];
-  });
 
   unstable-pkgs = with pkgs-unstable; [
     discord
     code-cursor
-    github-copilot-cli-latest
+    github-copilot-cli
   ];
 
   # Exclude celebi/laptop-specific custom packages:
@@ -327,6 +310,8 @@ in
 
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
   programs.zsh = (import ../../common/zsh.nix).zsh // {
+    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
+    dotDir = config.home.homeDirectory;
     shellAliases = {
       cargo-limited = "systemd-run --user --scope --slice=dev.slice -p MemoryHigh=12G -p MemoryMax=14G -p CPUQuota=400% -p Nice=10 -- cargo";
       claude-safe = "NODE_OPTIONS=--max-old-space-size=4096 MALLOC_ARENA_MAX=2 systemd-run --user --scope --slice=dev.slice -p MemoryHigh=6G -p MemoryMax=8G -p CPUQuota=400% -- claude";

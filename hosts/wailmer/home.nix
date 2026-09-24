@@ -21,7 +21,7 @@ let
     # config overlay on gimp-with-plugins); see packages/photogimp.
     kdePackages.kdenlive
     # ardour comes from customPackages.ardour-mcp (fork with MCP HTTP control surface)
-    blender-hip
+    blender # NVIDIA host: HIP build (pkgsRocm.blender) would be dead weight
     vlc
     notion-app-enhanced
 
@@ -183,7 +183,10 @@ in
   };
 
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
-  programs.zsh = (import ../../common/zsh.nix).zsh;
+  programs.zsh = (import ../../common/zsh.nix).zsh // {
+    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
+    dotDir = config.home.homeDirectory;
+  };
   programs.bash = (import ../../common/bash.nix).bash;
   programs.readline = (import ../../common/bash.nix).readline;
 

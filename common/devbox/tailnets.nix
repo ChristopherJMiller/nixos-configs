@@ -114,8 +114,6 @@ in
   # ---- Personal tailnet: userspace mode, inbound door ----------------------
   services.tailscale = {
     enable = true;
-    # Match the rest of the fleet's test-disabling override.
-    package = pkgs.tailscale.overrideAttrs (_: { doCheck = false; });
     # No TUN. Inbound (ssh/mosh/RDP from the personal tailnet) is delivered to
     # loopback by the daemon's netstack; outbound to personal peers only via
     # the proxy below.

@@ -56,6 +56,8 @@ in
   # home-manager re-activation (guest boot, or `dev-fix-shell`) always restores
   # it. Everything else in zsh.nix is inherited unchanged.
   programs.zsh = (import ../zsh.nix).zsh // {
+    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
+    dotDir = config.home.homeDirectory;
     zplug.enable = false;
     plugins = [
       {

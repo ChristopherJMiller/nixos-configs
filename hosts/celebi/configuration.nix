@@ -258,13 +258,7 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  services.tailscale = {
-    enable = true;
-    # Disable tests to work around build failures
-    package = pkgs.tailscale.overrideAttrs (oldAttrs: {
-      doCheck = false;
-    });
-  };
+  services.tailscale.enable = true;
 
   services.mullvad-vpn = {
     enable = true;
@@ -279,7 +273,6 @@
   # Enable Docker
   virtualisation.docker = {
     enable = true;
-    package = pkgs.docker_29;
     enableOnBoot = false;
     autoPrune = {
       enable = true;
@@ -287,7 +280,6 @@
     rootless = {
       enable = true;
       setSocketVariable = true;
-      package = pkgs.docker_29;
     };
     daemon.settings = {
       features = {
@@ -325,7 +317,7 @@
     enable = true;
     # Last-resort resolvers so the box keeps DNS when every tunnel is down
     # or a tunnel pushed a private resolver that is unreachable.
-    fallbackDns = [ "1.1.1.1" "9.9.9.9" ];
+    settings.Resolve.FallbackDNS = [ "1.1.1.1" "9.9.9.9" ];
   };
 
   # Make USB-tethered phone hotspots a low-priority default route so wifi
@@ -341,7 +333,7 @@
     };
 
     # Ignore DHCP-provided resolvers (some routers, e.g. 192.168.18.1, drop
-    # ~1/3 of queries -> intermittent SERVFAIL). resolved's fallbackDns is NOT
+    # ~1/3 of queries -> intermittent SERVFAIL). resolved's FallbackDNS is NOT
     # failover -- it only fires when zero links have DNS -- so a flaky uplink
     # resolver isn't covered. NM global DNS overrides per-connection (DHCP) DNS
     # and pushes these two reliable upstreams to resolved instead. The dns

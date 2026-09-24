@@ -147,7 +147,7 @@
     # System Tools
     efibootmgr
     btop
-    neofetch
+    fastfetch
     eza
 
     # Keyboard Utils
@@ -204,9 +204,7 @@
   # Enable Nix Flakes
   nix = {
     package = pkgs.nixVersions.stable;
-    extraOptions = ''
-      experimental-features = nix-command flakes
-    '';
+    settings.experimental-features = [ "nix-command" "flakes" ];
   };
 
   # Standard Fonts

@@ -45,7 +45,7 @@ let
     postBuild = ''
       wrapProgram $out/bin/gramps \
         --prefix PYTHONPATH : "${addonPython}/${pkgs.python3.sitePackages}" \
-        --prefix GI_TYPELIB_PATH : "${pkgs.goocanvas2}/lib/girepository-1.0" \
+        --prefix GI_TYPELIB_PATH : "${pkgs.goocanvas_2}/lib/girepository-1.0" \
         --prefix PATH : "${lib.makeBinPath [ pkgs.graphviz ]}"
     '';
     inherit (pkgs.gramps) meta;
