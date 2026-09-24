@@ -1,23 +1,24 @@
-# Sunshine pre-release with PipeWire/xdg-desktop-portal screen capture support.
-# Based on nixpkgs sunshine package, pinned to v2026.608.233907.
+# Sunshine (newer than nixpkgs) with PipeWire/xdg-desktop-portal screen capture support.
+# Based on nixpkgs sunshine package, pinned to v2026.914.233613 (a stable release —
+# pre-release tags get pruned upstream, which breaks rebuilds).
 { pkgs }:
 
 let
-  version = "2026.608.233907";
+  version = "2026.914.233613";
 
   src = pkgs.fetchFromGitHub {
     owner = "LizardByte";
     repo = "Sunshine";
     tag = "v${version}";
-    hash = "sha256-xfyaE6vaKxzQfup+BiFzjByTw3XDzJANvobbW7Cxf00=";
+    hash = "sha256-HqbswLvX/UiY3nOwxSesBMqnFAF0zKP1ueE6PwDtTNs=";
     fetchSubmodules = true;
   };
 
   # Pre-fetch ffmpeg static binaries (can't download in sandbox).
-  # Tag v2026.516.30821 matches the build-deps submodule commit.
+  # Tag v2026.910.121303 matches the build-deps submodule commit.
   ffmpegBinaries = pkgs.fetchurl {
-    url = "https://github.com/LizardByte/build-deps/releases/download/v2026.516.30821/Linux-x86_64-ffmpeg.tar.gz";
-    hash = "sha256-wyMZ/MKGe+/o/zria006WDeMOpwb/vkCnJlpMhw7xuw=";
+    url = "https://github.com/LizardByte/build-deps/releases/download/v2026.910.121303/Linux-x86_64-ffmpeg.tar.gz";
+    hash = "sha256-SW0ru2dNAeYDPjG538FcvJ3BSU6IKkUF9qseA/dbOFw=";
   };
 in
 pkgs.sunshine.overrideAttrs (oldAttrs: {
@@ -26,11 +27,7 @@ pkgs.sunshine.overrideAttrs (oldAttrs: {
   ui = pkgs.buildNpmPackage {
     inherit src version;
     pname = "sunshine-ui";
-    npmDepsHash = "sha256-RTizf+SAo2A1dM40pHShPViqI42Zc+hc8gy7UNL9LYk=";
-
-    postPatch = ''
-      cp ${./package-lock.json} ./package-lock.json
-    '';
+    npmDepsHash = "sha256-/uY+zvYxQG0Yb8kygwF48YfS+Km0bcQBW4poaqkeJXs=";
 
     installPhase = ''
       runHook preInstall
