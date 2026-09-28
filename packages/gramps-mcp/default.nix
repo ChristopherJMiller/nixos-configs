@@ -99,6 +99,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # discarded, so a repository reference's medium or an event reference's
     # role can be corrected after the fact.
     ./citation-confidence.patch
+
+    # create_note failed on every call: the server validates the arguments
+    # into NoteSaveParams and passes the tool model_dump(), whose override
+    # wraps text as StyledText, and the tool then validates that dict against
+    # the same str field. Unwrap it on the way back in.
+    ./note-save.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];
