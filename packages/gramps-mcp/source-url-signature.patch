@@ -1,0 +1,97 @@
+diff --git a/src/gramps_mcp/models/parameters/media_params.py b/src/gramps_mcp/models/parameters/media_params.py
+index a1f203c..0a6cd4f 100644
+--- a/src/gramps_mcp/models/parameters/media_params.py
++++ b/src/gramps_mcp/models/parameters/media_params.py
+@@ -59,7 +59,8 @@ class MediaSaveParams(BaseModel):
+         description=(
+             "Public https URL of a PDF or image for the server to fetch and "
+             "store as new media (max 25 MB). Recorded on the media as a "
+-            "'Source URL' attribute. Not used on update"
++            "'Source URL' attribute, minus any expiring signature. Not used "
++            "on update"
+         ),
+     )
+     attribute_list: Optional[List[Dict[str, Any]]] = Field(
+diff --git a/src/gramps_mcp/tools/data_management.py b/src/gramps_mcp/tools/data_management.py
+index eef71f1..b22cff9 100644
+--- a/src/gramps_mcp/tools/data_management.py
++++ b/src/gramps_mcp/tools/data_management.py
+@@ -23,7 +23,7 @@ from ..handlers.repository_handler import format_repository
+ from ..handlers.source_handler import format_source
+ from ..models.api_calls import ApiCalls
+ from ..utils import note_plain_text
+-from ..url_fetch import FetchRefused, fetch_document
++from ..url_fetch import FetchRefused, citable_url, fetch_document
+ from ..models.parameters.citation_params import CitationData
+ from ..models.parameters.delete_params import DeleteParams, RemoveReferenceParams
+ from ..models.parameters.event_params import EventSaveParams
+@@ -385,7 +385,7 @@ async def create_media_tool(arguments: Dict) -> List[TextContent]:
+                 if source_url:
+                     final_media_data["attribute_list"] = list(
+                         final_media_data.get("attribute_list") or []
+-                    ) + [{"type": "Source URL", "value": source_url}]
++                    ) + [{"type": "Source URL", "value": citable_url(source_url)}]
+ 
+                 result = await client.make_api_call(
+                     api_call=ApiCalls.PUT_MEDIA_ITEM,
+diff --git a/src/gramps_mcp/url_fetch.py b/src/gramps_mcp/url_fetch.py
+index af1a7a3..5131f97 100644
+--- a/src/gramps_mcp/url_fetch.py
++++ b/src/gramps_mcp/url_fetch.py
+@@ -15,13 +15,15 @@ the response into the tree, where it could be read back. So:
+   * only PDFs and images are accepted, identified from the bytes rather than
+     the Content-Type, since error pages served as application/pdf and PDFs
+     served as application/octet-stream are both common.
++
++citable_url() gives the form of the URL to record as the document's source.
+ """
+ 
+ import asyncio
+ import ipaddress
+ import socket
+ from typing import Optional, Tuple
+-from urllib.parse import urljoin, urlsplit
++from urllib.parse import parse_qsl, urljoin, urlsplit, urlunsplit
+ 
+ import httpx
+ 
+@@ -41,6 +43,39 @@ _SIGNATURES = (
+ )
+ 
+ 
++# Query parameters that mark a pre-signed, expiring URL (Azure SAS, AWS and
++# Google Cloud signed URLs, CloudFront). The rest of such a query is useless
++# once the signature expires, so the whole query is dropped.
++_SIGNING_PARAMS = frozenset(
++    {
++        "sig",
++        "signature",
++        "x-amz-signature",
++        "x-amz-credential",
++        "x-goog-signature",
++        "x-goog-credential",
++        "key-pair-id",
++        "policy",
++    }
++)
++
++
++def citable_url(url: str) -> str:
++    """
++    Return the URL worth recording as a document's source.
++
++    A pre-signed link stops working within minutes or hours, and its
++    signature is a credential while it lasts, so the query of any URL that
++    carries one is dropped; the path still names the document. Other queries
++    are kept, since some sites identify a record only by its query. The
++    fragment never matters for a fetch and is always dropped.
++    """
++    parts = urlsplit(url)
++    names = {name.lower() for name, _ in parse_qsl(parts.query, keep_blank_values=True)}
++    query = "" if names & _SIGNING_PARAMS else parts.query
++    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, ""))
++
++
+ class FetchRefused(Exception):
+     """The URL was refused or could not be fetched as a document."""
+ 

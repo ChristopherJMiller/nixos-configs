@@ -133,6 +133,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # rewritten. get_note returns the exact text a character range at a time,
     # with the total length, where to continue, and what the note is on.
     ./note-read.patch
+
+    # The Source URL kept on fetched media was the URL exactly as given, so a
+    # pre-signed link (Azure SAS, S3, GCS, CloudFront) stored its signature:
+    # dead within the hour, and a credential while it lasts. Drop the query
+    # of any URL carrying a signing parameter; the path still names the file.
+    ./source-url-signature.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];
