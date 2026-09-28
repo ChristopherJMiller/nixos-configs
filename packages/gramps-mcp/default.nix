@@ -105,6 +105,17 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # wraps text as StyledText, and the tool then validates that dict against
     # the same str field. Unwrap it on the way back in.
     ./note-save.patch
+
+    # No way to delete or detach anything: upstream defined DELETE calls but
+    # registered no tool, and the update merge only ever adds to *_list fields,
+    # so cleanup meant the web UI. Adds delete_object, which refuses while other
+    # objects still refer to the target unless force is set (Gramps then strips
+    # the references, and a source takes its citations with it), and
+    # remove_reference, which drops one entry from a list field and writes the
+    # object back whole. Also exposes create_media's file_location: the tool
+    # read it, but the schema did not declare it, so the server's model_dump
+    # stripped it and new media could never be created.
+    ./delete-and-detach.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];

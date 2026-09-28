@@ -1,0 +1,354 @@
+diff --git a/src/gramps_mcp/models/parameters/delete_params.py b/src/gramps_mcp/models/parameters/delete_params.py
+new file mode 100644
+index 0000000..cc7e718
+--- /dev/null
++++ b/src/gramps_mcp/models/parameters/delete_params.py
+@@ -0,0 +1,44 @@
++"""Pydantic models for deleting objects and detaching references."""
++
++from pydantic import BaseModel, Field
++
++from .simple_params import EntityType
++
++
++class DeleteParams(BaseModel):
++    """Parameters for deleting one object."""
++
++    type: EntityType = Field(..., description="Type of the object to delete")
++    handle: str = Field(..., min_length=8, description="Handle of the object")
++    force: bool = Field(
++        False,
++        description=(
++            "Delete even though other objects still refer to it. Gramps then "
++            "strips those references, and deleting a SOURCE also deletes every "
++            "citation of it. Without force the call refuses and lists the "
++            "referring objects."
++        ),
++    )
++
++
++class RemoveReferenceParams(BaseModel):
++    """Parameters for detaching one entry from a list field of an object."""
++
++    type: EntityType = Field(..., description="Type of the object to edit")
++    handle: str = Field(..., min_length=8, description="Handle of the object")
++    field: str = Field(
++        ...,
++        description=(
++            "List field to remove the entry from, e.g. citation_list, "
++            "note_list, media_list, tag_list, event_ref_list, child_ref_list, "
++            "reporef_list, parent_family_list, family_list, placeref_list"
++        ),
++    )
++    ref: str = Field(
++        ...,
++        min_length=8,
++        description=(
++            "Handle to remove: the list entry itself for plain handle lists, "
++            "or the entry whose 'ref' equals it for reference lists"
++        ),
++    )
+diff --git a/src/gramps_mcp/models/parameters/media_params.py b/src/gramps_mcp/models/parameters/media_params.py
+index 4df0891..5a12fa0 100644
+--- a/src/gramps_mcp/models/parameters/media_params.py
++++ b/src/gramps_mcp/models/parameters/media_params.py
+@@ -45,6 +45,14 @@ class MediaSaveParams(BaseModel):
+         None, min_length=1, description="File path or URL to media"
+     )
+     description: Optional[str] = Field(None, description="Media description")
++    file_location: Optional[str] = Field(
++        None,
++        min_length=1,
++        description=(
++            "Path, on the MCP server's own filesystem, of the file to upload. "
++            "Required to create new media; not used on update"
++        ),
++    )
+     mime: Optional[str] = Field(None, description="MIME type of the media file")
+     citation_list: Optional[List[str]] = Field(
+         None, description="List of citation handles"
+diff --git a/src/gramps_mcp/server.py b/src/gramps_mcp/server.py
+index d26501b..7fd9f88 100644
+--- a/src/gramps_mcp/server.py
++++ b/src/gramps_mcp/server.py
+@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
+ 
+ # Import all parameter models
+ from .models.parameters.citation_params import CitationData
++from .models.parameters.delete_params import DeleteParams, RemoveReferenceParams
+ from .models.parameters.event_params import EventSaveParams
+ from .models.parameters.family_params import FamilySaveParams
+ from .models.parameters.media_params import MediaSaveParams
+@@ -44,6 +45,8 @@ from .tools import (
+     create_note_tool,
+     create_tag_tool,
+     create_person_tool,
++    delete_object_tool,
++    remove_reference_tool,
+     create_place_tool,
+     create_repository_tool,
+     create_source_tool,
+@@ -167,6 +170,24 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
+         "schema": MediaSaveParams,
+         "handler": create_media_tool,
+     },
++    "delete_object": {
++        "description": (
++            "Delete one object. Refuses while other objects still refer to it "
++            "unless force=true; Gramps then strips those references, and "
++            "deleting a source also deletes its citations"
++        ),
++        "schema": DeleteParams,
++        "handler": delete_object_tool,
++    },
++    "remove_reference": {
++        "description": (
++            "Detach one entry (a citation, note, media, event, child, "
++            "repository reference...) from a list field of an object, without "
++            "deleting the entry itself"
++        ),
++        "schema": RemoveReferenceParams,
++        "handler": remove_reference_tool,
++    },
+     "create_repository": {
+         "description": "Create or update repository information",
+         "schema": RepositoryData,
+diff --git a/src/gramps_mcp/tools/__init__.py b/src/gramps_mcp/tools/__init__.py
+index 637e4eb..72f7ac2 100644
+--- a/src/gramps_mcp/tools/__init__.py
++++ b/src/gramps_mcp/tools/__init__.py
+@@ -25,6 +25,8 @@ from .data_management import (
+     create_note_tool,
+     create_tag_tool,
+     create_person_tool,
++    delete_object_tool,
++    remove_reference_tool,
+     create_place_tool,
+     create_repository_tool,
+     create_source_tool,
+@@ -70,6 +72,8 @@ __all__ = [
+     "create_tag_tool",
+     "create_media_tool",
+     "create_repository_tool",
++    "delete_object_tool",
++    "remove_reference_tool",
+     # Analysis Tools
+     "get_tree_info_tool",
+     "get_descendants_tool",
+diff --git a/src/gramps_mcp/tools/data_management.py b/src/gramps_mcp/tools/data_management.py
+index db05b53..69e26fe 100644
+--- a/src/gramps_mcp/tools/data_management.py
++++ b/src/gramps_mcp/tools/data_management.py
+@@ -23,6 +23,7 @@ from ..handlers.repository_handler import format_repository
+ from ..handlers.source_handler import format_source
+ from ..models.api_calls import ApiCalls
+ from ..models.parameters.citation_params import CitationData
++from ..models.parameters.delete_params import DeleteParams, RemoveReferenceParams
+ from ..models.parameters.event_params import EventSaveParams
+ from ..models.parameters.family_params import FamilySaveParams
+ from ..models.parameters.media_params import MediaSaveParams
+@@ -310,7 +311,7 @@ async def create_media_tool(arguments: Dict) -> List[TextContent]:
+     import os
+ 
+     try:
+-        # Extract file_location separately (not part of MediaSaveParams)
++        # file_location is how the bytes reach the server, not a Gramps field
+         file_location = arguments.get("file_location")
+ 
+         # All other arguments are for metadata
+@@ -450,3 +451,195 @@ async def create_repository_tool(arguments: Dict) -> List[TextContent]:
+ 
+     except Exception as e:
+         return _format_error_response(e, "repository save")
++
++
++_GET_CALLS = {
++    "person": ApiCalls.GET_PERSON,
++    "family": ApiCalls.GET_FAMILY,
++    "event": ApiCalls.GET_EVENT,
++    "place": ApiCalls.GET_PLACE,
++    "source": ApiCalls.GET_SOURCE,
++    "citation": ApiCalls.GET_CITATION,
++    "media": ApiCalls.GET_MEDIA_ITEM,
++    "repository": ApiCalls.GET_REPOSITORY,
++    "note": ApiCalls.GET_NOTE,
++}
++_PUT_CALLS = {
++    "person": ApiCalls.PUT_PERSON,
++    "family": ApiCalls.PUT_FAMILY,
++    "event": ApiCalls.PUT_EVENT,
++    "place": ApiCalls.PUT_PLACE,
++    "source": ApiCalls.PUT_SOURCE,
++    "citation": ApiCalls.PUT_CITATION,
++    "media": ApiCalls.PUT_MEDIA_ITEM,
++    "repository": ApiCalls.PUT_REPOSITORY,
++    "note": ApiCalls.PUT_NOTE,
++}
++_DELETE_CALLS = {
++    "person": ApiCalls.DELETE_PERSON,
++    "family": ApiCalls.DELETE_FAMILY,
++    "event": ApiCalls.DELETE_EVENT,
++    "place": ApiCalls.DELETE_PLACE,
++    "source": ApiCalls.DELETE_SOURCE,
++    "citation": ApiCalls.DELETE_CITATION,
++    "media": ApiCalls.DELETE_MEDIA_ITEM,
++    "repository": ApiCalls.DELETE_REPOSITORY,
++    "note": ApiCalls.DELETE_NOTE,
++}
++# What kind of object each list field points at, for naming the removed entry.
++_FIELD_TARGET = {
++    "citation_list": "citation",
++    "note_list": "note",
++    "media_list": "media",
++    "event_ref_list": "event",
++    "child_ref_list": "person",
++    "reporef_list": "repository",
++    "parent_family_list": "family",
++    "family_list": "family",
++    "placeref_list": "place",
++}
++
++
++async def _label(client: GrampsWebAPIClient, tree_id: str, kind: str, handle: str) -> str:
++    """Name an object as "<kind> <gramps_id>", falling back to its handle."""
++    call = _GET_CALLS.get(kind)
++    if call is not None:
++        try:
++            obj = await client.make_api_call(call, tree_id=tree_id, handle=handle)
++            if obj and obj.get("gramps_id"):
++                return f"{kind} {obj['gramps_id']}"
++        except Exception:
++            pass
++    return f"{kind} {handle}"
++
++
++async def delete_object_tool(arguments: Dict) -> List[TextContent]:
++    """
++    Delete one object.
++
++    Upstream defined a DELETE call for every object type but registered no
++    tool, so cleanup could only happen in the web UI. Gramps Web deletes an
++    object together with every reference to it, and a source together with
++    all of its citations, so without force this refuses while anything still
++    refers to the object and names what does.
++    """
++    try:
++        params = DeleteParams(**arguments)
++        kind = params.type.value
++        tree_id = get_settings().gramps_tree_id
++
++        client = GrampsWebAPIClient()
++        try:
++            obj = await client.make_api_call(
++                _GET_CALLS[kind],
++                params={"backlinks": True},
++                tree_id=tree_id,
++                handle=params.handle,
++            )
++            label = f"{kind} {obj.get('gramps_id') or params.handle}"
++
++            referrers = []
++            for ref_kind, handles in (obj.get("backlinks") or {}).items():
++                for handle in handles:
++                    referrers.append(await _label(client, tree_id, ref_kind.lower(), handle))
++            if referrers and not params.force:
++                cascade = (
++                    " Deleting a source also deletes every citation of it."
++                    if kind == "source"
++                    else ""
++                )
++                return [
++                    TextContent(
++                        type="text",
++                        text=(
++                            f"Not deleted: {label} is still referred to by "
++                            f"{', '.join(referrers)}. Detach those with "
++                            "remove_reference, or pass force=true to delete it "
++                            f"and have Gramps strip the references.{cascade}"
++                        ),
++                    )
++                ]
++
++            result = await client.make_api_call(
++                _DELETE_CALLS[kind], tree_id=tree_id, handle=params.handle
++            )
++        finally:
++            await client.close()
++
++        deleted, updated = [], []
++        for item in result if isinstance(result, list) else []:
++            data = item.get("old") or item.get("new") or {}
++            name = f"{item.get('_class', '?').lower()} {data.get('gramps_id') or item.get('handle')}"
++            (deleted if item.get("type") == "delete" else updated).append(name)
++        text = f"Deleted {label}."
++        if len(deleted) > 1:
++            text += f"\nDeleted with it: {', '.join(d for d in deleted if d != label)}."
++        if updated:
++            text += f"\nReferences removed from: {', '.join(updated)}."
++        return [TextContent(type="text", text=text)]
++
++    except Exception as e:
++        return _format_error_response(e, "delete")
++
++
++async def remove_reference_tool(arguments: Dict) -> List[TextContent]:
++    """
++    Detach one entry from a list field of an object.
++
++    Every update goes through make_api_call's merge, which only ever adds to
++    *_list fields, so nothing could be taken off an object - a wrong citation
++    on an event, a note on the wrong person. This reads the object, drops the
++    entry and writes the object back whole, bypassing the merge, which would
++    otherwise put the entry straight back.
++    """
++    try:
++        params = RemoveReferenceParams(**arguments)
++        kind = params.type.value
++        tree_id = get_settings().gramps_tree_id
++
++        client = GrampsWebAPIClient()
++        try:
++            obj = await client.make_api_call(
++                _GET_CALLS[kind], tree_id=tree_id, handle=params.handle
++            )
++            label = f"{kind} {obj.get('gramps_id') or params.handle}"
++            items = obj.get(params.field)
++            if not isinstance(items, list):
++                raise GrampsAPIError(f"{label} has no list field '{params.field}'")
++
++            kept = [
++                item
++                for item in items
++                if item != params.ref
++                and not (isinstance(item, dict) and item.get("ref") == params.ref)
++            ]
++            if len(kept) == len(items):
++                raise GrampsAPIError(f"{params.ref} is not in {params.field} of {label}")
++
++            obj[params.field] = kept
++            url = client._build_url_with_substitution(
++                tree_id, _PUT_CALLS[kind].endpoint, {"handle": params.handle}
++            )
++            await client._make_request(method="PUT", url=url, json_data=obj)
++
++            target = _FIELD_TARGET.get(params.field)
++            removed = (
++                await _label(client, tree_id, target, params.ref)
++                if target
++                else params.ref
++            )
++            formatted = await _format_save_response(
++                client, obj, kind, "updated", tree_id
++            )
++        finally:
++            await client.close()
++
++        return [
++            TextContent(
++                type="text",
++                text=f"Removed {removed} from {params.field} of {label}.\n\n{formatted}",
++            )
++        ]
++
++    except Exception as e:
++        return _format_error_response(e, "remove reference")
