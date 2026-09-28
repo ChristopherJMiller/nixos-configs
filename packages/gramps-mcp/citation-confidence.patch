@@ -1,0 +1,72 @@
+diff --git a/src/gramps_mcp/client.py b/src/gramps_mcp/client.py
+index 806167f..18d573c 100644
+--- a/src/gramps_mcp/client.py
++++ b/src/gramps_mcp/client.py
+@@ -268,10 +268,27 @@ class GrampsWebAPIClient:
+                                 
+                                 if (isinstance(sample_existing, dict) and 'ref' in sample_existing and
+                                     isinstance(sample_new, dict) and 'ref' in sample_new):
+-                                    # Deduplicate reference objects based on 'ref' field
+-                                    existing_refs = {item.get('ref') for item in existing_items if isinstance(item, dict)}
+-                                    new_items = [item for item in value if isinstance(item, dict) and item.get('ref') not in existing_refs]
+-                                    merged_data[key] = existing_items + new_items
++                                    # A reference whose 'ref' is already present updates
++                                    # that entry in place - only the keys sent change - so
++                                    # a role, frel/mrel, medium or call number can be
++                                    # corrected. Dropping it instead made every existing
++                                    # reference read-only. New refs are appended.
++                                    merged_items = list(existing_items)
++                                    position = {
++                                        item.get('ref'): i
++                                        for i, item in enumerate(merged_items)
++                                        if isinstance(item, dict)
++                                    }
++                                    for item in value:
++                                        if not isinstance(item, dict):
++                                            continue
++                                        i = position.get(item.get('ref'))
++                                        if i is None:
++                                            position[item.get('ref')] = len(merged_items)
++                                            merged_items.append(item)
++                                        else:
++                                            merged_items[i] = {**merged_items[i], **item}
++                                    merged_data[key] = merged_items
+                                 elif isinstance(sample_existing, str) and isinstance(sample_new, str):
+                                     # Deduplicate simple string handles
+                                     existing_set = set(existing_items)
+diff --git a/src/gramps_mcp/models/parameters/citation_params.py b/src/gramps_mcp/models/parameters/citation_params.py
+index 6016a9e..1f57437 100644
+--- a/src/gramps_mcp/models/parameters/citation_params.py
++++ b/src/gramps_mcp/models/parameters/citation_params.py
+@@ -41,4 +41,13 @@ class CitationData(BaseDataModel):
+         ),
+     )
+     page: Optional[str] = Field(None, description="Page or location within the source")
++    confidence: Optional[int] = Field(
++        None,
++        ge=0,
++        le=4,
++        description=(
++            "Confidence in what this citation supports: 0=very low, 1=low, "
++            "2=normal, 3=high, 4=very high. Gramps records 2 when omitted."
++        ),
++    )
+     source_handle: str = Field(..., description="Handle of the source being cited")
+diff --git a/src/gramps_mcp/models/parameters/family_params.py b/src/gramps_mcp/models/parameters/family_params.py
+index 9fd4610..2e209a7 100644
+--- a/src/gramps_mcp/models/parameters/family_params.py
++++ b/src/gramps_mcp/models/parameters/family_params.py
+@@ -39,6 +39,13 @@ class FamilySaveParams(BaseModel):
+         None, description="List of event references"
+     )
+     note_list: Optional[List[str]] = Field(None, description="List of note handles")
++    citation_list: Optional[List[str]] = Field(
++        None,
++        description=(
++            "Citation handles supporting the family as a whole - the couple, "
++            "or who their children are - separate from its events' citations"
++        ),
++    )
+     urls: Optional[List[dict]] = Field(
+         None, description="List of URLs associated with the family"
+     )

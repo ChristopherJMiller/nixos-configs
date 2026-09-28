@@ -90,6 +90,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # event, note and media, plus attribute_list on family and event, both
     # confirmed accepted by the API. Tags were already queryable via GQL.
     ./tags.patch
+
+    # Citation confidence was silently dropped: CitationData had no confidence
+    # field and pydantic ignores unknown keys, so every citation written through
+    # MCP was stored as Normal (2) whatever the caller asked for. Also gives
+    # create_family the citation_list Gramps families carry, and lets a list
+    # entry whose ref is already present update that entry instead of being
+    # discarded, so a repository reference's medium or an event reference's
+    # role can be corrected after the fact.
+    ./citation-confidence.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];
