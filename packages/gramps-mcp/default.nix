@@ -126,6 +126,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # only PDFs and images, identified from the bytes. The URL is kept on the
     # media as a Source URL attribute.
     ./media-from-url.patch
+
+    # Every read path truncated notes - to 500 characters in the note
+    # formatter, 50 in the person and family views - and create_note replaces
+    # the whole text, so a long note could be neither read nor safely
+    # rewritten. get_note returns the exact text a character range at a time,
+    # with the total length, where to continue, and what the note is on.
+    ./note-read.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];

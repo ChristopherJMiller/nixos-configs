@@ -1,0 +1,181 @@
+diff --git a/src/gramps_mcp/models/parameters/note_params.py b/src/gramps_mcp/models/parameters/note_params.py
+index c42d959..1d937ed 100644
+--- a/src/gramps_mcp/models/parameters/note_params.py
++++ b/src/gramps_mcp/models/parameters/note_params.py
+@@ -10,7 +10,7 @@ API calls supported in this category:
+ 
+ from typing import Any, List, Optional
+ 
+-from pydantic import BaseModel, Field, field_validator
++from pydantic import BaseModel, Field, field_validator, model_validator
+ 
+ from .base_params import BaseGetMultipleParams, BaseGetSingleParams
+ 
+@@ -82,3 +82,22 @@ class NoteSaveParams(BaseModel):
+             "its handle here"
+         ),
+     )
++
++
++class NoteReadParams(BaseModel):
++    """Parameters for reading a note's text a range of characters at a time."""
++
++    gramps_id: Optional[str] = Field(None, description="Note ID, e.g. N0011")
++    handle: Optional[str] = Field(None, description="Note handle")
++    start: int = Field(
++        0, ge=0, description="Offset of the first character to return (0-based)"
++    )
++    length: int = Field(
++        10000, ge=1, le=50000, description="Maximum number of characters to return"
++    )
++
++    @model_validator(mode="after")
++    def _require_note(self) -> "NoteReadParams":
++        if not (self.gramps_id or self.handle):
++            raise ValueError("Give the note's gramps_id or handle")
++        return self
+diff --git a/src/gramps_mcp/server.py b/src/gramps_mcp/server.py
+index 87adefd..f1da522 100644
+--- a/src/gramps_mcp/server.py
++++ b/src/gramps_mcp/server.py
+@@ -23,7 +23,7 @@ from .models.parameters.delete_params import DeleteParams, RemoveReferenceParams
+ from .models.parameters.event_params import EventSaveParams
+ from .models.parameters.family_params import FamilySaveParams
+ from .models.parameters.media_params import MediaSaveParams
+-from .models.parameters.note_params import NoteSaveParams
++from .models.parameters.note_params import NoteReadParams, NoteSaveParams
+ from .models.parameters.tag_params import TagSaveParams
+ from .models.parameters.people_params import PersonData
+ from .models.parameters.place_params import PlaceSaveParams
+@@ -46,6 +46,7 @@ from .tools import (
+     create_tag_tool,
+     create_person_tool,
+     delete_object_tool,
++    get_note_tool,
+     remove_reference_tool,
+     create_place_tool,
+     create_repository_tool,
+@@ -116,6 +117,15 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
+         "schema": SimpleGetParams,
+         "handler": get_type_tool,
+     },
++    "get_note": {
++        "description": (
++            "Read a note's full text by gramps_id or handle, a character range "
++            "at a time (start, length). Other tools cut notes to 500 characters; "
++            "read the whole note before rewriting it with create_note"
++        ),
++        "schema": NoteReadParams,
++        "handler": get_note_tool,
++    },
+     # Data Management Tools
+     "create_person": {
+         "description": (
+diff --git a/src/gramps_mcp/tools/__init__.py b/src/gramps_mcp/tools/__init__.py
+index 72f7ac2..95219c4 100644
+--- a/src/gramps_mcp/tools/__init__.py
++++ b/src/gramps_mcp/tools/__init__.py
+@@ -26,6 +26,7 @@ from .data_management import (
+     create_tag_tool,
+     create_person_tool,
+     delete_object_tool,
++    get_note_tool,
+     remove_reference_tool,
+     create_place_tool,
+     create_repository_tool,
+@@ -73,6 +74,7 @@ __all__ = [
+     "create_media_tool",
+     "create_repository_tool",
+     "delete_object_tool",
++    "get_note_tool",
+     "remove_reference_tool",
+     # Analysis Tools
+     "get_tree_info_tool",
+diff --git a/src/gramps_mcp/tools/data_management.py b/src/gramps_mcp/tools/data_management.py
+index 45c0b8e..eef71f1 100644
+--- a/src/gramps_mcp/tools/data_management.py
++++ b/src/gramps_mcp/tools/data_management.py
+@@ -22,13 +22,14 @@ from ..handlers.place_handler import format_place
+ from ..handlers.repository_handler import format_repository
+ from ..handlers.source_handler import format_source
+ from ..models.api_calls import ApiCalls
++from ..utils import note_plain_text
+ from ..url_fetch import FetchRefused, fetch_document
+ from ..models.parameters.citation_params import CitationData
+ from ..models.parameters.delete_params import DeleteParams, RemoveReferenceParams
+ from ..models.parameters.event_params import EventSaveParams
+ from ..models.parameters.family_params import FamilySaveParams
+ from ..models.parameters.media_params import MediaSaveParams
+-from ..models.parameters.note_params import NoteSaveParams
++from ..models.parameters.note_params import NoteReadParams, NoteSaveParams
+ from ..models.parameters.people_params import PersonData
+ from ..models.parameters.place_params import PlaceSaveParams
+ from ..models.parameters.repository_params import RepositoryData
+@@ -661,3 +662,67 @@ async def remove_reference_tool(arguments: Dict) -> List[TextContent]:
+ 
+     except Exception as e:
+         return _format_error_response(e, "remove reference")
++
++
++async def get_note_tool(arguments: Dict) -> List[TextContent]:
++    """
++    Read a note's text, a range of characters at a time.
++
++    Every other read path cuts a note short - to 500 characters in the note
++    formatter, 50 in the person and family views - so a long note could be
++    neither read in full nor safely rewritten, since create_note replaces the
++    whole text. This returns the exact text between start and start + length,
++    with the total length, where to continue, and what the note is attached to.
++    """
++    try:
++        params = NoteReadParams(**arguments)
++        tree_id = get_settings().gramps_tree_id
++
++        client = GrampsWebAPIClient()
++        try:
++            handle = params.handle
++            if not handle:
++                try:
++                    found = await client.make_api_call(
++                        ApiCalls.GET_NOTES,
++                        params={"gramps_id": params.gramps_id},
++                        tree_id=tree_id,
++                    )
++                except GrampsAPIError:
++                    found = None
++                if not found:
++                    raise GrampsAPIError(f"No note with gramps_id {params.gramps_id}")
++                handle = found[0]["handle"]
++
++            note = await client.make_api_call(
++                ApiCalls.GET_NOTE,
++                params={"backlinks": True},
++                tree_id=tree_id,
++                handle=handle,
++            )
++            attached = []
++            for kind, refs in (note.get("backlinks") or {}).items():
++                labels = [await _label(client, tree_id, kind.lower(), ref) for ref in refs]
++                ids = [label.split(" ", 1)[1] for label in labels]
++                attached.append(f"{kind.lower()} {', '.join(ids)}")
++        finally:
++            await client.close()
++
++        text = note_plain_text(note)
++        total = len(text)
++        start = min(params.start, total)
++        end = min(start + params.length, total)
++        position = f"Characters {start}-{end} of {total}; " + (
++            f"continue with start={end}" if end < total else "end of note"
++        )
++        header = "\n".join(
++            [
++                f"{note.get('type')} - {note.get('gramps_id')} - [{handle}]",
++                position,
++                f"Attached to: {'; '.join(attached) if attached else 'nothing'}",
++            ]
++        )
++        return [TextContent(type="text", text=f"{header}\n\n{text[start:end]}")]
++
++    except Exception as e:
++        return _format_error_response(e, "note read")
