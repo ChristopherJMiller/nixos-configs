@@ -116,6 +116,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # read it, but the schema did not declare it, so the server's model_dump
     # stripped it and new media could never be created.
     ./delete-and-detach.patch
+
+    # MCP cannot carry a file, only tool arguments, and file_location reads the
+    # server's own disk, which no caller can write to. create_media now takes
+    # a source_url and fetches it server side. The server runs inside the
+    # cluster, so the fetch is guarded against reaching internal addresses:
+    # https only, every resolved address and the connected address must be
+    # public, redirects are followed by hand and re-checked, 25 MB cap, and
+    # only PDFs and images, identified from the bytes. The URL is kept on the
+    # media as a Source URL attribute.
+    ./media-from-url.patch
   ];
 
   nativeBuildInputs = [ makeWrapper ];
