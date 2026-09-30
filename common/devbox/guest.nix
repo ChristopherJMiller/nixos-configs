@@ -57,6 +57,35 @@
   microvm.mem = 16384; # 16 GiB
   microvm.balloon = true; # -device virtio-balloon-pci,free-page-reporting=on
 
+  # ---- Swap ------------------------------------------------------------------
+  # Two tiers, so a memory spike in the guest pages out INSIDE the guest
+  # rather than OOM-killing a build (and rather than rowlett swapping the
+  # guest's memfd, which is what made the VM unreachable on 2026-09-21):
+  #  1) zram (priority 100): compressed swap in guest RAM. Its pages count
+  #     against the 16 GiB above, so it stretches that ceiling rather than
+  #     adding to it.
+  #  2) the swap.img volume (priority 10, see Volumes): 8 GiB of disk-backed
+  #     overflow. randomEncryption re-runs mkswap under a throwaway key every
+  #     boot, so the ext4 that microvm's autoCreate puts on the image doesn't
+  #     matter, and discard TRIMs freed swap back out of the sparse image, so
+  #     it only takes rowlett disk while in use.
+  zramSwap = {
+    enable = true;
+    priority = 100;
+    memoryPercent = 50; # up to 8 GiB of uncompressed pages
+  };
+  swapDevices = [
+    {
+      device = "/dev/disk/by-id/virtio-swap";
+      priority = 10;
+      discardPolicy = "both";
+      randomEncryption = {
+        enable = true;
+        allowDiscards = true;
+      };
+    }
+  ];
+
   # Outbound-only user-mode networking: no LAN presence. In-guest tailscale
   # reaches the tailnet via slirp NAT (+ DERP); nothing is exposed on the LAN.
   microvm.interfaces = [
@@ -107,8 +136,9 @@
   # guest TRIMs; see services.fstrim below). WARNING: these sum to ~230 GiB
   # and rowlett's disk runs nearly full — if the guest fills home-dev AND the
   # store overlay it CAN exhaust the host, not just hit ENOSPC in the guest.
-  # The nix min-free/GC settings below (plus `dev-prune`) keep the overlay
-  # bounded; check `df -h /` on the host before growing any of these.
+  # Nothing garbage-collects the store overlay (see the no-GC note below);
+  # `devvm-reset-overlay` empties it. Check `df -h /` on the host before
+  # growing any of these.
   # `direct` = O_DIRECT (cache=none): the guest already page-caches its own
   # disks, so a host-side copy is pure double-caching (see Memory above).
   # Guest flushes are still honoured; this is the standard VM-disk mode.
@@ -136,6 +166,13 @@
       size = 1024;
     } # 1 GiB — work tailnet node key/prefs (./tailnets.nix); rootfs is
     #   tmpfs, so without this the SSO login would be lost on every boot
+    {
+      image = "swap.img";
+      mountPoint = null;
+      serial = "swap"; # -> /dev/disk/by-id/virtio-swap (see Swap above)
+      size = 8192;
+      direct = true;
+    } # 8 GiB — overflow swap; autoCreate formats it ext4, mkswap'd each boot
   ];
 
   # Hand freed blocks back to rowlett. qemu runs these volumes with
@@ -168,27 +205,22 @@
     "dev"
   ];
 
-  # Keep the 48 GiB writable store overlay from filling up — a full overlay
-  # means failed/half-written builds and a guest that can't stage a new
-  # closure. (The "my shell config got nuked" symptom turned out to be
-  # separate: home-manager activation silently failing at boot — see the
-  # `home-manager.overwriteBackup` note in flake.nix.) Two independent layers:
-  #   1) min-free/max-free: DURING a build, if free store space drops below
-  #      min-free, nix garbage-collects until max-free is available. This is
-  #      the important one — it prevents ENOSPC mid-build without waiting for
-  #      a timer, which is the usual "ran out of space and everything broke"
-  #      trigger.
-  #   2) a scheduled GC every 6h with short retention, as a background floor.
-  # (auto-optimise stays off — required with writableStoreOverlay — but GC and
-  # min-free are independent of it and safe.)
-  nix.gc = {
-    automatic = true;
-    dates = "*-*-* 00/6:00:00"; # every 6 hours
-    options = "--delete-older-than 3d";
-    persistent = true; # run a missed GC on next boot (VM is off-by-default)
-  };
-  nix.settings.min-free = 5368709120; # 5 GiB — GC triggers below this free
-  nix.settings.max-free = 10737418240; # 10 GiB — GC frees up to this much
+  # NO garbage collection in the guest — no nix.gc timer, no min-free/max-free,
+  # and don't run `nix-collect-garbage` in here by hand either. /nix/store is
+  # an overlay whose LOWER layer is rowlett's entire store (virtiofs), and the
+  # guest's plain local store can't tell the layers apart: GC walks every
+  # directory it can see, and "deleting" a host path writes an overlay
+  # whiteout into nix-overlay.img that hides it from the guest for good. Each
+  # 6-hourly run "freed" 10–110 GiB that were really host paths (whiteouts,
+  # not freed space). Any host path the guest didn't have rooted was hidden,
+  # including paths a LATER guest closure needs. On 2026-09-30 the guest DB
+  # didn't have the booted system registered ("skipping invalid root from
+  # /run/current-system"), so the 11:00 GC whited out 1358 of the booted
+  # closure's 1379 paths, systemd included. That is the "Failed to execute
+  # shutdown binary / Freezing execution" 10-min shutdown hang (ENOENT on
+  # every exec) first seen 2026-09-14/22. The overlay only holds a
+  # rebuildable cache of in-guest builds: when it fills, `devvm-reset-overlay`
+  # on the host wipes it.
 
   # ---- In-guest networking -------------------------------------------------
   networking.useNetworkd = true;
@@ -343,13 +375,12 @@
     # in sessionVariables below); cargo-cache trims the registry/git caches.
     sccache
     cargo-cache
-    # On-demand deep prune: docker, nix overlay GC, cargo registry, and any
+    # On-demand deep prune: docker, cargo registry, and any
     # git-IGNORED build dirs under /home/dev (target/.cargo-target/node_modules
     # only — never touches tracked files, same rule as the host cleanup).
     (pkgs.writeShellScriptBin "dev-prune" ''
       set -euo pipefail
       echo "== docker ==";        docker system prune -af || true
-      echo "== nix overlay GC ==";sudo nix-collect-garbage -d || true
       echo "== cargo registry ==";cargo cache --autoclean || true
       echo "== sccache ==";       sccache --show-stats 2>/dev/null || true
       echo "== git-ignored build caches under /home/dev =="
@@ -425,34 +456,4 @@
     overrideStrategy = "asDropin";
     serviceConfig.TimeoutStopSec = "30s";
   };
-
-  # TEMPORARY INSTRUMENTATION (added 2026-09-22) — remove once the shutdown
-  # freeze described here is root-caused.
-  #
-  # Twice now (2026-09-14, 2026-09-22) the guest has frozen at the very end of
-  # shutdown: "[!!!!!!] Failed to execute shutdown binary." → "Freezing
-  # execution." qemu then never exits, so the host burns the whole
-  # TimeoutStopSec=10min net and SIGKILLs it with every volume still mounted
-  # rw. From t=0 of the stop, nothing needing fork+exec of a store binary
-  # worked — run-initramfs.mount and save-hwclock failed instantly (neither is
-  # sandboxed; both just spawn a plain store binary), every umount failed in
-  # the same second, then PID 1's own execv of systemd-shutdown failed. Both
-  # freezes had an xrdp session with drive redirection live
-  # (/home/dev/thinclient_drives mounted); the six clean shutdowns had none.
-  # virtiofsd stayed connected throughout and there was no guest OOM, so the
-  # store backend and the 09-21 memory changes are both ruled out.
-  #
-  # What's missing is the errno, and we can't get it after the fact: / is
-  # tmpfs, so the guest journal dies with the VM, and PID 1 is frozen by the
-  # time we notice. Mirroring the journal to ttyS0 puts it in the host's
-  # `journalctl -u microvm@devbox`, which survives. info (not warning) on
-  # purpose: this fires maybe once a week, so catch the reason on the first
-  # reproduction rather than re-instrumenting. Costs a chunk of host journal
-  # volume while it's on, and rowlett has been tight on disk.
-  #
-  # To reproduce: connect RDP with drive redirection, then `devvm-down`.
-  services.journald.extraConfig = ''
-    ForwardToConsole=yes
-    MaxLevelConsole=info
-  '';
 }
