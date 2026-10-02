@@ -1,0 +1,158 @@
+From 5d00137f36a15afcf3b543f3f22f4ae2fe1bd9f2 Mon Sep 17 00:00:00 2001
+From: Christopher Miller <mthr-claude@chrismiller.xyz>
+Date: Thu, 1 Oct 2026 18:57:24 -0700
+Subject: [PATCH 1/2] applet: don't wake suspended devices to draw volume
+ meters
+
+Opening the applet created an active peak-detect record stream for every
+listed sink/source, resuming every suspended device at once (KDE bug
+507212). The upstream fix (PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND) was
+reverted because passive streams on idle nodes hang on PipeWire 1.6.x
+(pipewire#4991). Instead, let the applet opt out of waking devices: the
+meter stream is only opened once the device is not suspended.
+---
+ applet/VolumeSlider.qml |  3 +++
+ src/volumemonitor.cpp   | 48 ++++++++++++++++++++++++++++++++++++++++-
+ src/volumemonitor.h     | 15 +++++++++++++
+ 3 files changed, 65 insertions(+), 1 deletion(-)
+
+diff --git a/applet/VolumeSlider.qml b/applet/VolumeSlider.qml
+index 0eb838f..df0638b 100644
+--- a/applet/VolumeSlider.qml
++++ b/applet/VolumeSlider.qml
+@@ -34,6 +34,9 @@ PC3.Slider {
+     VolumeMonitor {
+         id: meter
+         target: control.visible ? control.volumeObject : null
++        // Opening the popup must not resume every suspended device just to
++        // draw meters; idle devices get one as soon as they become active.
++        wakeDevices: false
+     }
+ 
+     Behavior on volume {
+diff --git a/src/volumemonitor.cpp b/src/volumemonitor.cpp
+index 27d6d82..74b8ffd 100644
+--- a/src/volumemonitor.cpp
++++ b/src/volumemonitor.cpp
+@@ -9,6 +9,7 @@
+ #include <pulse/pulseaudio.h>
+ 
+ #include <PulseAudioQt/Context>
++#include <PulseAudioQt/Device>
+ #include <PulseAudioQt/Sink>
+ #include <PulseAudioQt/SinkInput>
+ #include <PulseAudioQt/Source>
+@@ -75,18 +76,63 @@ void PulseAudioQt::VolumeMonitor::setTarget(PulseAudioQt::VolumeObject *target)
+         Q_EMIT availableChanged();
+     }
+ 
++    disconnect(m_stateConnection);
+     m_target = target;
+ 
+     if (target) {
+         connect(target, &QObject::destroyed, this, [this] {
+             setTarget(nullptr);
+         });
+-        createStream();
++        if (auto *device = qobject_cast<Device *>(target)) {
++            m_stateConnection = connect(device, &Device::stateChanged, this, &VolumeMonitor::scheduleUpdate);
++        }
++        scheduleUpdate();
+     }
+ 
+     Q_EMIT targetChanged();
+ }
+ 
++bool VolumeMonitor::wakeDevices() const
++{
++    return m_wakeDevices;
++}
++
++void VolumeMonitor::setWakeDevices(bool wake)
++{
++    if (wake == m_wakeDevices) {
++        return;
++    }
++
++    m_wakeDevices = wake;
++    Q_EMIT wakeDevicesChanged();
++    scheduleUpdate();
++}
++
++// Deferred so every QML property (wakeDevices included) is applied before
++// deciding whether a stream may be opened, whatever the assignment order.
++void VolumeMonitor::scheduleUpdate()
++{
++    QMetaObject::invokeMethod(this, &VolumeMonitor::updateStream, Qt::QueuedConnection);
++}
++
++void VolumeMonitor::updateStream()
++{
++    if (!m_target || m_stream) {
++        return;
++    }
++
++    // An active peak stream resumes a suspended sink/source. Wait until
++    // something else wakes the device instead (KDE bug 507212).
++    if (!m_wakeDevices) {
++        auto *device = qobject_cast<Device *>(m_target);
++        if (device && device->state() == Device::SuspendedState) {
++            return;
++        }
++    }
++
++    createStream();
++}
++
+ void VolumeMonitor::createStream()
+ {
+     Q_ASSERT(!m_stream);
+diff --git a/src/volumemonitor.h b/src/volumemonitor.h
+index 9b46ef0..fc3dfc0 100644
+--- a/src/volumemonitor.h
++++ b/src/volumemonitor.h
+@@ -39,6 +39,13 @@ class VolumeMonitor : public QObject
+      */
+     Q_PROPERTY(bool available READ isAvailable NOTIFY availableChanged)
+ 
++    /**
++     * Whether monitoring may wake up a suspended sink or source.
++     * When false, no stream is opened while the target device is suspended;
++     * one is opened as soon as the device becomes active. Defaults to true.
++     */
++    Q_PROPERTY(bool wakeDevices READ wakeDevices WRITE setWakeDevices NOTIFY wakeDevicesChanged)
++
+ public:
+     explicit VolumeMonitor(QObject *parent = nullptr);
+     ~VolumeMonitor() override;
+@@ -48,12 +55,18 @@ public:
+     VolumeObject *target() const;
+     void setTarget(VolumeObject *target);
+ 
++    bool wakeDevices() const;
++    void setWakeDevices(bool wake);
++
+ Q_SIGNALS:
+     void volumeChanged();
+     void targetChanged();
+     void availableChanged();
++    void wakeDevicesChanged();
+ 
+ private:
++    void scheduleUpdate();
++    void updateStream();
+     void createStream();
+     void updateVolume(qreal volume);
+     static void read_callback(pa_stream *s, size_t length, void *userdata);
+@@ -61,6 +74,8 @@ private:
+ 
+     VolumeObject *m_target = nullptr;
+     pa_stream *m_stream = nullptr;
++    bool m_wakeDevices = true;
++    QMetaObject::Connection m_stateConnection;
+ 
+     qreal m_volume = 0;
+ };
+-- 
+2.54.0
+

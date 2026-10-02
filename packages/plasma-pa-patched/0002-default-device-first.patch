@@ -1,0 +1,40 @@
+From a473ad5a05371bb0a0b957ad2043571eb7bfa032 Mon Sep 17 00:00:00 2001
+From: Christopher Miller <mthr-claude@chrismiller.xyz>
+Date: Thu, 1 Oct 2026 18:57:24 -0700
+Subject: [PATCH 2/2] applet: list the default device first
+
+Sort the output and input device lists by the Default role so the
+current default is always on top; the stable sort keeps the rest in
+their existing order.
+---
+ applet/main.qml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/applet/main.qml b/applet/main.qml
+index 5983921..c159708 100644
+--- a/applet/main.qml
++++ b/applet/main.qml
+@@ -145,6 +145,10 @@ PlasmoidItem {
+         id: paSinkFilterModel
+         filterOutInactiveDevices: true
+         filterVirtualDevices: !main.showVirtualDevices
++        // Default device first; the (stable) sort keeps the rest in order.
++        sortRoleName: "Default"
++        sortOrder: Qt.DescendingOrder
++        sortColumn: 0
+         sourceModel: paSinkModel
+     }
+ 
+@@ -153,6 +157,9 @@ PlasmoidItem {
+         id: paSourceFilterModel
+         filterOutInactiveDevices: true
+         filterVirtualDevices: !main.showVirtualDevices
++        sortRoleName: "Default"
++        sortOrder: Qt.DescendingOrder
++        sortColumn: 0
+         sourceModel: paSourceModel
+     }
+ 
+-- 
+2.54.0
+

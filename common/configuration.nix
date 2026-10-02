@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # Enable networking
@@ -30,6 +30,27 @@
     pulse.enable = true;
     # If you want to use JACK applications, uncomment this
     # jack.enable = true;
+
+    # Discord's voice engine writes the system mic volume (its webrtc log
+    # shows SetMicrophoneVolume(255), i.e. 100%, at every engine start, and
+    # its AGC may keep adjusting it), which drags the mic level around for
+    # every other app. Upstream pipewire-pulse ships this exact
+    # quirk commented out; under nixpkgs' FHS wrapper the binary is
+    # `.Discord-wrapped`, not `Discord`. Discord's AGC still applies its own
+    # digital gain — it just can't touch the device anymore.
+    extraConfig.pipewire-pulse."50-discord-mic-volume" = {
+      "pulse.rules" = [
+        {
+          matches = [
+            { "application.process.binary" = ".Discord-wrapped"; }
+            { "application.process.binary" = "Discord"; }
+          ];
+          actions = {
+            quirks = [ "block-source-volume" ];
+          };
+        }
+      ];
+    };
 
     # Bluetooth audio configuration
     wireplumber = {
@@ -68,24 +89,6 @@
                   # Force bap-duplex profile for LE Audio devices (Galaxy Buds3 Pro)
                   # Note: profile name is "bap-duplex", not "bap-sink"
                   "device.profile" = "bap-duplex";
-                };
-              };
-            }
-          ];
-        };
-        # Keep laptop microphone as default input
-        "12-default-routes" = {
-          "monitor.alsa.rules" = [
-            {
-              matches = [
-                {
-                  "node.name" = "alsa_input.pci-*";
-                }
-              ];
-              actions = {
-                update-props = {
-                  "priority.driver" = 1000;
-                  "priority.session" = 1000;
                 };
               };
             }
@@ -158,6 +161,14 @@
     # Bluetooth codecs for PipeWire
     sbc
     fdk_aac
+
+    # Patched Plasma volume applet: no longer wakes every audio device when
+    # the popup opens, and lists the default device first (see
+    # ../packages/plasma-pa-patched). The plasma6 module always installs stock
+    # plasma-pa when pipewire-pulse is on and can't exclude it, so hiPrio makes
+    # the patched files win in the system profile. An overlay would also
+    # rebuild plasma-desktop and kdeplasma-addons, which reference plasma-pa.
+    (lib.hiPrio (callPackage ../packages/plasma-pa-patched { }))
   ];
 
   services.udev.packages = [ pkgs.via ];
