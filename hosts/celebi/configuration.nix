@@ -259,6 +259,8 @@
   services.openssh.enable = true;
 
   services.tailscale.enable = true;
+  # Use the vyos router's subnet routes (kvm, mac-studio — common/configuration.nix).
+  services.tailscale.extraSetFlags = [ "--accept-routes" ];
 
   services.mullvad-vpn = {
     enable = true;

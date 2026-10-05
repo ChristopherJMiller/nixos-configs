@@ -195,6 +195,8 @@
   services.openssh.settings.X11Forwarding = true;
 
   services.tailscale.enable = true;
+  # Use the vyos router's subnet routes (kvm, mac-studio — common/configuration.nix).
+  services.tailscale.extraSetFlags = [ "--accept-routes" ];
 
   # Give the devbox guest time to shut down cleanly. microvm.nix's template
   # sets TimeoutSec=150 (start AND stop); the guest's own shutdown can take

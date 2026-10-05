@@ -66,4 +66,29 @@ in
     server = "rowlett";
     username = "chris";
   };
+
+  # Mac Studio — macOS Screen Sharing (VNC, 5900). Not on the tailnet itself:
+  # `mac-studio` is a networking.hosts name for its static LAN IP, routed by
+  # the vyos node (common/configuration.nix). Remmina prompts for the macOS
+  # account; if it won't authenticate, enable "VNC viewers may control screen
+  # with password" under Screen Sharing on the Mac. Out of band (asleep,
+  # login screen, reboot): the KVM's web UI at https://kvm.
+  xdg.dataFile."remmina/mac-studio.remmina" = {
+    force = true;
+    text = ''
+      [remmina]
+      name=mac-studio (Screen Sharing)
+      group=hosts
+      protocol=VNC
+      server=mac-studio
+      username=
+      colordepth=32
+      quality=9
+      showcursor=0
+      viewonly=0
+      disableclipboard=0
+      disableencryption=0
+      window_maximize=1
+    '';
+  };
 }

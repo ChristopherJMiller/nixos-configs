@@ -5,6 +5,15 @@
   networking.networkmanager.enable = true;
   systemd.services.NetworkManager-wait-online.enable = false;
 
+  # Home LAN hosts that don't run tailscale themselves. Static DHCP
+  # reservations on the router, reached from anywhere over the tailnet through
+  # the `vyos` node's per-host /32 subnet routes (luma-homeops
+  # router/README.md "Tailscale") — so needs --accept-routes on Linux.
+  networking.hosts = {
+    "192.168.0.2" = [ "kvm" ]; # ONE KVM wired to the Mac Studio (web UI, https)
+    "192.168.0.3" = [ "mac-studio" ]; # the Mac itself (Screen Sharing / VNC)
+  };
+
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
