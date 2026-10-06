@@ -138,6 +138,7 @@ let
   unstable-pkgs = with pkgs-unstable; [
     discord
     github-copilot-cli
+    codex
     # Sourced from unstable because stable's electron-unwrapped-41.7.2 is not
     # in cache.nixos.org and would force a full from-source electron build;
     # the unstable element-desktop and its electron are cached.

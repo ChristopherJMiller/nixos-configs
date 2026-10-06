@@ -135,8 +135,8 @@ let
 
   unstable-pkgs = with pkgs-unstable; [
     discord
-    code-cursor
     github-copilot-cli
+    codex
   ];
 
   # Exclude celebi/laptop-specific custom packages:

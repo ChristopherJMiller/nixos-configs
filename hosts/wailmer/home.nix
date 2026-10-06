@@ -103,7 +103,7 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
-    code-cursor
+    codex
 
     # Addons
     alacritty-theme
