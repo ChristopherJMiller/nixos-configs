@@ -167,6 +167,7 @@ let
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
   fastmail = import ../../common/fastmail.nix { inherit pkgs; };
   webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
+  galaxy-b2 = import ../../common/galaxy-b2-mounts.nix { inherit pkgs; };
   ipad-display = import ../../common/ipad-display-home.nix { inherit pkgs; };
   genealogy = import ../../common/genealogy.nix { inherit pkgs; };
 in
@@ -371,6 +372,10 @@ in
   systemd.user.services.webdav-sync = webdav-sync.syncService;
   systemd.user.timers.webdav-sync = webdav-sync.syncTimer;
   systemd.user.services.webdav-watch = webdav-sync.watchService;
+
+  # Read-only browsing of galaxy's B2 mirrors (family + personal archive).
+  systemd.user.services.galaxy-family = galaxy-b2.family;
+  systemd.user.services.galaxy-archive = galaxy-b2.archive;
 
   # Gramps Web for the genealogy MCP server. On demand: `gramps-mcp-local`
   # starts it and systemd reports it started only once the API answers.

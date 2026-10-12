@@ -198,6 +198,42 @@
   # Use the vyos router's subnet routes (kvm, mac-studio — common/configuration.nix).
   services.tailscale.extraSetFlags = [ "--accept-routes" ];
 
+  # galaxy's NFS exports (CephFS, served by NFS-Ganesha on the cluster's
+  # lan-internal LB IP). Both are mirrored to B2 nightly; see luma-homeops
+  # docs/backups.md.
+  #   /mnt/family  — family archive: Immich indexes it (06:00 UTC), shared
+  #                  with the family as albums. B2: galaxy-family (03:30 UTC).
+  #   /mnt/archive — Chris's personal cold files, never in Immich.
+  #                  B2: galaxy-archive (04:00 UTC).
+  # The exports only admit 192.168.0.21/32 — LAN only. Away from home, read
+  # the B2 mirrors instead (common/galaxy-b2-mounts.nix on celebi).
+  #  - automount + noauto: nothing blocks boot or login when the cluster is
+  #    down; the mount happens on first access and drops after 10 idle min.
+  #  - hard (the default) on purpose: a soft mount can silently truncate a
+  #    write on timeout, which is the wrong trade for an archive.
+  #  - Ceph sits on SMR disks: throttle bulk copies (rsync --bwlimit=8M);
+  #    sustained writes past ~25 GiB stall the whole cluster.
+  # Everything on both volumes is 1000:1000 and the exports are
+  # no_root_squash, so chris (uid 1000) writes with matching ownership.
+  fileSystems =
+    let
+      galaxyNfs = path: {
+        device = "192.168.0.230:${path}";
+        fsType = "nfs4";
+        options = [
+          "x-systemd.automount"
+          "noauto"
+          "x-systemd.idle-timeout=600"
+          "x-systemd.mount-timeout=30s"
+          "_netdev"
+        ];
+      };
+    in
+    {
+      "/mnt/family" = galaxyNfs "/family";
+      "/mnt/archive" = galaxyNfs "/archive";
+    };
+
   # Give the devbox guest time to shut down cleanly. microvm.nix's template
   # sets TimeoutSec=150 (start AND stop); the guest's own shutdown can take
   # longer than that when an RDP session is up (seen 2026-09-14: stop requested
