@@ -221,6 +221,11 @@
         device = "192.168.0.230:${path}";
         fsType = "nfs4";
         options = [
+          # 4.1, not the negotiated 4.2: with 4.2 the kernel reads via
+          # READ_PLUS (CONFIG_NFS_V4_2_READ_PLUS=y), and every read from
+          # galaxy's NFS-Ganesha came back EIO while metadata and writes
+          # worked (2026-10-13; mountstats showed 217 READ_PLUS, 0 READ).
+          "nfsvers=4.1"
           "x-systemd.automount"
           "noauto"
           "x-systemd.idle-timeout=600"
