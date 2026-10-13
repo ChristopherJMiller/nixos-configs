@@ -229,6 +229,12 @@
       "usbmux"
     ];
     shell = pkgs.zsh;
+    # Same identity the devbox guest trusts (common/devbox/guest.nix): the
+    # ed25519 key in rowlett's gpg-agent. Public half only; sudo still needs
+    # the password.
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICHR4q3amhKDhCF6+xa3oTXJX2ycN503+cEo/gpnOkFt git@chrismiller.xyz"
+    ];
   };
 
   programs.gnupg.agent.pinentryPackage = pkgs.pinentry-qt;
@@ -255,8 +261,19 @@
     remmina
   ];
 
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  # SSH: keys only, and only over the tailnet. celebi is a travelling laptop —
+  # NixOS's default (password auth, port 22 opened on every interface) left it
+  # answering password guesses on whatever hotel/café network it joined.
+  # Lockout recovery is the laptop's own keyboard.
+  services.openssh = {
+    enable = true;
+    openFirewall = false;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
+  };
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 22 ];
 
   services.tailscale.enable = true;
   # Use the vyos router's subnet routes (kvm, mac-studio — common/configuration.nix).
