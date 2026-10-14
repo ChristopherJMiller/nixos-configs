@@ -31,10 +31,14 @@ let
         # The mirrors change at most nightly; S3 has no change polling.
         "--dir-cache-time 12h"
         "--poll-interval 0"
-        # Offline: fail a read in about a minute instead of hanging the caller.
-        "--timeout 1m"
-        "--contimeout 15s"
-        "--low-level-retries 3"
+        # Dead link (captive portal, blackholed wifi): fail instead of freezing
+        # the file manager. Measured 2026-10-14 by freezing the network under a
+        # live mount: 1m/15s/3 retries hung an uncached read 368 s and a listing
+        # 367 s; these fail them in 45 s and 30 s. Cached listings stay instant.
+        # Trade-off: a link silent for 15 s aborts a transfer (rclone retries).
+        "--timeout 15s"
+        "--contimeout 10s"
+        "--low-level-retries 1"
       ];
       ExecStop = "/run/wrappers/bin/fusermount3 -u ${dir}";
       Environment = [ "PATH=/run/wrappers/bin" ]; # rclone finds the setuid fusermount3 here
