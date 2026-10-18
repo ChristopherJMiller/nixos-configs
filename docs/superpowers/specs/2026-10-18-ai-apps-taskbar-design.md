@@ -2,6 +2,13 @@
 
 Date: 2026-10-18
 
+> **Revision (2026-10-18, after trying it live):** the taskbar widget was
+> dropped. In use it was no better than the start menu, so ChatGPT and Claude
+> are Kickoff favorites instead (`extraFavorites` in `common/plasma.nix`,
+> rowlett and celebi). The panel is back to exactly what it was. The apps,
+> Cowork support and the `.deb` updater below are unchanged; the sections
+> about the widget's collapsing, hiding and running dot are history.
+
 ## Why
 
 Chris wants one-click access to the ChatGPT and Claude desktop apps from the

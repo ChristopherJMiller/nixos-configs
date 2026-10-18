@@ -176,7 +176,7 @@ in
     ../../common/git.nix
     ../../common/remmina.nix
     (import ../../common/plasma.nix {
-      rightLaunchers = [
+      extraFavorites = [
         "chatgpt"
         "com.anthropic.Claude"
       ];

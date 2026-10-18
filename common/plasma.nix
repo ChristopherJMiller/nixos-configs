@@ -5,20 +5,15 @@
   extraShortcuts ? { },
   keyboardOptions ? [ ],
   virtualDesktops ? 4,
-  # Desktop ids (no .desktop) for the right-hand launcher widget, just left of
-  # the system tray (packages/plasma-widelaunchers). It collapses to one icon
-  # when the panel is crowded and hides unless a >= 1600 px screen is
-  # connected. Empty = no widget, and the panel is exactly as before.
-  rightLaunchers ? [ ],
+  # Desktop ids (no .desktop) to add to Kickoff's favorites, after KDE's
+  # defaults. Added once at login whenever this list changes, so one removed
+  # by hand stays removed until then.
+  extraFavorites ? [ ],
 }:
 
 { lib, pkgs, ... }:
 
 {
-  home.packages = lib.optional (rightLaunchers != [ ]) (
-    pkgs.callPackage ../packages/plasma-widelaunchers { }
-  );
-
   programs.plasma = {
     enable = true;
 
@@ -43,17 +38,6 @@
               }
             '';
           }
-        ]
-        ++ lib.optionals (rightLaunchers != [ ]) [
-          {
-            name = "xyz.chrismiller.widelaunchers";
-            config.General = {
-              launchers = rightLaunchers;
-              minScreenWidth = 1600;
-            };
-          }
-        ]
-        ++ [
           "org.kde.plasma.marginsseparator"
           {
             systemTray.items.extra = [
@@ -81,5 +65,14 @@
     ];
 
     shortcuts = extraShortcuts;
+
+    # Favorites live in kactivitymanagerd, not in the Kickoff applet's config,
+    # so they survive the panel being rebuilt and are linked over D-Bus.
+    startup.startupScript.favorites = lib.mkIf (extraFavorites != [ ]) {
+      text = lib.concatMapStrings (id: ''
+        ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.ActivityManager /ActivityManager/Resources/Linking \
+          LinkResourceToActivity org.kde.plasma.favorites.applications applications:${id}.desktop :global
+      '') extraFavorites;
+    };
   };
 }
