@@ -194,7 +194,8 @@
   programs.zsh.shellAliases = {
     nixr = "sudo nixos-rebuild switch --flake ~/nixos";
     nixu = "nix flake update --flake ~/nixos --commit-lock-file && nixr";
-    nixuc = "nix flake update claude-desktop --flake ~/nixos --commit-lock-file && nixr";
+    # Bump the pinned ChatGPT + Claude desktop .debs (packages/*/source.json).
+    nixuc = "~/nixos/packages/update-desktop-debs.sh && git -C ~/nixos commit -q -m 'desktop apps: bump .debs' -- packages/claude-desktop/source.json packages/chatgpt-desktop/source.json; nixr";
     nixs = "nix-shell";
     nixclean = "sudo nix-collect-garbage -d";
     nixrepair = "sudo nix-store --verify --check-contents --repair";

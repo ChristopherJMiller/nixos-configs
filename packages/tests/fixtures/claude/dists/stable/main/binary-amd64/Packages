@@ -1,0 +1,24 @@
+Package: claude-desktop
+Version: 2.37337.1
+Architecture: amd64
+Filename: pool/main/c/claude-desktop/claude-desktop_2.37337.1_amd64.deb
+Size: 1000
+SHA256: 1111111111111111111111111111111111111111111111111111111111111111
+Description: fixture
+
+Package: claude-desktop
+Version: 2.42304.0
+Architecture: amd64
+Filename: pool/main/c/claude-desktop/claude-desktop_2.42304.0_amd64.deb
+Size: 1000
+SHA256: 2222222222222222222222222222222222222222222222222222222222222222
+Description: fixture
+
+Package: claude-desktop
+Version: 2.9.0
+Architecture: amd64
+Filename: pool/main/c/claude-desktop/claude-desktop_2.9.0_amd64.deb
+Size: 1000
+SHA256: 3333333333333333333333333333333333333333333333333333333333333333
+Description: fixture
+
