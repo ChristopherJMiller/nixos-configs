@@ -17,7 +17,6 @@
     nutune.url = "github:christopherjmiller/nutune/main";
     loreweaver.url = "github:christopherjmiller/loreweaver/main";
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
-    claude-desktop.url = "github:ChristopherJMiller/claude-for-linux";
     timekeeper.url = "github:ChristopherJMiller/timekeeper";
     # ardour-mcp + nixcache-oci temporarily disabled until prebuilt binary
     # cache pipeline is in place; rebuild-from-source is too slow.
@@ -43,7 +42,6 @@
       bandcamp-sync,
       nutune,
       loreweaver,
-      claude-desktop,
       timekeeper,
       # ardour-mcp,
       # nixcache-oci,
@@ -65,7 +63,7 @@
         calibre-acsm = pkgs.callPackage ./packages/calibre-acsm { };
         loreweaver = loreweaver.packages.x86_64-linux.default;
         nutune = nutune.packages.x86_64-linux.default;
-        claude-desktop = claude-desktop.packages.x86_64-linux.claude-desktop;
+        claude-desktop = pkgs.callPackage ./packages/claude-desktop { };
         fastmail-mcp = pkgs.callPackage ./packages/fastmail-mcp { };
         photogimp = pkgs.callPackage ./packages/photogimp { };
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
