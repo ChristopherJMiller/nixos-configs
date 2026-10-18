@@ -119,11 +119,15 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: full
 
+        // Panel thickness, and the length of one launcher along the panel:
+        // the system tray's cell (22 px icon + spacing each side), so the
+        // launchers sit at the same rhythm as the tray icons next to them.
         readonly property real slot: root.vertical ? width : height
-        readonly property string mode: Logic.displayMode(root.wide, root.vertical ? height : width, slot, root.count)
+        readonly property real cell: Math.min(slot, Kirigami.Units.iconSizes.smallMedium + 2 * Kirigami.Units.smallSpacing)
+        readonly property string mode: Logic.displayMode(root.wide, root.vertical ? height : width, cell, root.count)
 
-        Layout.minimumWidth: mode === "hidden" ? 0 : slot
-        Layout.preferredWidth: mode === "hidden" ? 0 : slot * root.count
+        Layout.minimumWidth: mode === "hidden" ? 0 : cell
+        Layout.preferredWidth: mode === "hidden" ? 0 : cell * root.count
         Layout.maximumWidth: Layout.preferredWidth
         Layout.minimumHeight: root.vertical ? Layout.minimumWidth : -1
         Layout.preferredHeight: root.vertical ? Layout.preferredWidth : -1
@@ -139,12 +143,13 @@ PlasmoidItem {
                 delegate: Item {
                     id: launcher
                     required property int index
-                    width: full.slot
+                    width: full.cell
                     height: full.slot
 
                     Kirigami.Icon {
-                        anchors.fill: parent
-                        anchors.margins: Kirigami.Units.smallSpacing
+                        anchors.centerIn: parent
+                        width: full.cell - 2 * Kirigami.Units.smallSpacing
+                        height: width
                         source: root.iconOf(launcher.index)
                         active: mouse.containsMouse
                     }
@@ -168,13 +173,14 @@ PlasmoidItem {
         Item {
             id: collapsed
             visible: full.mode === "collapsed"
-            width: full.slot
+            width: full.cell
             height: full.slot
             anchors.centerIn: parent
 
             Kirigami.Icon {
-                anchors.fill: parent
-                anchors.margins: Kirigami.Units.smallSpacing
+                anchors.centerIn: parent
+                width: full.cell - 2 * Kirigami.Units.smallSpacing
+                height: width
                 source: "dialog-messages"
                 active: collapsedMouse.containsMouse
             }
