@@ -20,10 +20,13 @@ function displayMode(wide, allocatedWidth, slot, count) {
 // rows: [{AppId, IsLauncher}] read from the TasksModel. With
 // launchInPlace/separateLaunchers off, a running app's launcher row turns
 // into its window (group) row, so "running" = a non-launcher row exists.
+// Plasma reports AppId as the desktop storage id ("chatgpt.desktop"); the
+// config holds bare ids, so compare without the suffix.
 function appState(rows, appId) {
+    const matches = r => String(r.AppId).replace(/\.desktop$/, "") === appId;
     return {
-        row: rows.findIndex(r => r.AppId === appId),
-        running: rows.some(r => r.AppId === appId && !r.IsLauncher),
+        row: rows.findIndex(matches),
+        running: rows.some(r => matches(r) && !r.IsLauncher),
     };
 }
 

@@ -37,10 +37,19 @@ TestCase {
             { AppId: "chatgpt", IsLauncher: true },
             { AppId: "com.anthropic.Claude", IsLauncher: false },
         ];
+        const suffixed = [
+            { AppId: "chatgpt.desktop", IsLauncher: true },
+            { AppId: "com.anthropic.Claude.desktop", IsLauncher: false },
+        ];
         return [
             { tag: "running app", rows: rows, id: "com.anthropic.Claude", want: { row: 1, running: true } },
             { tag: "launcher only", rows: rows, id: "chatgpt", want: { row: 0, running: false } },
             { tag: "absent", rows: [], id: "chatgpt", want: { row: -1, running: false } },
+            // Plasma 6.6's TasksModel reports AppId as the desktop file's
+            // storage id, .desktop suffix included (seen live on rowlett).
+            { tag: "launcher, .desktop AppId", rows: suffixed, id: "chatgpt", want: { row: 0, running: false } },
+            { tag: "running, .desktop AppId", rows: suffixed, id: "com.anthropic.Claude", want: { row: 1, running: true } },
+            { tag: "no prefix match", rows: [{ AppId: "chatgpt-beta.desktop", IsLauncher: false }], id: "chatgpt", want: { row: -1, running: false } },
         ];
     }
     function test_appState(data) {
