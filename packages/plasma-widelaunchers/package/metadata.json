@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Christopher Miller"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "App launchers that collapse to one icon when the panel is crowded and hide when no wide screen is connected",
+        "Icon": "dialog-messages",
+        "Id": "xyz.chrismiller.widelaunchers",
+        "License": "MIT",
+        "Name": "Wide Launchers",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
