@@ -172,6 +172,10 @@ in
     # XFCE panel for the xrdp session (Plasma stays the local desktop).
     ./xfce-panel.nix
     (import ../../common/plasma.nix {
+      rightLaunchers = [
+        "chatgpt"
+        "com.anthropic.Claude"
+      ];
       wallpaper = "/home/chris/Pictures/Wallpapers/center.jpg";
       launchers = [
         "preferred://browser"

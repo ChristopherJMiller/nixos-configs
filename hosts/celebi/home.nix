@@ -176,6 +176,10 @@ in
     ../../common/git.nix
     ../../common/remmina.nix
     (import ../../common/plasma.nix {
+      rightLaunchers = [
+        "chatgpt"
+        "com.anthropic.Claude"
+      ];
       wallpaper = "/home/chris/Pictures/Wallpapers/1.jpg";
       launchers = [
         "preferred://browser"

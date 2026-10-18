@@ -5,11 +5,20 @@
   extraShortcuts ? { },
   keyboardOptions ? [ ],
   virtualDesktops ? 4,
+  # Desktop ids (no .desktop) for the right-hand launcher widget, just left of
+  # the system tray (packages/plasma-widelaunchers). It collapses to one icon
+  # when the panel is crowded and hides unless a >= 1600 px screen is
+  # connected. Empty = no widget, and the panel is exactly as before.
+  rightLaunchers ? [ ],
 }:
 
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
+  home.packages = lib.optional (rightLaunchers != [ ]) (
+    pkgs.callPackage ../packages/plasma-widelaunchers { }
+  );
+
   programs.plasma = {
     enable = true;
 
@@ -34,6 +43,17 @@
               }
             '';
           }
+        ]
+        ++ lib.optionals (rightLaunchers != [ ]) [
+          {
+            name = "xyz.chrismiller.widelaunchers";
+            config.General = {
+              launchers = rightLaunchers;
+              minScreenWidth = 1600;
+            };
+          }
+        ]
+        ++ [
           "org.kde.plasma.marginsseparator"
           {
             systemTray.items.extra = [
