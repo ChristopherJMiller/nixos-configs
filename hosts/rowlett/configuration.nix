@@ -319,6 +319,30 @@
     enableNotifications = true;
   };
 
+  # Cap Firefox's cgroup. 2026-10-18: a ChatGPT tab ran away to 25.5G RAM +
+  # 16.9G swap in 5 min (session restore re-triggered it right after a kill),
+  # freezing the whole desktop. earlyoom above never fired — it needs <10 %
+  # swap free, i.e. ~31G of this 34G swap filled, and the box is unusable
+  # long before that. With a cgroup cap the kernel OOM-kills the biggest
+  # process inside Firefox's cgroup (the runaway content process → "tab
+  # crashed") and nothing outside it notices. OOMPolicy=continue keeps
+  # systemd from stopping the rest of Firefox when that happens (default is
+  # stop = whole browser closes). Normal peaks this week: ≤6.2G RAM, ≤0.9G
+  # swap. KDE launches Firefox as a transient app-firefox@<uuid>.service;
+  # template drop-ins apply to those. Raw unit text, not
+  # systemd.user.services, because the latter injects Type=simple over KDE's
+  # own unit type. Only KDE launches are covered — `firefox` started from a
+  # terminal lands in the terminal's scope.
+  systemd.user.units."app-firefox@.service" = {
+    overrideStrategy = "asDropin";
+    text = ''
+      [Service]
+      MemoryMax=12G
+      MemorySwapMax=2G
+      OOMPolicy=continue
+    '';
+  };
+
   security.pam.services.kwallet = {
     name = "kwallet";
     enableKwallet = true;
