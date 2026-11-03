@@ -12,6 +12,7 @@ let
     discord
     element-desktop
     telegram-desktop
+    signal-desktop
     mumble
     steam
     slack

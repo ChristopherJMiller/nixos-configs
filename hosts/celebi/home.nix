@@ -13,6 +13,7 @@ let
     # Social
     spotify
     telegram-desktop
+    signal-desktop
     mumble
     steam
     slack

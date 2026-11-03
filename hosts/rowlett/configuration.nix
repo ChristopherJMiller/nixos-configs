@@ -52,6 +52,10 @@
 
   services.desktopManager.plasma6.enable = true;
 
+  fonts.packages = [
+    (pkgs.google-fonts.override { fonts = [ "Libre Barcode 128" ]; })
+  ];
+
   # Enable RDP. The xrdp session runs XFCE, NOT Plasma. Plasma 6 boots through
   # the per-user systemd manager and owns single-instance D-Bus names
   # (org.kde.KWin, org.kde.plasmashell, org.kde.ksmserver ...), so a second
