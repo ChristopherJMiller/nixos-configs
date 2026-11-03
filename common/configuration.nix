@@ -211,6 +211,14 @@
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
+    # Keep unlocked GPG and SSH keys cached for a day, both idle and absolute
+    # (gpg-agent defaults: 10 min / 30 min idle, 2 h max).
+    settings = {
+      default-cache-ttl = 86400;
+      default-cache-ttl-ssh = 86400;
+      max-cache-ttl = 86400;
+      max-cache-ttl-ssh = 86400;
+    };
   };
 
   # mosh: resilient remote shells for flaky/roaming links (plane wifi, phone
