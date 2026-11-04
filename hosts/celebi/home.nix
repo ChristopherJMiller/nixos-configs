@@ -144,6 +144,7 @@ let
     # in cache.nixos.org and would force a full from-source electron build;
     # the unstable element-desktop and its electron are cached.
     element-desktop
+    immich-cli
   ];
 
   # ardour-mcp is excluded on celebi (Framework 13 laptop); it is only used on

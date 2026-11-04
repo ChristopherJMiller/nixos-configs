@@ -80,6 +80,15 @@
       Network = {
         EnableIPv6 = true;
       };
+      # A BSS that fails to connect is skipped for InitialTimeout. The 60s
+      # default is shorter than iwd's roam-scan cadence, so a hung radio
+      # (e.g. one band of a dual-band router ignoring auth) gets retried every
+      # few minutes, and each attempt drops the working link. Multiplier never
+      # escalates in practice: expired entries are pruned before re-adding.
+      # Manual connects still fall back to a blocked BSS if it's the only one.
+      Blacklist = {
+        InitialTimeout = 3600;
+      };
     };
   };
 
