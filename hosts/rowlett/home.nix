@@ -168,6 +168,7 @@ let
 in
 {
   imports = [
+    ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
     # XFCE panel for the xrdp session (Plasma stays the local desktop).

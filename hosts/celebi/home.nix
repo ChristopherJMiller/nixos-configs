@@ -175,6 +175,7 @@ let
 in
 {
   imports = [
+    ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
     (import ../../common/plasma.nix {

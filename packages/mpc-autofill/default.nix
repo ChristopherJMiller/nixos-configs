@@ -8,10 +8,11 @@
   makeWrapper,
   chromedriver,
   chromium,
+  geckodriver,
 }:
 
 let
-  version = "4.5.2";
+  version = "4.7";
   
   # PyInstaller extractor
   pyinstxtractor = fetchurl {
@@ -19,9 +20,10 @@ let
     sha256 = "sha256-9U/VR2m5moTis/yddnxqEEqfuDq2Vmuw7bMPROI0sjk=";
   };
 
-  # Download the release binary to extract client_secrets.json
+  # Keep the last PyInstaller release solely as a source of bundled Drive
+  # credentials; newer releases use Nuitka and cannot use this extractor.
   releaseBinary = fetchurl {
-    url = "https://github.com/chilli-axe/mpc-autofill/releases/download/v${version}/autofill-linux";
+    url = "https://github.com/chilli-axe/mpc-autofill/releases/download/v4.5.2/autofill-linux";
     sha256 = "sha256-m8qcw1n2h7w1ItU04Eu6vRUpQMSmkuP+4KCIXu1KbEQ=";
   };
   # Build missing Python packages
@@ -80,7 +82,7 @@ python3.pkgs.buildPythonApplication rec {
     owner = "chilli-axe";
     repo = "mpc-autofill";
     rev = "v${version}";
-    sha256 = "sha256-I7aDA41XEUre29GSsSrD5aX/M+VJ2HPQp4jy+hGFads=";
+    sha256 = "sha256-UH9tn/18CnRVprOraz9/fRNmw2JK2plp5JMu3xLSKMc=";
   };
 
   sourceRoot = "${src.name}/desktop-tool";
@@ -94,6 +96,7 @@ python3.pkgs.buildPythonApplication rec {
   buildInputs = [
     chromedriver
     chromium
+    geckodriver
   ];
 
   # Create a python environment with all needed packages
@@ -130,6 +133,7 @@ python3.pkgs.buildPythonApplication rec {
     if [ -f autofill-linux_extracted/client_secrets.json ]; then
       cp autofill-linux_extracted/client_secrets.json .
     fi
+    test -s client_secrets.json
   '';
 
   installPhase = ''
@@ -143,7 +147,7 @@ python3.pkgs.buildPythonApplication rec {
     mkdir -p $out/bin
     makeWrapper ${pythonEnv}/bin/python3 $out/bin/mpc-autofill \
       --add-flags "$out/share/mpc-autofill/autofill.py" \
-      --prefix PATH : "${chromedriver}/bin:${chromium}/bin" \
+      --prefix PATH : "${chromedriver}/bin:${chromium}/bin:${geckodriver}/bin" \
       --set CHROME_BIN "${chromium}/bin/chromium"
 
     # Install desktop entry
@@ -155,6 +159,10 @@ python3.pkgs.buildPythonApplication rec {
 
   # Patch the logging configuration to use a writable directory
   postPatch = ''
+    # Retain experimental Firefox support via the existing upstream driver.
+    substituteInPlace src/constants.py \
+      --replace-fail '# TODO: add support for firefox' 'firefox = member(partial(wd.get_firefox_driver))'
+
     substituteInPlace src/logging.py \
       --replace 'autofill_crash_log.txt' '/tmp/autofill_crash_log.txt' \
       --replace 'autofill_log.txt' '/tmp/autofill_log.txt'
