@@ -65,6 +65,38 @@ let
     '';
   };
 
+  # ssh into a tailnet host in a new tab of the most recent kitty window
+  # (found by its remote-control socket, see programs.kitty below), raised to
+  # the front; a fresh kitty window if none is listening. --hold keeps the
+  # tab open if ssh fails, so the error stays readable.
+  sshTab = pkgs.writeShellApplication {
+    name = "ssh-tab";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gnugrep
+      iproute2
+      kdotool
+      kitty
+    ];
+    text = ''
+      host=$1
+      sock=$(ss -xlH | grep -o '@kitty-[0-9]\+' | sort -t- -k2 -n | tail -n1 || true)
+      if [ -n "$sock" ] && kitty @ --to "unix:$sock" launch --type=tab --hold \
+          --tab-title "$host" ssh "$host" >/dev/null; then
+        # `kdotool search --pid` doesn't filter here, so match PIDs by hand.
+        pid=''${sock#@kitty-}
+        for w in $(kdotool search --class kitty 2>/dev/null); do
+          if [ "$(kdotool getwindowpid "$w" 2>/dev/null)" = "$pid" ]; then
+            kdotool windowactivate "$w"
+            break
+          fi
+        done
+        exit 0
+      fi
+      exec kitty --hold --title "$host" ssh "$host"
+    '';
+  };
+
   metadata = builtins.toJSON {
     KPlugin = {
       Id = id;
@@ -256,26 +288,29 @@ let
             }
             SectionLabel { text: "Devices" }
 
+            // Online devices open an ssh session in a kitty tab.
             Repeater {
                 model: root.peers
-                RowLayout {
+                PlasmaComponents.ItemDelegate {
                     required property var modelData
                     Layout.fillWidth: true
-                    Layout.leftMargin: Kirigami.Units.largeSpacing
-                    Layout.rightMargin: Kirigami.Units.largeSpacing
-                    Layout.topMargin: 2
-                    Layout.bottomMargin: 2
+                    topPadding: 2
+                    bottomPadding: 2
+                    enabled: modelData.online
                     opacity: modelData.online ? 1 : 0.45
-                    Dot { on: modelData.online }
-                    PlasmaComponents.Label {
-                        text: modelData.name
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                    }
-                    PlasmaComponents.Label {
-                        text: modelData.os
-                        opacity: 0.6
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    onClicked: root.run("${sshTab}/bin/ssh-tab " + modelData.name)
+                    contentItem: RowLayout {
+                        Dot { on: modelData.online }
+                        PlasmaComponents.Label {
+                            text: modelData.name
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+                        PlasmaComponents.Label {
+                            text: modelData.os
+                            opacity: 0.6
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        }
                     }
                 }
             }
@@ -301,6 +336,12 @@ let
   '';
 in
 {
+  # Remote control for ssh-tab: a per-instance socket, local user only.
+  programs.kitty.settings = {
+    allow_remote_control = "socket-only";
+    listen_on = "unix:@kitty-{kitty_pid}";
+  };
+
   xdg.dataFile."plasma/plasmoids/${id}".source =
     pkgs.runCommand "plasma-tailnet-menu"
       {
