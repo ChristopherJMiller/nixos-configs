@@ -91,6 +91,7 @@ in
 {
   imports = [
     ./system-menu.nix
+    ./tailnet-menu.nix
     (import ../../common/plasma.nix {
       extraFavorites = [
         "chatgpt"
@@ -132,6 +133,7 @@ in
               };
             }
             "org.kde.plasma.panelspacer"
+            "xyz.chrismiller.tailnet"
             {
               systemTray.items.extra = [
                 "org.kde.plasma.clipboard"

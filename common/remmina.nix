@@ -13,8 +13,13 @@
 # file up on every activation and eventually fail with "would be clobbered by
 # backing up ...". force overwrites with no backup — the config here is
 # authoritative, so tweak connections here rather than in Remmina.
-{ pkgs, ... }:
+#
+# `remmina.profileExtra` appends host-specific settings to every profile
+# (celebi opens sessions fullscreen).
+{ config, lib, pkgs, ... }:
 let
+  extra = config.remmina.profileExtra;
+
   rdpProfile =
     {
       name,
@@ -41,15 +46,23 @@ let
         glyph-cache=1
         disableautoreconnect=0
         window_maximize=1
+        ${extra}
       '';
     };
 in
 {
-  home.packages = [ pkgs.remmina ];
+  options.remmina.profileExtra = lib.mkOption {
+    type = lib.types.lines;
+    default = "";
+    example = "viewmode=4";
+    description = "Extra .remmina settings appended to every profile.";
+  };
+
+  config.home.packages = [ pkgs.remmina ];
 
   # devbox dev VM — login `dev` / password from the VM's initialPassword
   # (`passwd` inside the VM to change).
-  xdg.dataFile."remmina/devbox.remmina" = rdpProfile {
+  config.xdg.dataFile."remmina/devbox.remmina" = rdpProfile {
     name = "devbox (dev VM)";
     group = "dev";
     server = "devbox";
@@ -60,7 +73,7 @@ in
   # `chris` with your normal account password. XFCE rather than Plasma because
   # Plasma 6 cannot run a second session for a user already logged in locally
   # (see hosts/rowlett/configuration.nix).
-  xdg.dataFile."remmina/rowlett.remmina" = rdpProfile {
+  config.xdg.dataFile."remmina/rowlett.remmina" = rdpProfile {
     name = "rowlett (host)";
     group = "hosts";
     server = "rowlett";
@@ -73,7 +86,7 @@ in
   # account; if it won't authenticate, enable "VNC viewers may control screen
   # with password" under Screen Sharing on the Mac. Out of band (asleep,
   # login screen, reboot): the KVM's web UI at https://kvm.
-  xdg.dataFile."remmina/mac-studio.remmina" = {
+  config.xdg.dataFile."remmina/mac-studio.remmina" = {
     force = true;
     text = ''
       [remmina]
@@ -89,6 +102,7 @@ in
       disableclipboard=0
       disableencryption=0
       window_maximize=1
+      ${extra}
     '';
   };
 }
