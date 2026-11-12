@@ -108,6 +108,13 @@
     sddm.wayland.enable = true;
     sddm.wayland.compositor = "kwin";
     defaultSession = "plasma";
+    # Catppuccin Macchiato Mauve login (package below), on the desktop
+    # wallpaper with the Catppuccin cursor.
+    sddm.theme = "catppuccin-macchiato-mauve";
+    sddm.settings.Theme = {
+      CursorTheme = "catppuccin-macchiato-mauve-cursors";
+      CursorSize = 24;
+    };
   };
 
   services.desktopManager.plasma6.enable = true;
@@ -281,6 +288,19 @@
     # ./plasma.nix); its blur-behind needs the bundled QML plugin, so it goes
     # here rather than in the user profile.
     plasma-panel-colorizer
+
+    # Login screen and cursor; both need to be system-wide for SDDM to see
+    # them. The cursor is also set for the Plasma session in ./plasma.nix.
+    (catppuccin-sddm.override {
+      flavor = "macchiato";
+      accent = "mauve";
+      font = "Atkinson Hyperlegible Next";
+      fontSize = "11";
+      background = "${./wallpaper.png}";
+      loginBackground = true;
+      userIcon = true;
+    })
+    catppuccin-cursors.macchiatoMauve
   ];
 
   # Atkinson Hyperlegible Next (Braille Institute, built so look-alike

@@ -258,6 +258,16 @@ in
     # pick up the colors from it.
     workspace.colorScheme = "CatppuccinMacchiatoMauve";
 
+    # Installed system-wide in configuration.nix so SDDM shares it.
+    workspace.cursor = {
+      theme = "catppuccin-macchiato-mauve-cursors";
+      size = 24;
+    };
+
+    # Lock screen on the desktop wallpaper; its colours and font already
+    # follow the scheme and fonts below, so it matches the login screen.
+    kscreenlocker.appearance.wallpaper = "${./wallpaper.png}";
+
     kwin = {
       virtualDesktops.names = desktops;
 
