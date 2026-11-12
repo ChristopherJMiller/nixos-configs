@@ -269,7 +269,26 @@
   environment.systemPackages = with pkgs; [
     freerdp
     remmina
+
+    # KWin effects for the glass look (enabled and tuned in ./plasma.nix):
+    # Better Blur DX replaces the stock blur, kde-rounded-corners rounds every
+    # window. Both are built against this system's KWin and only load into
+    # that exact version, so a KWin bump needs a relogin after the switch.
+    (customPackages pkgs).better-blur-dx
+    kde-rounded-corners
+
+    # Draws the translucent panel backgrounds (configured per panel in
+    # ./plasma.nix); its blur-behind needs the bundled QML plugin, so it goes
+    # here rather than in the user profile.
+    plasma-panel-colorizer
   ];
+
+  # Atkinson Hyperlegible Next (Braille Institute, built so look-alike
+  # letters stay distinct) as the UI and default sans font, ahead of the
+  # shared Noto Sans → Noto Color Emoji fallback chain, which supplies emoji
+  # and anything else it lacks. Must match uiFont in ./plasma.nix.
+  fonts.packages = [ pkgs.atkinson-hyperlegible-next ];
+  fonts.fontconfig.defaultFonts.sansSerif = lib.mkBefore [ "Atkinson Hyperlegible Next" ];
 
   # SSH: keys only, and only over the tailnet. celebi is a travelling laptop —
   # NixOS's default (password auth, port 22 opened on every interface) left it

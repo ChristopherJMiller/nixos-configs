@@ -132,6 +132,23 @@
         "type": "github"
       }
     },
+    "kwin-effects-better-blur-dx": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791901967,
+        "narHash": "sha256-CMRHJzMcdg3jxfi9yBo9xMmGnk2acqLewUHQp9xO+tg=",
+        "owner": "xarblu",
+        "repo": "kwin-effects-better-blur-dx",
+        "rev": "811bce88af12b15be01d1b388dc5174451450362",
+        "type": "github"
+      },
+      "original": {
+        "owner": "xarblu",
+        "ref": "v2.6.0",
+        "repo": "kwin-effects-better-blur-dx",
+        "type": "github"
+      }
+    },
     "loreweaver": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -377,6 +394,7 @@
       "inputs": {
         "bandcamp-sync": "bandcamp-sync",
         "home-manager": "home-manager",
+        "kwin-effects-better-blur-dx": "kwin-effects-better-blur-dx",
         "loreweaver": "loreweaver",
         "microvm": "microvm",
         "nix-flatpak": "nix-flatpak",

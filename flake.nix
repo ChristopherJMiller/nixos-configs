@@ -18,6 +18,12 @@
     loreweaver.url = "github:christopherjmiller/loreweaver/main";
     nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
     timekeeper.url = "github:ChristopherJMiller/timekeeper";
+    # KWin blur replacement (force blur, rounded blur, refraction). Source only:
+    # built with our own kdePackages so it matches the exact KWin it loads into.
+    kwin-effects-better-blur-dx = {
+      url = "github:xarblu/kwin-effects-better-blur-dx/v2.6.0";
+      flake = false;
+    };
     # ardour-mcp + nixcache-oci temporarily disabled until prebuilt binary
     # cache pipeline is in place; rebuild-from-source is too slow.
     # Upstream Ardour's .gitattributes has `/* export-ignore`, which makes
@@ -70,6 +76,7 @@
         photogimp = pkgs.callPackage ./packages/photogimp { };
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
         timekeeper = timekeeper.packages.x86_64-linux.default;
+        better-blur-dx = pkgs.kdePackages.callPackage "${inputs.kwin-effects-better-blur-dx}/nix/package.nix" { };
         # ardour-mcp = ardour-mcp.packages.x86_64-linux.default;
       };
       # Shared module wiring up the nixcache-oci proxy so all hosts pull the
