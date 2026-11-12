@@ -31,15 +31,16 @@ let
 
   # From element.catppuccin.com/macchiato/mauve.json.
   # More contrast than upstream: Element's panes share one canvas token, so
-  # darken it a step (mantle) with menus and other raised surfaces on base,
-  # lift the panel dividers from surface0 to surface1 (they were barely off
-  # the background), and brighten secondary text to subtext1.
+  # darken it to crust with raised surfaces (menus, dialogs) on mantle and
+  # hover/selection on base, lift the panel dividers from surface0 to
+  # surface2, and brighten secondary text to subtext1.
   elementTheme = lib.recursiveUpdate (lib.importJSON ./themes/element-catppuccin-macchiato-mauve.json) {
     compound = {
-      "--cpd-color-theme-bg" = "#1e2030";
-      "--cpd-color-bg-canvas-default" = "#1e2030";
-      "--cpd-color-bg-canvas-default-level-1" = "#24273a";
-      "--cpd-color-bg-subtle-primary" = "#494d64";
+      "--cpd-color-theme-bg" = "#181926";
+      "--cpd-color-bg-canvas-default" = "#181926";
+      "--cpd-color-bg-canvas-default-level-1" = "#1e2030";
+      "--cpd-color-bg-subtle-secondary" = "#24273a";
+      "--cpd-color-bg-subtle-primary" = "#5b6078";
       "--cpd-color-text-secondary" = "#b8c0e0";
     };
   };

@@ -22,6 +22,23 @@ let
     mv metadata.json "$out/metadata.json"
   '';
 
+  catppuccinKde = pkgs.catppuccin-kde.override {
+    flavour = [ "macchiato" ];
+    accents = [ "mauve" ];
+  };
+
+  # The Catppuccin scheme with nearly clear title bar colours: Darkly lets
+  # KWin blur the title bar, and Glass tints it like the window bodies, so
+  # windows read as one sheet of glass. Everything else is unchanged.
+  glassColors = pkgs.runCommand "CatppuccinMacchiatoMauveGlass.colors" { } ''
+    sed -e 's/^activeBackground=36, 39, 58$/activeBackground=36, 39, 58, 40/' \
+        -e 's/^inactiveBackground=24, 25, 38$/inactiveBackground=24, 25, 38, 40/' \
+        -e 's/^Name=Catppuccin Macchiato Mauve$/Name=Catppuccin Macchiato Mauve (glass title bars)/' \
+        ${catppuccinKde}/share/color-schemes/CatppuccinMacchiatoMauve.colors > $out
+    grep -q '^activeBackground=36, 39, 58, 40$' $out
+    grep -q '^inactiveBackground=24, 25, 38, 40$' $out
+  '';
+
   # Which blur replacement KWin runs (both are installed in
   # configuration.nix): "glass" for the liquid-glass look, or
   # "better_blur_dx" for plain frosted glass.
@@ -282,11 +299,10 @@ in
 
   xdg.dataFile."plasma/desktoptheme/celebi-glass".source = glassStyle;
 
+  xdg.dataFile."color-schemes/CatppuccinMacchiatoMauveGlass.colors".source = glassColors;
+
   home.packages = [
-    (pkgs.catppuccin-kde.override {
-      flavour = [ "macchiato" ];
-      accents = [ "mauve" ];
-    })
+    catppuccinKde
     # Papirus-Dark with Catppuccin-tinted folders (workspace.iconTheme below).
     (pkgs.catppuccin-papirus-folders.override {
       flavor = "macchiato";
@@ -337,18 +353,27 @@ in
     # Color scheme only (not the full look-and-feel package, which would reset
     # the panel layout above). The Breeze Plasma style and window decorations
     # pick up the colors from it.
-    workspace.colorScheme = "CatppuccinMacchiatoMauve";
+    workspace.colorScheme = "CatppuccinMacchiatoMauveGlass";
     workspace.iconTheme = "Papirus-Dark";
     workspace.theme = "celebi-glass";
 
     # Glass Qt style (the Glass effect's companion): see-through window
     # bodies, menus, toolbars, tab bars and Dolphin's sidebar, blurred and
-    # tinted by KWin. Breeze stays the window decoration: Glass's own has
-    # fixed macOS-style circle buttons and unblurred, clear title bars.
+    # tinted by KWin. Darkly for the window decoration: Breeze-style symbol
+    # buttons (Glass's own decoration has fixed macOS-style circles), and it
+    # requests blur for its title bar, which glassColors makes see-through.
     workspace.widgetStyle = "Glass";
     workspace.windowDecorations = {
-      library = "org.kde.breeze";
-      theme = "Breeze";
+      library = "org.kde.darkly";
+      theme = "Darkly";
+    };
+    configFile.darklyrc = {
+      # Match the rounded-corners effect's 10px.
+      Common.CornerRadius = 10;
+      Windeco = {
+        TitleAlignment = "AlignCenterFullWidth";
+        DrawTitleBarSeparator = false;
+      };
     };
     configFile.glassrc.Style = {
       MenuOpacity = 75;

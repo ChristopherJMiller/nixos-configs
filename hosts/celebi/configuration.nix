@@ -283,8 +283,10 @@
     # that exact version, so a KWin bump needs a relogin after the switch.
     (customPackages pkgs).better-blur-dx
     (customPackages pkgs).kwin-glass
-    # Glass Qt app style + window decoration, selected in ./plasma.nix.
+    # Glass Qt app style, selected in ./plasma.nix.
     (customPackages pkgs).glass-style
+    # Darkly, for its window decoration (Breeze-style buttons, blurred title bar).
+    darkly
     kde-rounded-corners
 
     # Draws the translucent panel backgrounds (configured per panel in
