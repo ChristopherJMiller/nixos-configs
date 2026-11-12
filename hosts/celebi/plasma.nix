@@ -135,6 +135,8 @@ in
             "org.kde.plasma.panelspacer"
             "xyz.chrismiller.tailnet"
             {
+              # Trayscale lives in the tailnet menu's "Exit nodes & settings…".
+              systemTray.items.hidden = [ "dev.deedles.Trayscale" ];
               systemTray.items.extra = [
                 "org.kde.plasma.clipboard"
                 "org.kde.plasma.notifications"

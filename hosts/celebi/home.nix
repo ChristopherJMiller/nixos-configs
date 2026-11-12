@@ -135,7 +135,9 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
-    discord
+    # Vencord client mod, for the Catppuccin theme in ./app-themes.nix.
+    # Same ~/.config/discord, so the login carries over.
+    (discord.override { withVencord = true; })
     github-copilot-cli
     codex
     immich-cli

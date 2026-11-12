@@ -279,6 +279,19 @@ let
                     }
                 }
             }
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+            }
+            // Trayscale keeps running for exit nodes and up/down; its tray
+            // icon is tucked away in plasma.nix in favour of this menu.
+            PlasmaComponents.ItemDelegate {
+                Layout.fillWidth: true
+                icon.name: "configure"
+                text: "Exit nodes & settings…"
+                onClicked: root.run("${pkgs.trayscale}/bin/trayscale")
+            }
+
             Item {
                 implicitHeight: Kirigami.Units.smallSpacing
                 Layout.fillHeight: true
