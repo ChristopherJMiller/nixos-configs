@@ -158,7 +158,7 @@ in
                 font = {
                   family = uiFont;
                   weight = 500;
-                  size = 10;
+                  size = 9;
                 };
                 date.enable = true;
                 date.format = {
