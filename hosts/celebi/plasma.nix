@@ -212,6 +212,11 @@ in
       flavour = [ "macchiato" ];
       accents = [ "mauve" ];
     })
+    # Papirus-Dark with Catppuccin-tinted folders (workspace.iconTheme below).
+    (pkgs.catppuccin-papirus-folders.override {
+      flavor = "macchiato";
+      accent = "mauve";
+    })
   ];
 
   # App launcher on Meta. With no query it shows favorites first, then apps
@@ -257,6 +262,7 @@ in
     # the panel layout above). The Breeze Plasma style and window decorations
     # pick up the colors from it.
     workspace.colorScheme = "CatppuccinMacchiatoMauve";
+    workspace.iconTheme = "Papirus-Dark";
 
     # Installed system-wide in configuration.nix so SDDM shares it.
     workspace.cursor = {

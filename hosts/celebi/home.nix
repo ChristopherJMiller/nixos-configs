@@ -10,8 +10,7 @@ pkgs-unstable:
 
 let
   stable-pkgs = with pkgs; [
-    # Social
-    spotify
+    # Social (Spotify comes from programs.spicetify in ./app-themes.nix)
     telegram-desktop
     signal-desktop
     mumble
@@ -74,7 +73,6 @@ let
     nmap # A utility for network discovery and security auditing
     ipcalc # it is a calculator for the IPv4/v6 addresses
     chromium
-    firefox
     remmina
     gh
     strawberry
@@ -140,10 +138,6 @@ let
     discord
     github-copilot-cli
     codex
-    # Sourced from unstable because stable's electron-unwrapped-41.7.2 is not
-    # in cache.nixos.org and would force a full from-source electron build;
-    # the unstable element-desktop and its electron are cached.
-    element-desktop
     immich-cli
   ];
 
@@ -182,6 +176,7 @@ in
     ../../common/git.nix
     ../../common/remmina.nix
     ./plasma.nix
+    (import ./app-themes.nix pkgs-unstable)
   ];
 
   home.username = "chris";

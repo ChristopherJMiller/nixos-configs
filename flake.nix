@@ -24,6 +24,9 @@
       url = "github:xarblu/kwin-effects-better-blur-dx/v2.6.0";
       flake = false;
     };
+    # Spotify theming (patched client + Catppuccin theme); keeps ~/.config/spotify.
+    spicetify-nix.url = "github:Gerg-L/spicetify-nix";
+    spicetify-nix.inputs.nixpkgs.follows = "nixpkgs";
     # ardour-mcp + nixcache-oci temporarily disabled until prebuilt binary
     # cache pipeline is in place; rebuild-from-source is too slow.
     # Upstream Ardour's .gitattributes has `/* export-ignore`, which makes
@@ -205,13 +208,17 @@
 
               # Pass the configured unstable packages here
               home-manager.users.chris = (import ./hosts/celebi/home.nix pkgs-unstable);
-              home-manager.extraSpecialArgs = { inherit customPackages; };
+              home-manager.extraSpecialArgs = {
+                inherit customPackages;
+                spicePkgs = inputs.spicetify-nix.legacyPackages.${system};
+              };
 
               # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
               home-manager.sharedModules = [
                 inputs.plasma-manager.homeModules.plasma-manager
                 inputs.vscode-server.homeModules.default
                 inputs.nix-flatpak.homeManagerModules.nix-flatpak
+                inputs.spicetify-nix.homeManagerModules.spicetify
               ];
             }
           ];
