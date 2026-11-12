@@ -50,6 +50,8 @@ runCommandLocal "photogimp-${version}"
 
     cp -r ${src}/.local/share/icons/. $out/share/icons/
 
+    # GIMP sets its Wayland app_id to "gimp"; StartupWMClass lets Plasma match
+    # windows to this entry instead of showing the generic Wayland icon.
     cat > $out/share/applications/photogimp.desktop <<EOF
     [Desktop Entry]
     Type=Application
@@ -60,6 +62,7 @@ runCommandLocal "photogimp-${version}"
     Icon=photogimp
     Terminal=false
     StartupNotify=true
+    StartupWMClass=gimp
     Categories=Graphics;2DGraphics;RasterGraphics;GTK;
     MimeType=image/png;image/jpeg;image/gif;image/x-xcf;image/tiff;image/bmp;
     EOF

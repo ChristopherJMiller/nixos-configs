@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, betterbird, ... }:
 
 let
   # Obfuscated to reduce bot scraping
@@ -135,6 +135,24 @@ let
     }
   '';
 
+  # Official Catppuccin Macchiato (Mauve) theme add-on; the userChrome above
+  # covers the remaining chrome. Thunderbird extensions install under
+  # Firefox's app ID in home-manager's layout.
+  catppuccinTheme =
+    let
+      rev = "575ab278460137dba10c1a23d00af0bc583fe509";
+    in
+    pkgs.runCommand "thunderbird-catppuccin-macchiato-mauve" { } ''
+      dir="$out/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+      mkdir -p "$dir"
+      cp ${
+        pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/catppuccin/thunderbird/${rev}/themes/macchiato/macchiato-mauve.xpi";
+          hash = "sha256-KzYS0s3RpZ7nvh6kph3Ync0ProIcR82sy64cqxuwHwE=";
+        }
+      } "$dir/{353b22c0-f6d4-5913-ae10-87bbcd9abdd4}.xpi"
+    '';
+
   # Extension policies for force-installing addons
   thunderbirdPolicies = {
     DisableTelemetry = true;
@@ -196,9 +214,11 @@ in
     };
   };
 
-  # Thunderbird program configuration
+  # Thunderbird program configuration (run as Betterbird, which shares
+  # Thunderbird's ~/.thunderbird profile layout)
   thunderbird = {
     enable = true;
+    package = betterbird;
     profiles.default = {
       isDefault = true;
       settings = {
@@ -212,6 +232,7 @@ in
 
         # Auto-enable extensions
         "extensions.autoDisableScopes" = 0;
+        "extensions.activeThemeID" = "{353b22c0-f6d4-5913-ae10-87bbcd9abdd4}";
 
         # Calendar settings
         "calendar.caldav.sched.enabled" = true;
@@ -247,6 +268,7 @@ in
         "mail.show_headers" = 1;
       };
 
+      extensions = [ catppuccinTheme ];
       userChrome = catppuccinUserChrome;
       userContent = catppuccinUserContent;
     };

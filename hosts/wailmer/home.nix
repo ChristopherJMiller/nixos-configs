@@ -111,7 +111,10 @@ let
   ];
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
-  fastmail = import ../../common/fastmail.nix { inherit pkgs; };
+  fastmail = import ../../common/fastmail.nix {
+    inherit pkgs;
+    inherit (customPackages pkgs) betterbird;
+  };
 in
 {
   imports = [

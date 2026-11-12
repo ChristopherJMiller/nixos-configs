@@ -152,7 +152,10 @@ let
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
   happy-coder-pkg = pkgs.callPackage ../../packages/happy-coder { };
-  fastmail = import ../../common/fastmail.nix { inherit pkgs; };
+  fastmail = import ../../common/fastmail.nix {
+    inherit pkgs;
+    inherit (customPackages pkgs) betterbird;
+  };
   webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
   genealogy = import ../../common/genealogy.nix { inherit pkgs; };
 

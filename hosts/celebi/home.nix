@@ -167,7 +167,10 @@ let
   calibre-acsm = (customPackages pkgs).calibre-acsm;
 
   claude-code-config = import ../../common/claude-code.nix pkgs-unstable;
-  fastmail = import ../../common/fastmail.nix { inherit pkgs; };
+  fastmail = import ../../common/fastmail.nix {
+    inherit pkgs;
+    inherit (customPackages pkgs) betterbird;
+  };
   webdav-sync = import ../../common/webdav-sync.nix { inherit pkgs; };
   galaxy-b2 = import ../../common/galaxy-b2-mounts.nix { inherit pkgs; };
   ipad-display = import ../../common/ipad-display-home.nix { inherit pkgs; };

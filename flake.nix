@@ -66,6 +66,7 @@
         claude-desktop = pkgs.callPackage ./packages/claude-desktop { };
         chatgpt-desktop = pkgs.callPackage ./packages/chatgpt-desktop { };
         fastmail-mcp = pkgs.callPackage ./packages/fastmail-mcp { };
+        betterbird = pkgs.callPackage ./packages/betterbird { };
         photogimp = pkgs.callPackage ./packages/photogimp { };
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
         timekeeper = timekeeper.packages.x86_64-linux.default;
