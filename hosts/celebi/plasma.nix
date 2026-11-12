@@ -368,8 +368,9 @@ in
       theme = "Darkly";
     };
     configFile.darklyrc = {
-      # Match the rounded-corners effect's 10px.
-      Common.CornerRadius = 10;
+      # In units of the decoration's small spacing (~2px, max 8): 5 is ~10px,
+      # matching the Glass blur's window corner radius.
+      Common.CornerRadius = 5;
       Windeco = {
         TitleAlignment = "AlignCenterFullWidth";
         DrawTitleBarSeparator = false;
@@ -446,7 +447,9 @@ in
       Plugins = {
         better_blur_dxEnabled = blurEffect == "better_blur_dx";
         glassEnabled = blurEffect == "glass";
-        kwin4_effect_shapecornersEnabled = true;
+        # Darkly rounds window corners itself; the separate rounded-corners
+        # effect clipped them again at a different radius.
+        kwin4_effect_shapecornersEnabled = false;
       };
 
       # Frosted glass behind translucent panels, popups and vicinae: strong
@@ -498,21 +501,6 @@ in
         ExcludeOSD = true;
         ExcludeTooltips = true;
         WindowClasses = "";
-      };
-
-      # Rounded windows with a thin dark outline and no inner highlight.
-      # vicinae and Plasma's own popups (plasmashell: notifications, tray,
-      # menus) already draw rounded frames, which this effect clips again.
-      Round-Corners = {
-        Size = 10;
-        InactiveCornerRadius = 10;
-        OutlineColor = "24,25,38";
-        InactiveOutlineColor = "24,25,38";
-        SecondOutlineThickness = 0;
-        InactiveSecondOutlineThickness = 0;
-        ActiveSecondOutlineAlpha = 0;
-        InactiveSecondOutlineAlpha = 0;
-        Exclusions = "vicinae,plasmashell";
       };
     };
 
@@ -566,7 +554,19 @@ in
           }
         )
         (builtins.length desktops)
-    );
+    ) // {
+      # Snap to the left/right half. Ctrl+Shift+Left/Right is taken from apps
+      # (shift-select by word); kitty still switches tabs on Ctrl+(Shift+)Tab.
+      # Ctrl+Left/Right stays free for zsh's word jumps.
+      "Window Quick Tile Left" = [
+        "Meta+Left"
+        "Ctrl+Shift+Left"
+      ];
+      "Window Quick Tile Right" = [
+        "Meta+Right"
+        "Ctrl+Shift+Right"
+      ];
+    };
 
     # Remote sessions open on their own desktop.
     window-rules = [

@@ -68,7 +68,13 @@ in
     # Unstable: stable's electron isn't in the binary cache.
     package = pkgs-unstable.element-desktop;
     settings = {
-      setting_defaults.custom_themes = [ elementTheme ];
+      setting_defaults = {
+        custom_themes = [ elementTheme ];
+        # Element's bundled Inter reads thin on the dark theme; use the
+        # desktop's Atkinson Hyperlegible Next (uiFont in plasma.nix).
+        useSystemFont = true;
+        systemFont = "Atkinson Hyperlegible Next";
+      };
       default_theme = "custom-${elementTheme.name}";
     };
   };

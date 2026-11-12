@@ -278,16 +278,15 @@
     remmina
 
     # KWin effects for the glass look (enabled and tuned in ./plasma.nix):
-    # Better Blur DX or Glass (pick in ./plasma.nix) replaces the stock blur,
-    # kde-rounded-corners rounds every window. Both are built against this system's KWin and only load into
-    # that exact version, so a KWin bump needs a relogin after the switch.
+    # Better Blur DX or Glass (pick in ./plasma.nix) replaces the stock blur.
+    # Both are built against this system's KWin and only load into that
+    # exact version, so a KWin bump needs a relogin after the switch.
     (customPackages pkgs).better-blur-dx
     (customPackages pkgs).kwin-glass
     # Glass Qt app style, selected in ./plasma.nix.
     (customPackages pkgs).glass-style
     # Darkly, for its window decoration (Breeze-style buttons, blurred title bar).
     darkly
-    kde-rounded-corners
 
     # Draws the translucent panel backgrounds (configured per panel in
     # ./plasma.nix); its blur-behind needs the bundled QML plugin, so it goes
