@@ -7,15 +7,15 @@ let
   uiFont = "Atkinson Hyperlegible Next";
 
   # Plasma style: a full copy of Breeze (which follows the colour scheme)
-  # with popup and tooltip backgrounds at 65% instead of 85% opacity, so
+  # with popup and tooltip backgrounds at 50% instead of 85% opacity, so
   # notifications, tray popups, the calendar and the top-bar menus show the
   # blur behind them.
   glassStyle = pkgs.runCommand "plasma-style-celebi-glass" { nativeBuildInputs = [ pkgs.jq ]; } ''
     cp -r --no-preserve=mode ${pkgs.kdePackages.libplasma}/share/plasma/desktoptheme/default $out
     for svg in translucent/dialogs/background translucent/widgets/tooltip; do
-      gunzip -c "$out/$svg.svgz" | sed 's/opacity:0\.85;/opacity:0.65;/g' | gzip -n > "$out/$svg.svgz.new"
+      gunzip -c "$out/$svg.svgz" | sed 's/opacity:0\.85;/opacity:0.5;/g' | gzip -n > "$out/$svg.svgz.new"
       mv "$out/$svg.svgz.new" "$out/$svg.svgz"
-      gunzip -c "$out/$svg.svgz" | grep -q 'opacity:0\.65;'
+      gunzip -c "$out/$svg.svgz" | grep -q 'opacity:0\.5;'
     done
     jq '.KPlugin.Id = "celebi-glass" | .KPlugin.Name = "Breeze Glass (celebi)"' \
       "$out/metadata.json" > metadata.json
@@ -401,7 +401,8 @@ in
       };
 
       # Rounded windows with a thin dark outline and no inner highlight.
-      # vicinae draws its own rounded frame, which this effect garbles.
+      # vicinae and Plasma's own popups (plasmashell: notifications, tray,
+      # menus) already draw rounded frames, which this effect clips again.
       Round-Corners = {
         Size = 10;
         InactiveCornerRadius = 10;
@@ -411,7 +412,7 @@ in
         InactiveSecondOutlineThickness = 0;
         ActiveSecondOutlineAlpha = 0;
         InactiveSecondOutlineAlpha = 0;
-        Exclusions = "vicinae";
+        Exclusions = "vicinae,plasmashell";
       };
     };
 
