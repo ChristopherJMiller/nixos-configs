@@ -92,6 +92,7 @@ in
   imports = [
     ./system-menu.nix
     ./tailnet-menu.nix
+    ./obsidian-launcher.nix
     (import ../../common/plasma.nix {
       extraFavorites = [
         "chatgpt"
@@ -201,6 +202,7 @@ in
                 "preferred://browser"
                 "preferred://filemanager"
                 "file:///etc/profiles/per-user/chris/share/applications/kitty.desktop"
+                "file:///etc/profiles/per-user/chris/share/applications/obsidian.desktop"
                 "file:///etc/profiles/per-user/chris/share/applications/org.remmina.Remmina.desktop"
                 "file:///etc/profiles/per-user/chris/share/applications/spotify.desktop"
                 "file:///etc/profiles/per-user/chris/share/applications/discord.desktop"
@@ -250,6 +252,7 @@ in
       favorites = [
         "applications:firefox"
         "applications:kitty"
+        "applications:obsidian"
         "applications:org.remmina.Remmina"
         "applications:com.anthropic.Claude"
         "applications:chatgpt"

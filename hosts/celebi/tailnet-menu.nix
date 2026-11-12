@@ -303,7 +303,13 @@ in
 {
   # Sessions open fullscreen on their own desktop; swipe between desktops to
   # leave one (Remmina's host key, Right Ctrl, releases the keyboard).
-  remmina.profileExtra = "viewmode=4";
+  # `password=.` tells Remmina the password lives in the keyring (KWallet,
+  # via its Secret Service API): tick "Save password" once per host and it
+  # survives rebuilds, which rewrite these profiles.
+  remmina.profileExtra = ''
+    viewmode=4
+    password=.
+  '';
 
   xdg.dataFile."plasma/plasmoids/${id}".source =
     pkgs.runCommand "plasma-tailnet-menu"
