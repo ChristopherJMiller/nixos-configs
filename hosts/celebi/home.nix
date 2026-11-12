@@ -134,10 +134,8 @@ let
 
   ];
 
+  # Discord (with Vencord) comes from ./discord.nix.
   unstable-pkgs = with pkgs-unstable; [
-    # Vencord client mod, for the Catppuccin theme in ./app-themes.nix.
-    # Same ~/.config/discord, so the login carries over.
-    (discord.override { withVencord = true; })
     github-copilot-cli
     codex
     immich-cli
@@ -179,6 +177,7 @@ in
     ../../common/remmina.nix
     ./plasma.nix
     (import ./app-themes.nix pkgs-unstable)
+    (import ./discord.nix pkgs-unstable)
   ];
 
   home.username = "chris";
@@ -191,9 +190,6 @@ in
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
   home.file.".local/bin/ipad-display" = ipad-display.script.".local/bin/ipad-display";
-  home.file.".config/discord/settings.json".text = builtins.toJSON {
-    SKIP_HOST_UPDATE = true;
-  };
   home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source = ../../common/catppuccin-macchiato-mauve.soc;
 
   # link all files in `./scripts` to `~/.config/i3/scripts`

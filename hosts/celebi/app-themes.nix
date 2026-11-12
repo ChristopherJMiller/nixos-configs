@@ -9,9 +9,7 @@
 #   theme's settings inside Spotify.
 # - Element: theme defined in config.json; the session is in IndexedDB.
 #   Select it once in Settings → Appearance if another theme is chosen.
-# - Discord: Vencord (see home.nix) with the Catppuccin theme in its themes
-#   folder; enable it once in Settings → Vencord → Themes. Vencord writes its
-#   own settings.json, so that stays unmanaged.
+# - Discord: see ./discord.nix (Vencord theme, enabled automatically).
 # - Telegram: palette dropped in ~/.local/share/themes/telegram; apply it
 #   once via Settings → Chat Settings → Choose from file (Telegram keeps
 #   themes inside its own data, so this can't be declarative).
@@ -58,16 +56,6 @@ in
       default_theme = "custom-${elementTheme.name}";
     };
   };
-
-  xdg.configFile."Vencord/themes/catppuccin-macchiato-mauve.theme.css".text = ''
-    /**
-     * @name Catppuccin Macchiato (Mauve)
-     * @author catppuccin
-     * @description Soothing pastel theme for Discord
-     * @source https://github.com/catppuccin/discord
-     */
-    @import url("https://catppuccin.github.io/discord/dist/catppuccin-macchiato-mauve.theme.css");
-  '';
 
   xdg.dataFile."themes/telegram/catppuccin-macchiato-mauve.tdesktop-palette".source =
     ./themes/telegram-catppuccin-macchiato-mauve.tdesktop-palette;

@@ -135,8 +135,13 @@ in
             "org.kde.plasma.panelspacer"
             "xyz.chrismiller.tailnet"
             {
-              # Trayscale lives in the tailnet menu's "Exit nodes & settings…".
-              systemTray.items.hidden = [ "dev.deedles.Trayscale" ];
+              # Both are covered by the tailnet menu (Trayscale via "Exit nodes
+              # & settings…", Remmina via quick connect); they stay reachable in
+              # the tray overflow.
+              systemTray.items.hidden = [
+                "dev.deedles.Trayscale"
+                "remmina-icon"
+              ];
               systemTray.items.extra = [
                 "org.kde.plasma.clipboard"
                 "org.kde.plasma.notifications"
