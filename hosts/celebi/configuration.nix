@@ -278,10 +278,11 @@
     remmina
 
     # KWin effects for the glass look (enabled and tuned in ./plasma.nix):
-    # Better Blur DX replaces the stock blur, kde-rounded-corners rounds every
-    # window. Both are built against this system's KWin and only load into
+    # Better Blur DX or Glass (pick in ./plasma.nix) replaces the stock blur,
+    # kde-rounded-corners rounds every window. Both are built against this system's KWin and only load into
     # that exact version, so a KWin bump needs a relogin after the switch.
     (customPackages pkgs).better-blur-dx
+    (customPackages pkgs).kwin-glass
     kde-rounded-corners
 
     # Draws the translucent panel backgrounds (configured per panel in

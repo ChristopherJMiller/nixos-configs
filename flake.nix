@@ -24,6 +24,13 @@
       url = "github:xarblu/kwin-effects-better-blur-dx/v2.6.0";
       flake = false;
     };
+    # Alternative blur replacement with liquid-glass extras (edge lighting,
+    # refraction, tint); same source-only treatment as Better Blur DX.
+    kwin-effects-glass = {
+      # main (2026-11-08): the v1.6.4 tag predates its KWin 6.6+ API support.
+      url = "github:4v3ngR/kwin-effects-glass/5e2845fffbe893177c091fe18d603b9095cc2729";
+      flake = false;
+    };
     # Spotify theming (patched client + Catppuccin theme); keeps ~/.config/spotify.
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
     spicetify-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -84,6 +91,7 @@
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
         timekeeper = timekeeper.packages.x86_64-linux.default;
         better-blur-dx = pkgs.kdePackages.callPackage "${inputs.kwin-effects-better-blur-dx}/nix/package.nix" { };
+        kwin-glass = pkgs.kdePackages.callPackage "${inputs.kwin-effects-glass}/nix/package/kwin-glass.nix" { };
         # ardour-mcp = ardour-mcp.packages.x86_64-linux.default;
       };
       # Shared module wiring up the nixcache-oci proxy so all hosts pull the

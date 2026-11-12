@@ -149,6 +149,23 @@
         "type": "github"
       }
     },
+    "kwin-effects-glass": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794175064,
+        "narHash": "sha256-k2qrbsGjtP2VAe6eYY/tV4SLIrTwaEc/aBZ2pCaX2+8=",
+        "owner": "4v3ngR",
+        "repo": "kwin-effects-glass",
+        "rev": "5e2845fffbe893177c091fe18d603b9095cc2729",
+        "type": "github"
+      },
+      "original": {
+        "owner": "4v3ngR",
+        "repo": "kwin-effects-glass",
+        "rev": "5e2845fffbe893177c091fe18d603b9095cc2729",
+        "type": "github"
+      }
+    },
     "loreweaver": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -411,6 +428,7 @@
         "bandcamp-sync": "bandcamp-sync",
         "home-manager": "home-manager",
         "kwin-effects-better-blur-dx": "kwin-effects-better-blur-dx",
+        "kwin-effects-glass": "kwin-effects-glass",
         "loreweaver": "loreweaver",
         "microvm": "microvm",
         "nix-flatpak": "nix-flatpak",

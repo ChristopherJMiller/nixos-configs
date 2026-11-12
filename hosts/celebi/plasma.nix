@@ -6,6 +6,27 @@
 let
   uiFont = "Atkinson Hyperlegible Next";
 
+  # Plasma style: a full copy of Breeze (which follows the colour scheme)
+  # with popup and tooltip backgrounds at 65% instead of 85% opacity, so
+  # notifications, tray popups, the calendar and the top-bar menus show the
+  # blur behind them.
+  glassStyle = pkgs.runCommand "plasma-style-celebi-glass" { nativeBuildInputs = [ pkgs.jq ]; } ''
+    cp -r --no-preserve=mode ${pkgs.kdePackages.libplasma}/share/plasma/desktoptheme/default $out
+    for svg in translucent/dialogs/background translucent/widgets/tooltip; do
+      gunzip -c "$out/$svg.svgz" | sed 's/opacity:0\.85;/opacity:0.65;/g' | gzip -n > "$out/$svg.svgz.new"
+      mv "$out/$svg.svgz.new" "$out/$svg.svgz"
+      gunzip -c "$out/$svg.svgz" | grep -q 'opacity:0\.65;'
+    done
+    jq '.KPlugin.Id = "celebi-glass" | .KPlugin.Name = "Breeze Glass (celebi)"' \
+      "$out/metadata.json" > metadata.json
+    mv metadata.json "$out/metadata.json"
+  '';
+
+  # Which blur replacement KWin runs (both are installed in
+  # configuration.nix): "glass" for the liquid-glass look, or
+  # "better_blur_dx" for plain frosted glass.
+  blurEffect = "glass";
+
   # Desktops 2 and 3 are where the remote sessions live; see the Remmina
   # window rules below.
   desktops = [
@@ -217,6 +238,8 @@ in
     })
   ];
 
+  xdg.dataFile."plasma/desktoptheme/celebi-glass".source = glassStyle;
+
   home.packages = [
     (pkgs.catppuccin-kde.override {
       flavour = [ "macchiato" ];
@@ -274,6 +297,7 @@ in
     # pick up the colors from it.
     workspace.colorScheme = "CatppuccinMacchiatoMauve";
     workspace.iconTheme = "Papirus-Dark";
+    workspace.theme = "celebi-glass";
 
     # Installed system-wide in configuration.nix so SDDM shares it.
     workspace.cursor = {
@@ -325,7 +349,8 @@ in
 
     configFile.kwinrc = {
       Plugins = {
-        better_blur_dxEnabled = true;
+        better_blur_dxEnabled = blurEffect == "better_blur_dx";
+        glassEnabled = blurEffect == "glass";
         kwin4_effect_shapecornersEnabled = true;
       };
 
@@ -345,6 +370,27 @@ in
         RefractionMode = 0;
         RefractionEdgeSize = 14;
         RefractionCornerRadius = 10;
+      };
+
+      # Glass: the same frosted base plus edge lighting (a brighter rim) and
+      # a stronger refraction bulge with a hint of RGB fringing, for the
+      # liquid-glass look. Corner radii match the dock (14) and windows (10).
+      Effect-blurplus = {
+        BlurStrength = 9;
+        NoiseStrength = 3;
+        Brightness = 0.95;
+        Saturation = 1.6;
+        Contrast = 1.0;
+        EdgeLighting = true;
+        RefractionStrength = 8;
+        RefractionEdgeSize = 14;
+        RefractionNormalPow = 2;
+        RefractionRGBFringing = 2;
+        TopCornerRadius = 10;
+        BottomCornerRadius = 10;
+        MenuCornerRadius = 8;
+        DockCornerRadius = 14;
+        WindowClasses = "";
       };
 
       # Rounded windows with a thin dark outline and no inner highlight.
