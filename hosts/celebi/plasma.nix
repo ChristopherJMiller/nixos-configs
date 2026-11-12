@@ -36,6 +36,14 @@ let
     "scratch"
   ];
 
+  # Fixed-width spacer for the dock's ends (see the dock below).
+  dockEdge = {
+    panelSpacer = {
+      expanding = false;
+      length = 14;
+    };
+  };
+
   # A hidden Panel Colorizer instance per panel: it swaps the stock panel
   # background for a translucent Macchiato tint with blur behind and a faint
   # white hairline edge. Only the keys changed here; the widget merges them
@@ -43,10 +51,6 @@ let
   glass =
     { alpha
     , radius ? 0
-      # Horizontal inset for the widgets. On a rounded panel it should be at
-      # least the radius, or the first and last task tiles poke their square
-      # corners out past the curve.
-    , padding ? 0
     , borderSides ? null
     , shadow ? false
     }:
@@ -82,15 +86,6 @@ let
             radius = {
               enabled = radius > 0;
               corner = corners;
-            };
-            padding = {
-              enabled = padding > 0;
-              side = {
-                left = padding;
-                right = padding;
-                top = 0;
-                bottom = 0;
-              };
             };
             border = {
               enabled = true;
@@ -216,9 +211,12 @@ in
             (glass {
               alpha = 0.4;
               radius = 14;
-              padding = 14;
               shadow = true;
             })
+            # End margins as real spacers (not colorizer padding) so the
+            # fit-to-content width grows with the running apps; at least the
+            # radius, so the end tiles clear the rounded corners.
+            dockEdge
             {
               iconTasks.launchers = [
                 "preferred://browser"
@@ -232,6 +230,7 @@ in
                 "file:///etc/profiles/per-user/chris/share/applications/org.telegram.desktop.desktop"
               ];
             }
+            dockEdge
           ];
         }
       ];
@@ -374,7 +373,10 @@ in
 
       # Glass: the same frosted base plus edge lighting (a brighter rim) and
       # a stronger refraction bulge with a hint of RGB fringing, for the
-      # liquid-glass look. Corner radii match the dock (14) and windows (10).
+      # liquid-glass look on windows and popups. Panels are left to Panel
+      # Colorizer's own shape (no Glass corner radius, rim or refraction):
+      # those also hit the full-width top bar, rounding its ends and lining
+      # its screen edges.
       Effect-blurplus = {
         BlurStrength = 9;
         NoiseStrength = 3;
@@ -389,7 +391,9 @@ in
         TopCornerRadius = 10;
         BottomCornerRadius = 10;
         MenuCornerRadius = 8;
-        DockCornerRadius = 14;
+        DockCornerRadius = 0;
+        EdgeLightingDock = false;
+        RefractionExcludeDocks = true;
         WindowClasses = "";
       };
 
