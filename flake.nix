@@ -91,7 +91,16 @@
         sunshine-prerelease = pkgs.callPackage ./packages/sunshine-prerelease { };
         timekeeper = timekeeper.packages.x86_64-linux.default;
         better-blur-dx = pkgs.kdePackages.callPackage "${inputs.kwin-effects-better-blur-dx}/nix/package.nix" { };
-        kwin-glass = pkgs.kdePackages.callPackage "${inputs.kwin-effects-glass}/nix/package/kwin-glass.nix" { };
+        # KWin 6.6 loads shaders as <name>_core.<ext>, but this Glass build only
+        # embeds <name>.<ext>; add _core aliases for each generated shader.
+        kwin-glass =
+          (pkgs.kdePackages.callPackage "${inputs.kwin-effects-glass}/nix/package/kwin-glass.nix" { }).overrideAttrs
+            (old: {
+              postPatch = (old.postPatch or "") + ''
+                sed -i -E 's#^([[:space:]]*)<file>generated/([a-z_]+)\.(vert|frag)</file>#&\n\1<file alias="generated/\2_core.\3">generated/\2.\3</file>#' src/blur.qrc
+                grep -q '_core.vert' src/blur.qrc
+              '';
+            });
         # ardour-mcp = ardour-mcp.packages.x86_64-linux.default;
       };
       # Shared module wiring up the nixcache-oci proxy so all hosts pull the
