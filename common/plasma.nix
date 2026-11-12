@@ -9,6 +9,9 @@
   # defaults. Added once at login whenever this list changes, so one removed
   # by hand stays removed until then.
   extraFavorites ? [ ],
+  # Replaces the default single bottom panel below, for hosts with their own
+  # layout. When set, `launchers` and `extraSystrayItems` are unused.
+  panels ? null,
 }:
 
 { lib, pkgs, ... }:
@@ -23,7 +26,7 @@
 
     workspace = lib.optionalAttrs (wallpaper != null) { inherit wallpaper; };
 
-    panels = [
+    panels = if panels != null then panels else [
       {
         location = "bottom";
         widgets = [

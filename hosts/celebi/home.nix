@@ -181,23 +181,7 @@ in
     ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
-    (import ../../common/plasma.nix {
-      extraFavorites = [
-        "chatgpt"
-        "com.anthropic.Claude"
-      ];
-      wallpaper = "${./wallpaper.png}";
-      launchers = [
-        "preferred://browser"
-        "preferred://filemanager"
-        "file:///etc/profiles/per-user/chris/share/applications/kitty.desktop"
-        "file:///etc/profiles/per-user/chris/share/applications/code.desktop"
-        "file:///etc/profiles/per-user/chris/share/applications/spotify.desktop"
-        "file:///etc/profiles/per-user/chris/share/applications/discord.desktop"
-        "file:///etc/profiles/per-user/chris/share/applications/element-desktop.desktop"
-        "file:///etc/profiles/per-user/chris/share/applications/org.telegram.desktop.desktop"
-      ];
-    })
+    ./plasma.nix
   ];
 
   home.username = "chris";
