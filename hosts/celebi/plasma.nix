@@ -93,6 +93,7 @@ in
     ./system-menu.nix
     ./tailnet-menu.nix
     ./obsidian-launcher.nix
+    ./remmina.nix
     (import ../../common/plasma.nix {
       extraFavorites = [
         "chatgpt"
@@ -276,8 +277,8 @@ in
 
     # Installed system-wide in configuration.nix so SDDM shares it.
     workspace.cursor = {
-      theme = "catppuccin-macchiato-mauve-cursors";
-      size = 24;
+      theme = "Bibata-Modern-Classic";
+      size = 20;
     };
 
     # Lock screen on the desktop wallpaper; its colours and font already

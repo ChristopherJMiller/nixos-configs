@@ -109,11 +109,11 @@
     sddm.wayland.compositor = "kwin";
     defaultSession = "plasma";
     # Catppuccin Macchiato Mauve login (package below), on the desktop
-    # wallpaper with the Catppuccin cursor.
+    # wallpaper with the Bibata cursor.
     sddm.theme = "catppuccin-macchiato-mauve";
     sddm.settings.Theme = {
-      CursorTheme = "catppuccin-macchiato-mauve-cursors";
-      CursorSize = 24;
+      CursorTheme = "Bibata-Modern-Classic";
+      CursorSize = 20;
     };
   };
 
@@ -300,7 +300,7 @@
       loginBackground = true;
       userIcon = true;
     })
-    catppuccin-cursors.macchiatoMauve
+    bibata-cursors
   ];
 
   # Atkinson Hyperlegible Next (Braille Institute, built so look-alike

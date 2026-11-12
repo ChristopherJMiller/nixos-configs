@@ -38,7 +38,6 @@ let
         username=${username}
         domain=
         resolution_mode=2
-        color_depth=32
         sound=off
         microphone=off
         disableclipboard=0
