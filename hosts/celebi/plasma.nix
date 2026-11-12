@@ -326,6 +326,9 @@ in
 
       # Stock blur off: Better Blur DX (below) replaces it.
       effects.blur.enable = false;
+
+      # macOS-style genie into the dock icon.
+      effects.minimization.animation = "magiclamp";
     };
 
     # Atkinson Hyperlegible Next for the UI, chosen for legibility; emoji
@@ -358,7 +361,7 @@ in
       # wallpaper's color shows through, and a mild refraction bulge at the
       # edges for the liquid-glass highlight.
       Effect-better-blur-dx = {
-        BlurStrength = 9;
+        BlurStrength = 8;
         NoiseStrength = 3;
         Brightness = 95;
         Saturation = 175;
@@ -378,7 +381,7 @@ in
       # those also hit the full-width top bar, rounding its ends and lining
       # its screen edges.
       Effect-blurplus = {
-        BlurStrength = 9;
+        BlurStrength = 8;
         NoiseStrength = 3;
         Brightness = 0.95;
         Saturation = 1.6;
@@ -411,6 +414,11 @@ in
         Exclusions = "vicinae";
       };
     };
+
+    # Keep notifications coming during fullscreen apps (Plasma holds them
+    # by default), so local pings still show over a fullscreen Remmina
+    # session.
+    configFile.plasmanotifyrc.DoNotDisturb.WhenFullscreen = false;
 
     # KRunner stays on Alt+Space for searching everything else (files,
     # calculator, ...), dropping down from the top.
