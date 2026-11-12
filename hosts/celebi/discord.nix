@@ -7,6 +7,7 @@ pkgs-unstable:
 {
   lib,
   pkgs,
+  vencord-latest,
   ...
 }:
 
@@ -27,14 +28,16 @@ in
   home.packages = [
     (pkgs-unstable.discord.override {
       withVencord = true;
+      # The pinned unstable's Vencord fell behind Discord's web app and
+      # left a blank window; see nixpkgs-latest in flake.nix.
+      vencord = vencord-latest;
       # Faster startup, no update-check splash.
       withOpenASAR = true;
     })
   ];
 
-  home.file.".config/discord/settings.json".text = builtins.toJSON {
-    SKIP_HOST_UPDATE = true;
-  };
+  # No managed ~/.config/discord/settings.json: Discord and OpenASAR rewrite
+  # it, and nixpkgs' wrapper already sets SKIP_HOST_UPDATE there on launch.
 
   xdg.configFile."Vencord/themes/${theme}".text = ''
     /**

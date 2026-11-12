@@ -27,6 +27,10 @@
     # Spotify theming (patched client + Catppuccin theme); keeps ~/.config/spotify.
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
     spicetify-nix.inputs.nixpkgs.follows = "nixpkgs";
+    # Fully-built nixos-unstable, only for Vencord: it patches Discord's live
+    # web app, so it has to keep pace with upstream more closely than our
+    # unstable-small pin. Bump with `nix flake update nixpkgs-latest`.
+    nixpkgs-latest.url = "github:nixos/nixpkgs/nixos-unstable";
     # ardour-mcp + nixcache-oci temporarily disabled until prebuilt binary
     # cache pipeline is in place; rebuild-from-source is too slow.
     # Upstream Ardour's .gitattributes has `/* export-ignore`, which makes
@@ -211,6 +215,7 @@
               home-manager.extraSpecialArgs = {
                 inherit customPackages;
                 spicePkgs = inputs.spicetify-nix.legacyPackages.${system};
+                vencord-latest = inputs.nixpkgs-latest.legacyPackages.${system}.vencord;
               };
 
               # Optionally, use home-manager.extraSpecialArgs to pass arguments to home.nix
