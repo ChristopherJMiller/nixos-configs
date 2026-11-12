@@ -114,6 +114,7 @@ let
   mainQml = ''
     import QtQuick
     import QtQuick.Layouts
+    import QtQuick.Controls as QQC2
     import org.kde.plasma.plasmoid
     import org.kde.plasma.components as PlasmaComponents
     import org.kde.plasma.plasma5support as P5Support
@@ -122,7 +123,8 @@ let
     PlasmoidItem {
         id: root
 
-        readonly property string statusCmd: "/run/current-system/sw/bin/tailscale status --json"
+        readonly property string tailscale: "/run/current-system/sw/bin/tailscale"
+        readonly property string statusCmd: tailscale + " status --json"
         readonly property var remotes: ${builtins.toJSON remotes}
 
         property var status: null
@@ -136,7 +138,8 @@ let
         readonly property var peers: {
             if (!connected) return [];
             return Object.values(status.Peer || {})
-                .map(p => ({ name: shortName(p.DNSName), os: p.OS, online: p.Online }))
+                .map(p => ({ name: shortName(p.DNSName), os: p.OS, online: p.Online,
+                    exitNodeOption: p.ExitNodeOption, exitNode: p.ExitNode }))
                 .sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
         }
 
@@ -150,10 +153,26 @@ let
             root.expanded = false;
             exec.connectSource(cmd);
         }
+        // For tailscale changes: keep the popup open and re-poll once the
+        // change has landed.
+        function runAndRefresh(cmd) {
+            exec.connectSource(cmd);
+            refresh.restart();
+        }
+        readonly property var exitNodeOptions: peers.filter(p => p.exitNodeOption)
+
+        Timer {
+            id: refresh
+            interval: 1500
+            onTriggered: {
+                poll.disconnectSource(root.statusCmd);
+                poll.connectSource(root.statusCmd);
+            }
+        }
 
         preferredRepresentation: compactRepresentation
         onExpandedChanged: {
-            if (expanded) {
+            if (root.expanded) {
                 poll.disconnectSource(statusCmd);
                 poll.connectSource(statusCmd);
             }
@@ -247,37 +266,70 @@ let
                     text: "Tailscale"
                     Layout.fillWidth: true
                 }
-                Dot { on: root.connected }
                 PlasmaComponents.Label {
-                    text: root.connected ? root.selfName : "Not connected"
+                    text: root.connected ? root.selfName : "Off"
                     opacity: 0.8
                 }
+                // On/off; works without sudo because celebi makes this user
+                // the tailscale operator (configuration.nix).
+                PlasmaComponents.Switch {
+                    checked: root.connected
+                    onToggled: root.runAndRefresh(root.tailscale + (checked ? " up" : " down"))
+                }
             }
-            PlasmaComponents.Label {
-                visible: root.exitNode !== null
-                Layout.leftMargin: Kirigami.Units.smallSpacing
-                text: root.exitNode ? "Exit node: " + root.shortName(root.exitNode.DNSName) : ""
-                color: Kirigami.Theme.highlightColor
+
+            // Only shown when some device on the tailnet offers itself as an
+            // exit node.
+            SectionLabel {
+                visible: root.exitNodeOptions.length > 0
+                text: "Exit node"
+            }
+            Repeater {
+                model: root.exitNodeOptions.length > 0
+                    ? [{ name: "None", exitNode: root.exitNode === null, online: true }].concat(root.exitNodeOptions)
+                    : []
+                PlasmaComponents.ItemDelegate {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    enabled: modelData.online
+                    icon.name: modelData.exitNode ? "checkmark" : ""
+                    text: modelData.name
+                    onClicked: root.runAndRefresh(root.tailscale + " set --exit-node="
+                        + (modelData.name === "None" ? "" : modelData.name))
+                }
             }
 
             Kirigami.Separator { Layout.fillWidth: true }
             SectionLabel { text: "Remote desktops" }
 
+            // Click to connect; the terminal button opens ssh instead.
             Repeater {
                 model: root.remotes
                 PlasmaComponents.ItemDelegate {
+                    id: remoteRow
                     required property var modelData
                     Layout.fillWidth: true
                     icon.name: modelData.icon
                     text: modelData.name
                     onClicked: root.run(["${remoteSession}/bin/remote-session",
                         modelData.host, modelData.profile, modelData.port, modelData.desktop].join(" "))
-                    Dot {
-                        visible: modelData.tailnet
-                        on: root.isOnline(modelData.host)
+                    RowLayout {
                         anchors.right: parent.right
-                        anchors.rightMargin: Kirigami.Units.largeSpacing
+                        anchors.rightMargin: Kirigami.Units.smallSpacing
                         anchors.verticalCenter: parent.verticalCenter
+                        PlasmaComponents.ToolButton {
+                            icon.name: "utilities-terminal"
+                            display: QQC2.AbstractButton.IconOnly
+                            text: "SSH"
+                            QQC2.ToolTip.text: "ssh " + remoteRow.modelData.host
+                            QQC2.ToolTip.visible: hovered
+                            onClicked: root.run("${sshTab}/bin/ssh-tab " + remoteRow.modelData.host)
+                        }
+                        Dot {
+                            visible: remoteRow.modelData.tailnet
+                            on: root.isOnline(remoteRow.modelData.host)
+                            Layout.rightMargin: Kirigami.Units.smallSpacing
+                        }
                     }
                 }
             }

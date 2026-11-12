@@ -283,6 +283,8 @@
     # that exact version, so a KWin bump needs a relogin after the switch.
     (customPackages pkgs).better-blur-dx
     (customPackages pkgs).kwin-glass
+    # Glass Qt app style + window decoration, selected in ./plasma.nix.
+    (customPackages pkgs).glass-style
     kde-rounded-corners
 
     # Draws the translucent panel backgrounds (configured per panel in
@@ -327,7 +329,12 @@
 
   services.tailscale.enable = true;
   # Use the vyos router's subnet routes (kvm, mac-studio — common/configuration.nix).
-  services.tailscale.extraSetFlags = [ "--accept-routes" ];
+  # chris is the operator, so the tailnet menu can switch tailscale on/off and
+  # pick exit nodes without sudo.
+  services.tailscale.extraSetFlags = [
+    "--accept-routes"
+    "--operator=chris"
+  ];
 
   services.mullvad-vpn = {
     enable = true;

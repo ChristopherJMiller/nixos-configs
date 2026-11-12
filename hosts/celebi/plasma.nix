@@ -1,7 +1,7 @@
 # celebi's Plasma layout: a thin top bar for status, an auto-hiding floating
 # dock for open apps, vicinae on Meta for launching, and Catppuccin Macchiato
 # (mauve) with frosted translucency throughout.
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   uiFont = "Atkinson Hyperlegible Next";
@@ -26,6 +26,49 @@ let
   # configuration.nix): "glass" for the liquid-glass look, or
   # "better_blur_dx" for plain frosted glass.
   blurEffect = "glass";
+
+  # The Glass settings that cost the most GPU time, plugged in vs on battery:
+  # popups and notifications blur a notch stronger than the bars, plus edge
+  # lighting and refraction; on battery a lighter blur and neither extra.
+  # glass-power applies one set when PowerDevil switches profile.
+  glassPowered = {
+    ac = {
+      BlurStrength = 10;
+      DockBlurStrength = 8;
+      EdgeLighting = true;
+      RefractionStrength = 8;
+    };
+    battery = {
+      BlurStrength = 6;
+      DockBlurStrength = 6;
+      EdgeLighting = false;
+      RefractionStrength = 0;
+    };
+  };
+
+  glassPower = pkgs.writeShellApplication {
+    name = "glass-power";
+    runtimeInputs = [
+      pkgs.kdePackages.kconfig
+      pkgs.kdePackages.qttools
+    ];
+    text =
+      let
+        apply = settings: lib.concatStrings (lib.mapAttrsToList (key: value: ''
+          kwriteconfig6 --file kwinrc --group Effect-blurplus --key ${key} ${if builtins.isBool value then lib.boolToString value else toString value}
+        '') settings);
+      in
+      ''
+        case "''${1:-}" in
+          ac)
+        ${apply glassPowered.ac}    ;;
+          battery)
+        ${apply glassPowered.battery}    ;;
+          *) echo "usage: glass-power ac|battery" >&2; exit 2 ;;
+        esac
+        qdbus org.kde.KWin /Effects org.kde.kwin.Effects.reconfigureEffect glass >/dev/null || true
+      '';
+  };
 
   # Desktops 2 and 3 are where the remote sessions live; see the Remmina
   # window rules below.
@@ -298,6 +341,30 @@ in
     workspace.iconTheme = "Papirus-Dark";
     workspace.theme = "celebi-glass";
 
+    # Glass Qt style and window decoration (the Glass effect's companions):
+    # translucent title bars, and see-through menus, toolbars, tab bars and
+    # Dolphin's sidebar, all blurred by KWin.
+    workspace.widgetStyle = "Glass";
+    workspace.windowDecorations = {
+      library = "org.kde.glass";
+      theme = "Glass";
+    };
+    configFile.glassrc.Style = {
+      MenuOpacity = 75;
+      MenuBarOpacity = 70;
+      ToolBarOpacity = 70;
+      TabBarOpacity = 80;
+      DolphinSidebarOpacity = 60;
+    };
+
+    # Lighter glass on battery (see glassPowered); PowerDevil runs this when
+    # it loads each power profile.
+    configFile.powerdevilrc = {
+      "AC/RunScript".ProfileLoadCommand = "${lib.getExe glassPower} ac";
+      "Battery/RunScript".ProfileLoadCommand = "${lib.getExe glassPower} battery";
+      "LowBattery/RunScript".ProfileLoadCommand = "${lib.getExe glassPower} battery";
+    };
+
     # Installed system-wide in configuration.nix so SDDM shares it.
     workspace.cursor = {
       theme = "Bibata-Modern-Classic";
@@ -380,16 +447,11 @@ in
       # Colorizer's own shape (no Glass corner radius, rim or refraction):
       # those also hit the full-width top bar, rounding its ends and lining
       # its screen edges.
-      Effect-blurplus = {
-        # Popups and notifications a notch stronger than the bars.
-        BlurStrength = 10;
-        DockBlurStrength = 8;
+      Effect-blurplus = glassPowered.ac // {
         NoiseStrength = 3;
         Brightness = 0.95;
         Saturation = 1.6;
         Contrast = 1.0;
-        EdgeLighting = true;
-        RefractionStrength = 8;
         RefractionEdgeSize = 14;
         RefractionNormalPow = 2;
         RefractionRGBFringing = 2;

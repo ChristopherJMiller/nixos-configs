@@ -111,6 +111,23 @@
         "type": "github"
       }
     },
+    "glass-style": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791454309,
+        "narHash": "sha256-lmPXpICzrCqkQopOrq6ok+hvpWt1GEDq9LPdoFkM824=",
+        "owner": "4v3ngR",
+        "repo": "Glass",
+        "rev": "81edfa7f7f0d74997ab730598fa32805b20e4040",
+        "type": "github"
+      },
+      "original": {
+        "owner": "4v3ngR",
+        "repo": "Glass",
+        "rev": "81edfa7f7f0d74997ab730598fa32805b20e4040",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -426,6 +443,7 @@
     "root": {
       "inputs": {
         "bandcamp-sync": "bandcamp-sync",
+        "glass-style": "glass-style",
         "home-manager": "home-manager",
         "kwin-effects-better-blur-dx": "kwin-effects-better-blur-dx",
         "kwin-effects-glass": "kwin-effects-glass",

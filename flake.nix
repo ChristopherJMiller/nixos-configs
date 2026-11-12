@@ -32,6 +32,12 @@
       flake = false;
     };
     # Spotify theming (patched client + Catppuccin theme); keeps ~/.config/spotify.
+    # Glass Qt application style + KWin decoration (Darkly fork), the
+    # companion to kwin-effects-glass. Source only, built with our kdePackages.
+    glass-style = {
+      url = "github:4v3ngR/Glass/81edfa7f7f0d74997ab730598fa32805b20e4040";
+      flake = false;
+    };
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
     spicetify-nix.inputs.nixpkgs.follows = "nixpkgs";
     # Fully-built nixos-unstable, only for Vencord: it patches Discord's live
@@ -93,6 +99,7 @@
         better-blur-dx = pkgs.kdePackages.callPackage "${inputs.kwin-effects-better-blur-dx}/nix/package.nix" { };
         # KWin 6.6 loads shaders as <name>_core.<ext>, but this Glass build only
         # embeds <name>.<ext>; add _core aliases for each generated shader.
+        glass-style = pkgs.callPackage "${inputs.glass-style}/nix/package.nix" { };
         kwin-glass =
           (pkgs.kdePackages.callPackage "${inputs.kwin-effects-glass}/nix/package/kwin-glass.nix" { }).overrideAttrs
             (old: {
