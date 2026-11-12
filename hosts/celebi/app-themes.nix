@@ -30,11 +30,18 @@ let
   };
 
   # From element.catppuccin.com/macchiato/mauve.json.
-  # Upstream draws Element's panel dividers in surface0, barely off the
-  # base, so the space bar, room list and timeline run together; lift them
-  # to surface1.
+  # More contrast than upstream: Element's panes share one canvas token, so
+  # darken it a step (mantle) with menus and other raised surfaces on base,
+  # lift the panel dividers from surface0 to surface1 (they were barely off
+  # the background), and brighten secondary text to subtext1.
   elementTheme = lib.recursiveUpdate (lib.importJSON ./themes/element-catppuccin-macchiato-mauve.json) {
-    compound."--cpd-color-bg-subtle-primary" = "#494d64";
+    compound = {
+      "--cpd-color-theme-bg" = "#1e2030";
+      "--cpd-color-bg-canvas-default" = "#1e2030";
+      "--cpd-color-bg-canvas-default-level-1" = "#24273a";
+      "--cpd-color-bg-subtle-primary" = "#494d64";
+      "--cpd-color-text-secondary" = "#b8c0e0";
+    };
   };
 in
 {

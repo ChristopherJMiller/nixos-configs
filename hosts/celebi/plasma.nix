@@ -381,7 +381,9 @@ in
       # those also hit the full-width top bar, rounding its ends and lining
       # its screen edges.
       Effect-blurplus = {
-        BlurStrength = 8;
+        # Popups and notifications a notch stronger than the bars.
+        BlurStrength = 10;
+        DockBlurStrength = 8;
         NoiseStrength = 3;
         Brightness = 0.95;
         Saturation = 1.6;
