@@ -35,6 +35,9 @@ in
 {
   programs.firefox = {
     enable = true;
+    # Keep the existing profile where it is (silences the 26.05 default-path
+    # change warning; the new XDG default would mean moving ~/.mozilla).
+    configPath = ".mozilla/firefox";
     policies.ExtensionSettings."{998d0435-a079-4dcc-ad24-7333b3463bca}" = {
       installation_mode = "force_installed";
       install_url = "file://${firefoxTheme}";
