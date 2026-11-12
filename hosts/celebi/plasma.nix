@@ -341,13 +341,14 @@ in
     workspace.iconTheme = "Papirus-Dark";
     workspace.theme = "celebi-glass";
 
-    # Glass Qt style and window decoration (the Glass effect's companions):
-    # translucent title bars, and see-through menus, toolbars, tab bars and
-    # Dolphin's sidebar, all blurred by KWin.
+    # Glass Qt style (the Glass effect's companion): see-through window
+    # bodies, menus, toolbars, tab bars and Dolphin's sidebar, blurred and
+    # tinted by KWin. Breeze stays the window decoration: Glass's own has
+    # fixed macOS-style circle buttons and unblurred, clear title bars.
     workspace.widgetStyle = "Glass";
     workspace.windowDecorations = {
-      library = "org.kde.glass";
-      theme = "Glass";
+      library = "org.kde.breeze";
+      theme = "Breeze";
     };
     configFile.glassrc.Style = {
       MenuOpacity = 75;
