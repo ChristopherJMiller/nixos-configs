@@ -370,7 +370,11 @@ in
     configFile.darklyrc = {
       # In units of the decoration's small spacing (~2px, max 8): 5 is ~10px,
       # matching the Glass blur's window corner radius.
-      Common.CornerRadius = 5;
+      Common = {
+        CornerRadius = 5;
+        # Attached to the window (Darkly floats it with a gap by default).
+        FloatingTitlebar = false;
+      };
       Windeco = {
         TitleAlignment = "AlignCenterFullWidth";
         DrawTitleBarSeparator = false;
