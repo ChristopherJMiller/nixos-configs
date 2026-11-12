@@ -459,8 +459,18 @@ in
         BottomCornerRadius = 10;
         MenuCornerRadius = 8;
         DockCornerRadius = 0;
-        EdgeLightingDock = false;
+        # Despite the name, true *excludes* panels from edge lighting.
+        EdgeLightingDock = true;
         RefractionExcludeDocks = true;
+        # The Glass app style draws window backgrounds fully transparent and
+        # relies on this tint for the frosted body: Catppuccin base at ~78%.
+        # Panels, menus, popups/notifications and tooltips already paint
+        # their own backgrounds, so they're left untinted.
+        TintColor = "#C824273A";
+        ExcludeDocks = true;
+        ExcludeMenus = true;
+        ExcludeOSD = true;
+        ExcludeTooltips = true;
         WindowClasses = "";
       };
 
