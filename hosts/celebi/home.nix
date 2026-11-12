@@ -183,7 +183,7 @@ in
         "chatgpt"
         "com.anthropic.Claude"
       ];
-      wallpaper = "/home/chris/Pictures/Wallpapers/1.jpg";
+      wallpaper = "${./wallpaper.png}";
       launchers = [
         "preferred://browser"
         "preferred://filemanager"
