@@ -30,7 +30,12 @@ let
   };
 
   # From element.catppuccin.com/macchiato/mauve.json.
-  elementTheme = lib.importJSON ./themes/element-catppuccin-macchiato-mauve.json;
+  # Upstream draws Element's panel dividers in surface0, barely off the
+  # base, so the space bar, room list and timeline run together; lift them
+  # to surface1.
+  elementTheme = lib.recursiveUpdate (lib.importJSON ./themes/element-catppuccin-macchiato-mauve.json) {
+    compound."--cpd-color-bg-subtle-primary" = "#494d64";
+  };
 in
 {
   programs.firefox = {
