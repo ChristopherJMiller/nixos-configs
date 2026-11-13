@@ -126,6 +126,23 @@
       # };
     in
     {
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+
+      devShells.${system}.default =
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        pkgs.mkShellNoCC {
+          name = "nixos-config";
+          packages = with pkgs; [
+            nixfmt
+            nixd
+            statix
+            deadnix
+            shellcheck
+          ];
+        };
+
       nixosConfigurations = {
         rowlett = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";

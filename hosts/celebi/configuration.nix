@@ -256,6 +256,12 @@
 
   programs.gnupg.agent.pinentryPackage = pkgs.pinentry-qt;
 
+  # Show typing feedback and identify the host and target user when sudo
+  # asks for a password. Authentication requirements stay at their defaults.
+  security.sudo.extraConfig = ''
+    Defaults:chris pwfeedback,passprompt="[sudo %u@%h -> %U] Password for %p: "
+  '';
+
   # List services that you want to enable:
 
   programs.nix-ld.enable = true;

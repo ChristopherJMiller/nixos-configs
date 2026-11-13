@@ -175,6 +175,7 @@ in
     ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
+    ./terminal.nix
     ./plasma.nix
     (import ./app-themes.nix pkgs-unstable)
     (import ./discord.nix pkgs-unstable)
@@ -186,7 +187,6 @@ in
   # link the configuration file in current directory to the specified location in home directory
   # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
 
-  home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
   home.file.".local/bin/ipad-display" = ipad-display.script.".local/bin/ipad-display";
@@ -304,9 +304,7 @@ in
   # (claude-code-config.files still available if you want to re-enable.)
 
   # Framework-specific zsh configuration
-  programs.zsh = (import ../../common/zsh.nix).zsh // {
-    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
-    dotDir = config.home.homeDirectory;
+  programs.zsh = {
     shellAliases = {
       # Check for firmware updates after rebuild
       nixr-fw = "nixr && fwupdmgr refresh && fwupdmgr get-updates";
@@ -314,7 +312,6 @@ in
       fw-update = "fwupdmgr refresh && fwupdmgr update";
     };
   };
-  programs.kitty = (import ../../common/kitty.nix).kitty;
   programs.bash = (import ../../common/bash.nix).bash;
   programs.readline = (import ../../common/bash.nix).readline;
 

@@ -559,17 +559,10 @@ in
         )
         (builtins.length desktops)
     ) // {
-      # Snap to the left/right half. Ctrl+Shift+Left/Right is taken from apps
-      # (shift-select by word); kitty still switches tabs on Ctrl+(Shift+)Tab.
-      # Ctrl+Left/Right stays free for zsh's word jumps.
-      "Window Quick Tile Left" = [
-        "Meta+Left"
-        "Ctrl+Shift+Left"
-      ];
-      "Window Quick Tile Right" = [
-        "Meta+Right"
-        "Ctrl+Shift+Right"
-      ];
+      # Snap with Meta+arrows; leave Ctrl+Shift+Left/Right for kitty tabs
+      # and word selection in other applications.
+      "Window Quick Tile Left" = [ "Meta+Left" ];
+      "Window Quick Tile Right" = [ "Meta+Right" ];
     };
 
     # Remote sessions open on their own desktop.
