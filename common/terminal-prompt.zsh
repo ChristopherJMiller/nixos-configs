@@ -1,4 +1,4 @@
-# Applied after common/p10k.zsh; only celebi imports this trial design.
+# Applied after common/p10k.zsh by the shared terminal module.
 typeset -g POWERLEVEL9K_MODE=nerdfont-v3
 typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs nix_shell virtualenv newline prompt_char)
 typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time newline)
@@ -16,20 +16,20 @@ typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=false
 
 # Draw each badge independently, including its cap and the transparent gap.
 # No separator inherits the previous badge's background.
-celebi_prompt_badge() {
+terminal_prompt_badge() {
   local segment=$1 background=$2 foreground=$3
   typeset -g "POWERLEVEL9K_${segment}_BACKGROUND=$background"
   typeset -g "POWERLEVEL9K_${segment}_FOREGROUND=$foreground"
   typeset -g "POWERLEVEL9K_${segment}_PREFIX=%k%F{$background}%K{$background}%F{$foreground}"
   typeset -g "POWERLEVEL9K_${segment}_SUFFIX=%k%F{$background} "
 }
-celebi_prompt_badge CONTEXT '#363a4f' '#8aadf4'
-celebi_prompt_badge CONTEXT_ROOT '#ed8796' '#24273a'
-celebi_prompt_badge DIR '#494d64' '#cad3f5'
-celebi_prompt_badge VCS '#363a4f' '#a5adcb'
-celebi_prompt_badge NIX_SHELL '#c6a0f6' '#24273a'
-celebi_prompt_badge VIRTUALENV '#363a4f' '#f5bde6'
-unfunction celebi_prompt_badge
+terminal_prompt_badge CONTEXT '#363a4f' '#8aadf4'
+terminal_prompt_badge CONTEXT_ROOT '#ed8796' '#24273a'
+terminal_prompt_badge DIR '#494d64' '#cad3f5'
+terminal_prompt_badge VCS '#363a4f' '#a5adcb'
+terminal_prompt_badge NIX_SHELL '#c6a0f6' '#24273a'
+terminal_prompt_badge VIRTUALENV '#363a4f' '#f5bde6'
+unfunction terminal_prompt_badge
 
 # Retain the shared prompt's conditional context: local user hidden, SSH
 # user@host visible, and root visible even outside SSH.
@@ -50,7 +50,7 @@ typeset -g POWERLEVEL9K_NIX_SHELL_CONTENT_EXPANSION=nix
 typeset -g POWERLEVEL9K_VIRTUALENV_VISUAL_IDENTIFIER_EXPANSION=$'\uE73C'
 
 # The right side is quiet on success. Only failures and commands taking at
-# least five seconds add detail; there is no second clock beside Plasma's.
+# least five seconds add detail; the desktop panel already has a clock.
 typeset -g POWERLEVEL9K_STATUS_OK=false
 typeset -g POWERLEVEL9K_STATUS_OK_PIPE=false
 typeset -g POWERLEVEL9K_STATUS_EXTENDED_STATES=true

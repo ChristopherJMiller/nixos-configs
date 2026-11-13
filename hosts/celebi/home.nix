@@ -137,7 +137,6 @@ let
   # Discord (with Vencord) comes from ./discord.nix.
   unstable-pkgs = with pkgs-unstable; [
     github-copilot-cli
-    codex
     immich-cli
   ];
 
@@ -175,7 +174,8 @@ in
     ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
-    ./terminal.nix
+    ../../common/terminal.nix
+    (import ../../common/ai-tools.nix pkgs-unstable)
     ./plasma.nix
     (import ./app-themes.nix pkgs-unstable)
     (import ./discord.nix pkgs-unstable)
@@ -190,7 +190,8 @@ in
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
   home.file.".local/bin/ipad-display" = ipad-display.script.".local/bin/ipad-display";
-  home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source = ../../common/catppuccin-macchiato-mauve.soc;
+  home.file.".config/libreoffice/user/config/catppuccin-macchiato-mauve.soc".source =
+    ../../common/catppuccin-macchiato-mauve.soc;
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
   # home.file.".config/i3/scripts" = {
@@ -312,8 +313,6 @@ in
       fw-update = "fwupdmgr refresh && fwupdmgr update";
     };
   };
-  programs.bash = (import ../../common/bash.nix).bash;
-  programs.readline = (import ../../common/bash.nix).readline;
 
   # Fastmail integration (email, calendar, contacts, files)
   accounts.email.accounts.fastmail = fastmail.emailAccount;
@@ -356,7 +355,6 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
-    TERMINAL = "kitty";
     DELTA_PAGER = "less -R";
     XCURSOR_SIZE = "64";
   };

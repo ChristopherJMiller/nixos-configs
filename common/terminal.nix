@@ -1,4 +1,4 @@
-# Trial terminal design for celebi. Keep it here until it is ready to share.
+# Shared terminal experience for every desktop host and the devbox VM.
 {
   config,
   lib,
@@ -6,8 +6,8 @@
   ...
 }:
 let
-  zsh = (import ../../common/zsh.nix).zsh;
-  kitty = (import ../../common/kitty.nix).kitty;
+  inherit (import ./zsh.nix) zsh;
+  inherit (import ./kitty.nix) kitty;
   colors = {
     base = "#24273a";
     surface0 = "#363a4f";
@@ -30,8 +30,19 @@ let
   tabTitle = ''" {index} {bell_symbol}{activity_symbol}{(title.rstrip('/').rsplit('/', 1)[-1] if title.startswith('/') else title)[:24] or '/'} "'';
 in
 {
+  fonts.fontconfig.enable = true;
+  home.packages = with pkgs; [
+    eza
+    fd
+  ];
+  home.sessionVariables.TERMINAL = lib.mkDefault "kitty";
+
+  programs.bash = (import ./bash.nix).bash;
+  programs.readline = (import ./bash.nix).readline;
+  programs.tmux = (import ./tmux.nix).tmux;
+
   home.file.".p10k.zsh".text =
-    builtins.readFile ../../common/p10k.zsh + "\n" + builtins.readFile ./terminal-prompt.zsh;
+    builtins.readFile ./p10k.zsh + "\n" + builtins.readFile ./terminal-prompt.zsh;
 
   programs.zsh = zsh // {
     dotDir = config.home.homeDirectory;
@@ -80,7 +91,7 @@ in
         source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh
       '')
       (lib.mkOrder 1160 ''
-        typeset -g _CELEBI_DIRENV_BIN=${lib.getExe config.programs.direnv.package}
+        typeset -g _TERMINAL_DIRENV_BIN=${lib.getExe config.programs.direnv.package}
         source ${./terminal-direnv.zsh}
       '')
     ];

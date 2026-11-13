@@ -137,7 +137,6 @@ let
   unstable-pkgs = with pkgs-unstable; [
     discord
     github-copilot-cli
-    codex
   ];
 
   # Exclude celebi/laptop-specific custom packages:
@@ -174,6 +173,8 @@ in
     ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
+    ../../common/terminal.nix
+    (import ../../common/ai-tools.nix pkgs-unstable)
     # XFCE panel for the xrdp session (Plasma stays the local desktop).
     ./xfce-panel.nix
     (import ../../common/plasma.nix {
@@ -207,7 +208,6 @@ in
   # link the configuration file in current directory to the specified location in home directory
   # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
 
-  home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".face.icon".source = ../../common/icon.png;
   home.file.".local/bin/chrome".source = "${pkgs.chromium}/bin/chromium";
   home.file.".config/discord/settings.json".text = builtins.toJSON {
@@ -318,9 +318,7 @@ in
   };
 
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
-  programs.zsh = (import ../../common/zsh.nix).zsh // {
-    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
-    dotDir = config.home.homeDirectory;
+  programs.zsh = {
     shellAliases = {
       cargo-limited = "systemd-run --user --scope --slice=dev.slice -p MemoryHigh=12G -p MemoryMax=14G -p CPUQuota=400% -p Nice=10 -- cargo";
       claude-safe = "NODE_OPTIONS=--max-old-space-size=4096 MALLOC_ARENA_MAX=2 systemd-run --user --scope --slice=dev.slice -p MemoryHigh=6G -p MemoryMax=8G -p CPUQuota=400% -- claude";
@@ -330,11 +328,6 @@ in
   programs.alacritty = {
     enable = true;
   };
-  programs.kitty = (import ../../common/kitty.nix).kitty;
-  programs.bash = (import ../../common/bash.nix).bash;
-  programs.readline = (import ../../common/bash.nix).readline;
-  # Persistent sessions for remote work (mosh is enabled in configuration.nix).
-  programs.tmux = (import ../../common/tmux.nix).tmux;
 
   # Fastmail integration (email, calendar, contacts, files)
   accounts.email.accounts.fastmail = fastmail.emailAccount;
@@ -409,7 +402,6 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
-    TERMINAL = "alacritty";
     DELTA_PAGER = "less -R";
   };
 

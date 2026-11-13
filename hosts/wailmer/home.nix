@@ -1,6 +1,6 @@
 pkgs-unstable:
 
-{ config, pkgs, customPackages, ... }:
+{ pkgs, customPackages, ... }:
 
 let
   stable-pkgs = with pkgs; [
@@ -104,8 +104,6 @@ let
   ];
 
   unstable-pkgs = with pkgs-unstable; [
-    codex
-
     # Addons
     alacritty-theme
   ];
@@ -121,6 +119,8 @@ in
     ../../common/obsidian.nix
     ../../common/git.nix
     ../../common/remmina.nix
+    ../../common/terminal.nix
+    (import ../../common/ai-tools.nix pkgs-unstable)
     (import ../../common/plasma.nix {
       launchers = [
         "preferred://browser"
@@ -141,7 +141,6 @@ in
   # link the configuration file in current directory to the specified location in home directory
   # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
 
-  home.file.".p10k.zsh".source = ../../common/p10k.zsh;
   home.file.".face.icon".source = ../../common/icon.png;
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
@@ -158,19 +157,22 @@ in
 
   # set cursor size and dpi for 4k monitor
   xresources.properties = {
-   "Xcursor.size" = 32;
-   "Xft.dpi" = 172;
+    "Xcursor.size" = 32;
+    "Xft.dpi" = 172;
   };
 
   # git config (no signing, HTTPS-via-gh) lives in ../../common/git.nix.
 
   # Packages that should be installed to the user profile.
-  home.packages = stable-pkgs ++ unstable-pkgs ++ [
-    claude-code-config.package
-    pkgs.gh # GitHub CLI — also the git HTTPS credential helper (common/git.nix)
-    (customPackages pkgs).photogimp
-    # (customPackages pkgs).ardour-mcp  # disabled until prebuilt cache is ready
-  ];
+  home.packages =
+    stable-pkgs
+    ++ unstable-pkgs
+    ++ [
+      claude-code-config.package
+      pkgs.gh # GitHub CLI — also the git HTTPS credential helper (common/git.nix)
+      (customPackages pkgs).photogimp
+      # (customPackages pkgs).ardour-mcp  # disabled until prebuilt cache is ready
+    ];
 
   programs.vscode = {
     enable = true;
@@ -188,12 +190,6 @@ in
   };
 
   home.file.".claude/CLAUDE.md" = claude-code-config.files.".claude/CLAUDE.md";
-  programs.zsh = (import ../../common/zsh.nix).zsh // {
-    # Lock in the pre-26.05 location (~/.zshrc); HM moves it to XDG otherwise.
-    dotDir = config.home.homeDirectory;
-  };
-  programs.bash = (import ../../common/bash.nix).bash;
-  programs.readline = (import ../../common/bash.nix).readline;
 
   # Fastmail integration (email, calendar, contacts, files)
   accounts.email.accounts.fastmail = fastmail.emailAccount;
@@ -236,7 +232,6 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     BROWSER = "firefox";
-    TERMINAL = "alacritty";
     DELTA_PAGER = "less -R";
     XCURSOR_SIZE = "32";
   };

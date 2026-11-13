@@ -1,7 +1,7 @@
 # common/tmux.nix
 #
-# Shared tmux config for the machines reached over flaky links (rowlett + the
-# devbox — e.g. from a plane). Pair it with mosh:
+# Shared tmux config for every host and devbox. For flaky links (e.g. from a
+# plane), pair it with mosh:
 #
 #     mosh <host> -- tmux new -A -s main
 #

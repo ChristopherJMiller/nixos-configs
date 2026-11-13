@@ -19,7 +19,12 @@
 # Git is HTTPS-via-`gh` with NO gpg/ssh signing (see /etc/gitconfig below), so
 # pushes never wait on an ssh agent or pinentry — agents can drive everything.
 # Persistent state lives on volumes; the rootfs is otherwise ephemeral.
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [ ./tailnets.nix ];
@@ -263,12 +268,25 @@
 
   # ---- Desktop over RDP ----------------------------------------------------
   services.xserver.enable = true;
-  services.xserver.desktopManager.xfce.enable = true;
+  services.xserver.desktopManager.xfce = {
+    enable = true;
+    enableScreensaver = false;
+  };
+  # A remote desktop should remain usable when idle or after reconnecting.
+  # XFCE's power manager is installed only when powerManagement is enabled.
+  powerManagement.enable = false;
   services.xserver.xkb.layout = "us";
   # No display-manager: xrdp starts its own X server per session.
   services.xrdp = {
     enable = true;
-    defaultWindowManager = "xfce4-session";
+    defaultWindowManager = toString (
+      pkgs.writeShellScript "devbox-xfce-session" ''
+        # xrdp starts a fresh X server; disable its own blanking/DPMS as well.
+        ${pkgs.xset}/bin/xset s off
+        ${pkgs.xset}/bin/xset -dpms
+        exec ${pkgs.xfce4-session}/bin/xfce4-session
+      ''
+    );
     openFirewall = true; # opens 3389 (safe; no LAN — see note above)
   };
 
@@ -343,10 +361,8 @@
     git
     git-lfs
     gh
-    # terminal + browsers (firefox comes via programs.firefox below so
-    # ./tailnets.nix can attach a proxy policy to it)
-    kitty
-    chromium
+    # Firefox comes via programs.firefox so ./tailnets.nix can attach a PAC;
+    # Kitty and Chromium are provided by Home Manager.
     # desktop apps + panel plugins (launchers wired up in ./xfce-panel.nix)
     thunar # file manager ("directory")
     xfce4-whiskermenu-plugin # searchable app menu

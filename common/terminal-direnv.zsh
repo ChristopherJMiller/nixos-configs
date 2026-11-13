@@ -1,27 +1,27 @@
 # Replace the standard hook's presentation, retaining its hook registration
 # and direnv's environment diff. This function runs inside $(...) so only
 # exported shell code goes to stdout; the loading indicator uses stderr.
-_celebi_direnv_export() {
+_terminal_direnv_export() {
   emulate -L zsh
   setopt localtraps
   unsetopt monitor notify
 
   if [[ ! -t 2 || $TERM == dumb ]]; then
-    "$_CELEBI_DIRENV_BIN" export zsh
+    "$_TERMINAL_DIRENV_BIN" export zsh
     return
   fi
 
   local log_file spinner_pid
   local -i export_status=0
-  log_file=$(mktemp "${TMPDIR:-/tmp}/celebi-direnv.XXXXXXXX") || {
-    "$_CELEBI_DIRENV_BIN" export zsh
+  log_file=$(mktemp "${TMPDIR:-/tmp}/terminal-direnv.XXXXXXXX") || {
+    "$_TERMINAL_DIRENV_BIN" export zsh
     return
   }
   zmodload zsh/zselect
 
   # An EXIT trap also runs when Ctrl+C interrupts the command substitution.
   # Only stderr is buffered: exported values never go into the log file.
-  _celebi_direnv_cleanup() {
+  _terminal_direnv_cleanup() {
     if [[ -n $spinner_pid ]]; then
       kill "$spinner_pid" 2>/dev/null
       wait "$spinner_pid" 2>/dev/null
@@ -34,7 +34,7 @@ _celebi_direnv_export() {
     [[ -z $log_file ]] || rm -f -- "$log_file"
     log_file=
   }
-  trap '_celebi_direnv_cleanup' EXIT
+  trap '_terminal_direnv_cleanup' EXIT
   trap 'exit 130' INT
   trap 'exit 143' TERM
   trap 'exit 129' HUP
@@ -58,10 +58,10 @@ _celebi_direnv_export() {
   spinner_pid=$!
 
   {
-    "$_CELEBI_DIRENV_BIN" export zsh 2>"$log_file"
+    "$_TERMINAL_DIRENV_BIN" export zsh 2>"$log_file"
     export_status=$?
   } always {
-    _celebi_direnv_cleanup
+    _terminal_direnv_cleanup
   }
   return $export_status
 }
@@ -69,7 +69,7 @@ _celebi_direnv_export() {
 _direnv_hook() {
   local -i previous_status=$?
   local env_delta
-  if env_delta="$(_celebi_direnv_export)"; then
+  if env_delta="$(_terminal_direnv_export)"; then
     eval "$env_delta"
   fi
   return $previous_status
