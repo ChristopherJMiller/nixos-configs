@@ -40,9 +40,10 @@
     };
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
     spicetify-nix.inputs.nixpkgs.follows = "nixpkgs";
-    # Fully-built nixos-unstable, only for Vencord: it patches Discord's live
-    # web app, so it has to keep pace with upstream more closely than our
-    # unstable-small pin. Bump with `nix flake update nixpkgs-latest`.
+    # Fully-built nixos-unstable, for packages that have to keep pace with
+    # upstream more closely than our unstable-small pin: Vencord (it patches
+    # Discord's live web app) and Pi (its package ecosystem tracks new Pi
+    # releases). Bump with `nix flake update nixpkgs-latest`.
     nixpkgs-latest.url = "github:nixos/nixpkgs/nixos-unstable";
     # ardour-mcp + nixcache-oci temporarily disabled until prebuilt binary
     # cache pipeline is in place; rebuild-from-source is too slow.
@@ -80,6 +81,11 @@
         config = {
           allowUnfree = true;
         };
+        overlays = [
+          # Pi comes from nixpkgs-latest: its packages (pi-claude-marketplace
+          # needs >= 1.5) move faster than the unstable-small pin.
+          (_: _: { inherit (inputs.nixpkgs-latest.legacyPackages.${system}) pi-coding-agent; })
+        ];
       };
       customPackages = pkgs: {
         mpc-autofill = pkgs.callPackage ./packages/mpc-autofill { };

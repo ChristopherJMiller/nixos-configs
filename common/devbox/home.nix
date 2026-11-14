@@ -34,6 +34,7 @@ let
     - Claude Code, Codex and Pi are installed. Pi supports GitHub Copilot:
       start `pi`, then `/login` and choose **GitHub Copilot**. Logins and
       sessions live in this persistent home and are not managed by Nix.
+      Pi reads this same CLAUDE.md (see common/pi.nix).
     - **Networking / tailnets.** The VM's real network interface (`tailscale0`)
       is the WORK tailnet: work hosts (`*.tail8f0356.ts.net`, company names
       like `tkndash.mountthor.dev` that resolve to `100.x`, subnet routes)
@@ -58,11 +59,12 @@ in
   home.homeDirectory = "/home/dev";
   home.stateVersion = "25.11";
 
-  # Shared user CLAUDE.md extended with the devbox-specific tips above.
+  # Shared user CLAUDE.md extended with the devbox-specific tips above. Pi
+  # links ~/.pi/agent/CLAUDE.md to it (common/pi.nix), so no AGENTS.md here:
+  # it would take precedence over that link.
   home.file = claude.files // {
     ".claude/CLAUDE.md".text = claude.files.".claude/CLAUDE.md".text + devboxTips;
     ".codex/AGENTS.md".text = devboxTips;
-    ".pi/agent/AGENTS.md".text = devboxTips;
   };
 
   # Claude Code (unstable channel package + the shared CLAUDE.md memory).
