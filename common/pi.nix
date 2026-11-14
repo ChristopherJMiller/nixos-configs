@@ -41,6 +41,12 @@ let
     "npm:@sting8k/pi-vcc@0.11.2"
     # Engram memory (native mem_* tools). Must match the engram binary.
     "npm:gentle-engram@0.7.1"
+    # Background bash: `bash` gains `background: true` (the agent is woken
+    # when the command exits), plus bash_output/bash_tasks/bash_kill, /bg,
+    # and ctrl+shift+b to background a running command. pi/background-key.ts
+    # adds ctrl+b for the same and reads this package's internal registry,
+    # so re-check that file when bumping this pin.
+    "npm:pi-bg-bash@0.6.0"
     # Superpowers skills, loaded on demand. Its bootstrap extension (which
     # injects "use a skill before ANY response" into every request) is off
     # here; turn it on for a project with .pi/settings.json:
@@ -167,6 +173,7 @@ in
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.claude/CLAUDE.md";
       ".pi/agent/extensions/copilot-credits.ts".source = ./pi/copilot-credits.ts;
       ".pi/agent/extensions/footer.ts".source = ./pi/footer.ts;
+      ".pi/agent/extensions/background-key.ts".source = ./pi/background-key.ts;
     };
 
     activation.piConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (

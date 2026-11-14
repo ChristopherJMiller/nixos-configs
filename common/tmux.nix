@@ -30,6 +30,11 @@ let
       set -g destroy-unattached off
       # obvious "you're in tmux" marker + clock for long-lived remote sessions
       set -g status-right ' #{session_name}  %Y-%m-%d %H:%M '
+      # Pass modified keys (e.g. Ctrl+Shift+B, which pi uses to background a
+      # command) to programs that ask for them. Ctrl+B itself is the prefix;
+      # press it twice to send it through.
+      set -s extended-keys on
+      set -as terminal-features 'xterm-kitty:extkeys'
     '';
   };
 in

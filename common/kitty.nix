@@ -44,6 +44,11 @@ let
 
       # Layout cycling
       "ctrl+shift+l" = "next_layout";
+
+      # Unmapped (passed through to the program): pi uses it to send a
+      # running command to the background. Kitty's default is
+      # move_window_backward.
+      "ctrl+shift+b" = "no_op";
     };
   };
 in

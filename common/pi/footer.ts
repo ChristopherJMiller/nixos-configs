@@ -3,15 +3,15 @@
  *
  *     ~/nixos (main)                                        claude-opus-5.5 • xhigh
  *     12% of 1M · ↑48k ↓9.1k · Copilot 99.9% (−12) · 999.5K/1M · resets Dec 1 · 🧠 nixos
- *                                          2 running agents · Authenticating fastmail...
+ *                    2 running agents · 1 background command · Authenticating fastmail...
  *
  * Compared with pi's built-in footer it drops what never changes on a Copilot
  * subscription ("$0.000 (sub)", "(auto)"), hides statuses whose healthy state
  * is just noise (MCP "N servers enabled", engram "ready"), and moves anything
- * that is happening right now (subagents, MCP sign-in/tasks, statuses from
- * extensions it doesn't know) onto a third line that only exists while
- * there is something to show. No status is ever silently dropped except
- * the healthy MCP summary.
+ * that is happening right now (subagents, background commands, MCP
+ * sign-in/tasks, statuses from extensions it doesn't know) onto a third
+ * line that only exists while there is something to show. No status is ever
+ * silently dropped except the healthy MCP summary.
  *
  * On narrow terminals line 2 sheds the least useful parts first: the Copilot
  * reset date, then the raw credit count, then the engram project, then token
@@ -198,7 +198,8 @@ export default function footer(pi: ExtensionAPI) {
 
 					// Line 3: only while something is happening or needs attention.
 					const active: string[] = [];
-					const order = (key: string) => (key === "subagents" ? "" : key); // running agents first
+					const first = ["subagents", "bg"]; // running work before everything else
+					const order = (key: string) => (first.includes(key) ? `${first.indexOf(key)}` : key);
 					for (const [key, value] of [...statuses].sort(([a], [b]) => order(a).localeCompare(order(b)))) {
 						if (key === "copilot-credits" || key === "engram") continue;
 						if (key === "mcp") {
@@ -206,6 +207,11 @@ export default function footer(pi: ExtensionAPI) {
 							if (attention) active.push(theme.fg("warning", attention));
 						} else if (key === "subagents") {
 							active.push(theme.fg("accent", oneLine(value)));
+						} else if (key === "bg") {
+							// pi-bg-bash: "bg: 2" while background commands run.
+							const n = Number(/\d+/.exec(plain(value))?.[0]);
+							const text = Number.isFinite(n) ? `${n} background command${n === 1 ? "" : "s"}` : oneLine(value);
+							active.push(theme.fg("accent", text));
 						} else {
 							active.push(oneLine(value));
 						}
