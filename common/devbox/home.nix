@@ -23,9 +23,13 @@ let
 
     - This is the `devbox` dev VM. Your workspace is `/home/dev` — a persistent
       volume that survives reboots; put repos and long-lived state there.
-    - Git uses **HTTPS via the `gh` CLI**. There are no SSH keys and no GPG
-      signing in this VM: `git push` over HTTPS just works. Do NOT switch
-      remotes to SSH, and do NOT enable commit/tag signing.
+    - Git uses **HTTPS via the `gh` CLI** (GitHub) and the `fj` CLI
+      (Forgejo, git.realliance.net) with no GPG signing: `git push` over
+      HTTPS just works once `gh auth login` / `fj auth login` have been run.
+      Chris's SSH keys and GPG keys (`~/.gnupg`) are present, served by one
+      gpg-agent (also the SSH agent) that keeps them unlocked for 48 h after
+      Chris enters a passphrase; while locked, using them pops a pinentry.
+      Do NOT switch remotes to SSH, and do NOT enable commit/tag signing.
     - Docker is available for builds and containers.
     - Firefox and Chromium are installed. For browser automation, launch
       `chromium-agent` in the desktop session (or `chromium-agent --headless`
@@ -50,6 +54,9 @@ in
     ./desktop.nix
     ./browser.nix
     ./xfce-panel.nix
+    # fj CLI + realliance OAuth client ID + FJ_FALLBACK_HOST; the matching git
+    # credential helper is in guest.nix's /etc/gitconfig.
+    (import ../forgejo.nix).homeModule
   ];
 
   home.username = "dev";
@@ -78,7 +85,6 @@ in
     fd
     xclip
     gnumake
-    forgejo-cli
   ]);
 
   programs.home-manager.enable = true;

@@ -101,7 +101,13 @@ in
       "xfce4-power-manager/blank-on-ac" = 0;
       "xfce4-power-manager/inactivity-on-ac" = 0;
     };
-    xfce4-session."shutdown/LockScreen" = false;
+    xfce4-session = {
+      "shutdown/LockScreen" = false;
+      # Don't start xfce4-session's own ssh-agent: it would claim
+      # SSH_AUTH_SOCK for the session and the systemd user manager, hiding
+      # gpg-agent, which is the SSH agent here (guest.nix, GnuPG section).
+      "startup/ssh-agent/enabled" = false;
+    };
   };
 
   # XFCE's preferred terminal is independent of $TERMINAL.

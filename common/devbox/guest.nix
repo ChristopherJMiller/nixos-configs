@@ -16,6 +16,9 @@
 #
 # Git is HTTPS-via-`gh` with NO gpg/ssh signing (see /etc/gitconfig below), so
 # pushes never wait on an ssh agent or pinentry — agents can drive everything.
+# Chris's (passphrase-protected) SSH and GPG keys are copied by hand into
+# /home/dev/.ssh and /home/dev/.gnupg for interactive use; private keys never
+# go through Nix. Git never touches them.
 # Persistent state lives on volumes; the rootfs is otherwise ephemeral.
 {
   config,
@@ -24,6 +27,9 @@
   ...
 }:
 
+let
+  forgejo = import ../forgejo.nix;
+in
 {
   imports = [ ./tailnets.nix ];
 
@@ -297,6 +303,10 @@
     # (or move to hashedPassword/agenix later). Terminal/agent access is
     # SSH-key + tailnet, so this password is only the RDP login gate.
     initialPassword = "devbox";
+    # Keep `dev`'s systemd user manager — and with it gpg-agent and its 48 h
+    # passphrase cache (see GnuPG below) — running when the last SSH session
+    # logs out, instead of tearing it down and re-locking every key.
+    linger = true;
   };
   security.sudo.wheelNeedsPassword = false;
   programs.zsh.enable = true;
@@ -312,13 +322,41 @@
     settings.KbdInteractiveAuthentication = false;
   };
 
-  # ---- Git: HTTPS via gh; NO gpg signing, NO ssh signing -------------------
+  # ---- GnuPG + SSH agent ---------------------------------------------------
+  # ONE agent for both: gpg-agent serves the GPG keys in /home/dev/.gnupg and,
+  # as the SSH agent (SSH_AUTH_SOCK = its ssh socket), the SSH keys listed in
+  # ~/.gnupg/sshcontrol — all copied from rowlett onto the persistent volume,
+  # same setup as the hosts (../configuration.nix). Each key unlocks for 48 h:
+  # the default-* TTLs are idle timeouts (reset on every use), the max-* ones
+  # the absolute cap from first unlock. pinentry is XFCE's default
+  # pinentry-gtk2 in the RDP session, curses over plain SSH (the module's
+  # ssh_config `updatestartuptty` hook points it at the calling terminal).
+  # The cache lives in the agent's memory, so a VM restart re-locks everything.
+  # The competing agents are switched off: xfce4-session's own ssh-agent in
+  # ./desktop.nix, gnome-keyring's gcr-ssh-agent here.
+  # Git still never signs or uses SSH (see /etc/gitconfig below), so no
+  # agent-driven commit or push can block on this pinentry.
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    settings = {
+      default-cache-ttl = 172800; # 48 h
+      max-cache-ttl = 172800;
+      default-cache-ttl-ssh = 172800;
+      max-cache-ttl-ssh = 172800;
+    };
+  };
+  services.gnome.gcr-ssh-agent.enable = false;
+
+  # ---- Git: HTTPS via gh / fj; NO gpg signing, NO ssh signing --------------
   # System-wide defaults; ~/.gitconfig stays writable so `gh auth setup-git`
   # and agents can adjust freely. A fresh HTTPS clone carries no repo-level
   # commit.gpgsign, so the signing headache can't follow a repo in here.
   # Identity matches the hosts (../../common/git.nix): the personal account.
-  # url.insteadOf routes any git@github.com: remote through HTTPS+gh, since
-  # the VM has no SSH keys (mirrors ../../common/git.nix on the hosts).
+  # url.insteadOf routes any git@github.com: / git@git.realliance.net: remote
+  # through HTTPS+gh / HTTPS+fj, since git should never use the
+  # passphrase-protected SSH keys in ~/.ssh (mirrors ../../common/git.nix on
+  # the hosts; the fj side is ../forgejo.nix).
   environment.etc."gitconfig".text = ''
     [init]
         defaultBranch = main
@@ -338,6 +376,11 @@
         helper = !${pkgs.gh}/bin/gh auth git-credential
     [credential "https://gist.github.com"]
         helper = !${pkgs.gh}/bin/gh auth git-credential
+    [url "https://${forgejo.host}/"]
+        insteadOf = git@${forgejo.host}:
+        insteadOf = ssh://git@${forgejo.host}/
+    [credential "https://${forgejo.host}"]
+        helper = ${forgejo.credentialHelper pkgs}
   '';
 
   # Firefox as a NixOS program (not a bare package) so policies can be
