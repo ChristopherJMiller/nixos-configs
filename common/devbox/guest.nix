@@ -1,16 +1,14 @@
 # common/devbox/guest.nix
 #
-# The `devbox` dev VM: a headless XFCE desktop reached over RDP, on TWO
-# tailnets (see ./tailnets.nix). Runs as an OFF-BY-DEFAULT qemu microVM on
+# The `devbox` dev VM: a headless XFCE desktop reached over RDP via the
+# personal tailnet (see ./tailnets.nix). Runs as an OFF-BY-DEFAULT qemu microVM on
 # rowlett (see flake.nix: `microvm.vms.devbox`, autostart = false).
 #
 # Access model:
 #   * In — the PERSONAL tailnet makes it `devbox`: RDP (xfreerdp / Remmina /
 #     KRDC) or `ssh dev@devbox` from anywhere on it. That daemon runs in
 #     userspace mode (no TUN) purely as the inbound door.
-#   * Out — the WORK tailnet owns the VM's real TUN (tailscale0): work peers,
-#     subnet routes and MagicDNS are transparent to every program, incl.
-#     docker. Shields up, so work peers can't reach in.
+#   * Out — straight out qemu's user-mode (slirp) NIC; no other tailnet.
 #   * Bootstrap / break-glass — qemu user-mode networking forwards, on
 #     rowlett's LOOPBACK only, 127.0.0.1:2222 -> :22 and :13389 -> :3389 (host
 #     13389, since rowlett's own xrdp holds 3389); plus serial-console
@@ -166,12 +164,6 @@
       size = 1024;
     } # 1 GiB — personal tailnet node key/prefs
     {
-      image = "tailscale-work-state.img";
-      mountPoint = "/var/lib/tailscale-work";
-      size = 1024;
-    } # 1 GiB — work tailnet node key/prefs (./tailnets.nix); rootfs is
-    #   tmpfs, so without this the SSO login would be lost on every boot
-    {
       image = "swap.img";
       mountPoint = null;
       serial = "swap"; # -> /dev/disk/by-id/virtio-swap (see Swap above)
@@ -235,7 +227,6 @@
     networkConfig.DHCP = "yes";
   };
   boot.kernelModules = [
-    "tun" # the work tailscale's TUN (tailnets.nix)
     "virtio_balloon" # free-page-reporting (udev would autoload it; be explicit)
   ];
 
@@ -250,7 +241,6 @@
   # VM has no LAN footprint. Personal-tailnet inbound arrives via loopback
   # (userspace daemon, see tailnets.nix) and never meets these rules; they
   # matter only for rowlett's loopback forwards, which land on the slirp NIC.
-  # The work TUN is covered by that node's shields-up packet filter.
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [
     22
@@ -263,8 +253,8 @@
   programs.mosh.enable = true;
 
   # ---- Tailscale -----------------------------------------------------------
-  # Both daemons (personal = inbound door, work = the VM's TUN) live in
-  # ./tailnets.nix, together with the reasoning for that split.
+  # The personal tailnet daemon (userspace, inbound door) lives in
+  # ./tailnets.nix, together with the reasoning for its mode.
 
   # ---- Desktop over RDP ----------------------------------------------------
   services.xserver.enable = true;
@@ -326,8 +316,7 @@
   # System-wide defaults; ~/.gitconfig stays writable so `gh auth setup-git`
   # and agents can adjust freely. A fresh HTTPS clone carries no repo-level
   # commit.gpgsign, so the signing headache can't follow a repo in here.
-  # Identity is the mounthor account (chris@mounthor.com) — this VM is for
-  # mounthor work; `gh auth login` here should use that GitHub account.
+  # Identity matches the hosts (../../common/git.nix): the personal account.
   # url.insteadOf routes any git@github.com: remote through HTTPS+gh, since
   # the VM has no SSH keys (mirrors ../../common/git.nix on the hosts).
   environment.etc."gitconfig".text = ''
@@ -335,7 +324,7 @@
         defaultBranch = main
     [user]
         name = Christopher Miller
-        email = chris@mounthor.com
+        email = git@chrismiller.xyz
     [commit]
         gpgsign = false
     [tag]

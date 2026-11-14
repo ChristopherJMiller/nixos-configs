@@ -1,5 +1,5 @@
 From 5d00137f36a15afcf3b543f3f22f4ae2fe1bd9f2 Mon Sep 17 00:00:00 2001
-From: Christopher Miller <mthr-claude@chrismiller.xyz>
+From: Christopher Miller <git@chrismiller.xyz>
 Date: Thu, 1 Oct 2026 18:57:24 -0700
 Subject: [PATCH 1/2] applet: don't wake suspended devices to draw volume
  meters

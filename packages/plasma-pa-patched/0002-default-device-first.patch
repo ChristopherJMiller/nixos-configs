@@ -1,5 +1,5 @@
 From a473ad5a05371bb0a0b957ad2043571eb7bfa032 Mon Sep 17 00:00:00 2001
-From: Christopher Miller <mthr-claude@chrismiller.xyz>
+From: Christopher Miller <git@chrismiller.xyz>
 Date: Thu, 1 Oct 2026 18:57:24 -0700
 Subject: [PATCH 2/2] applet: list the default device first
 

@@ -406,8 +406,7 @@
   # Make USB-tethered phone hotspots a low-priority default route so wifi
   # wins when both are up. Regular wired ethernet (docks, onboard NICs) is
   # unaffected because systemd's predictable naming only appends "u<N>" for
-  # USB-attached network devices. `mountthor-up` still pins specific host
-  # routes via the tether explicitly.
+  # USB-attached network devices.
   networking.networkmanager.settings = {
     "connection-usb-tether-low-priority" = {
       match-device = "interface-name:enp*u*";
