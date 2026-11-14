@@ -21,7 +21,9 @@
 #     up by default.
 #
 # Mirrors the devbox guest's system-level /etc/gitconfig (common/devbox/
-# guest.nix) so the policy is identical whether you're on a host or in the VM.
+# guest.nix), with one exception: the devbox DOES sign every commit. Its
+# gpg-agent keeps the key unlocked for 48 h and times pinentry out after 60 s,
+# so a locked key fails a commit rather than hanging it.
 { pkgs, ... }:
 let
   forgejo = import ./forgejo.nix;

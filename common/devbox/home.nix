@@ -16,7 +16,7 @@ let
 
   # devbox-specific context appended to the shared user CLAUDE.md, so agents
   # running in the VM know the lay of the land (persistent workspace, HTTPS
-  # git, no signing). The shared base stays the single source of truth.
+  # git, signed commits). The shared base stays the single source of truth.
   devboxTips = ''
 
     ## devbox VM
@@ -24,12 +24,16 @@ let
     - This is the `devbox` dev VM. Your workspace is `/home/dev` — a persistent
       volume that survives reboots; put repos and long-lived state there.
     - Git uses **HTTPS via the `gh` CLI** (GitHub) and the `fj` CLI
-      (Forgejo, git.realliance.net) with no GPG signing: `git push` over
-      HTTPS just works once `gh auth login` / `fj auth login` have been run.
-      Chris's SSH keys and GPG keys (`~/.gnupg`) are present, served by one
-      gpg-agent (also the SSH agent) that keeps them unlocked for 48 h after
-      Chris enters a passphrase; while locked, using them pops a pinentry.
-      Do NOT switch remotes to SSH, and do NOT enable commit/tag signing.
+      (Forgejo, git.realliance.net): `git push` over HTTPS just works once
+      `gh auth login` / `fj auth login` have been run. Do NOT switch remotes
+      to SSH.
+    - **Commits are GPG-signed** with Chris's key. His SSH and GPG keys
+      (`~/.gnupg`) are served by one gpg-agent (also the SSH agent) that keeps
+      them unlocked for 48 h after Chris enters a passphrase. While the
+      signing key is locked, `git commit` pops a pinentry and, if nobody
+      answers within 60 s, fails with "gpg failed to sign the data". Then ask
+      Chris to run `gpg-unlock` and retry. Do NOT bypass or change signing
+      (`--no-gpg-sign`, `-c commit.gpgsign=false`, editing git config).
     - Docker is available for builds and containers.
     - Firefox and Chromium are installed. For browser automation, launch
       `chromium-agent` in the desktop session (or `chromium-agent --headless`

@@ -14,11 +14,11 @@
 #     13389, since rowlett's own xrdp holds 3389); plus serial-console
 #     autologin (ttyS0). Nothing is exposed on the LAN.
 #
-# Git is HTTPS-via-`gh` with NO gpg/ssh signing (see /etc/gitconfig below), so
-# pushes never wait on an ssh agent or pinentry — agents can drive everything.
-# Chris's (passphrase-protected) SSH and GPG keys are copied by hand into
-# /home/dev/.ssh and /home/dev/.gnupg for interactive use; private keys never
-# go through Nix. Git never touches them.
+# Git is HTTPS-via-`gh` (never SSH) and GPG-signs every commit with Chris's
+# key (see /etc/gitconfig below). Chris's (passphrase-protected) SSH and GPG
+# keys are copied by hand into /home/dev/.ssh and /home/dev/.gnupg; private
+# keys never go through Nix. Pushes never wait on an agent or pinentry; a
+# commit does while the signing key is locked (`gpg-unlock` unlocks it).
 # Persistent state lives on volumes; the rootfs is otherwise ephemeral.
 {
   config,
@@ -29,6 +29,11 @@
 
 let
   forgejo = import ../forgejo.nix;
+
+  # Chris's GPG key (rsa3072/6BFB8037115ADE26, uid git@chrismiller.xyz) —
+  # the one copied into /home/dev/.gnupg. Signs every devbox commit.
+  signingKey = "E9245FED84E0EC721C7B5C336BFB8037115ADE26";
+  gpg = "${config.programs.gnupg.package}/bin/gpg";
 in
 {
   imports = [ ./tailnets.nix ];
@@ -334,8 +339,12 @@ in
   # The cache lives in the agent's memory, so a VM restart re-locks everything.
   # The competing agents are switched off: xfce4-session's own ssh-agent in
   # ./desktop.nix, gnome-keyring's gcr-ssh-agent here.
-  # Git still never signs or uses SSH (see /etc/gitconfig below), so no
-  # agent-driven commit or push can block on this pinentry.
+  # Git signs commits with the GPG key (see /etc/gitconfig below), so a
+  # commit while that key is locked pops this pinentry. pinentry-timeout
+  # bounds the wait: an unanswered prompt (an agent committing while Chris is
+  # away, or a popup on an RDP session nobody is looking at) gives up after
+  # 60 s, and the commit fails with "gpg failed to sign the data" instead of
+  # hanging forever. `gpg-unlock` (Tooling) unlocks the key up front.
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
@@ -344,15 +353,20 @@ in
       max-cache-ttl = 172800;
       default-cache-ttl-ssh = 172800;
       max-cache-ttl-ssh = 172800;
+      pinentry-timeout = 60;
     };
   };
   services.gnome.gcr-ssh-agent.enable = false;
 
-  # ---- Git: HTTPS via gh / fj; NO gpg signing, NO ssh signing --------------
+  # ---- Git: HTTPS via gh / fj; GPG-signed commits ---------------------------
   # System-wide defaults; ~/.gitconfig stays writable so `gh auth setup-git`
-  # and agents can adjust freely. A fresh HTTPS clone carries no repo-level
-  # commit.gpgsign, so the signing headache can't follow a repo in here.
-  # Identity matches the hosts (../../common/git.nix): the personal account.
+  # and agents can adjust freely. Identity matches the hosts
+  # (../../common/git.nix): the personal account.
+  # Unlike the hosts, every commit is GPG-signed with `signingKey` (above);
+  # the agent's 48 h cache + pinentry-timeout (GnuPG above) keep that from
+  # wedging agent-driven commits. Tags are only signed when asked (`tag -s`).
+  # For GitHub / Forgejo to show "Verified", the public key must be on both
+  # accounts (`gpg --armor --export ${signingKey}`).
   # url.insteadOf routes any git@github.com: / git@git.realliance.net: remote
   # through HTTPS+gh / HTTPS+fj, since git should never use the
   # passphrase-protected SSH keys in ~/.ssh (mirrors ../../common/git.nix on
@@ -363,8 +377,11 @@ in
     [user]
         name = Christopher Miller
         email = git@chrismiller.xyz
+        signingkey = ${signingKey}
+    [gpg]
+        program = ${gpg}
     [commit]
-        gpgsign = false
+        gpgsign = true
     [tag]
         gpgSign = false
     [push]
@@ -441,6 +458,16 @@ in
           fi
         done
       echo "== usage =="; df -h /home/dev
+    '')
+    # Unlock the commit-signing key into gpg-agent's 48 h cache (GnuPG above)
+    # by signing a throwaway message — prompts for the passphrase if locked.
+    # Run it once after the VM boots so agent commits sign without a pinentry.
+    (pkgs.writeShellScriptBin "gpg-unlock" ''
+      set -euo pipefail
+      # gpg's stdin is the pipe below, so point pinentry at this terminal.
+      if [ -z "''${GPG_TTY:-}" ] && tty -s; then export GPG_TTY="$(tty)"; fi
+      echo unlock | ${gpg} --quiet --clearsign --local-user ${signingKey} >/dev/null
+      echo "signing key unlocked for 48 h"
     '')
     (pkgs.writeShellScriptBin "dev-usage" ''
       set -euo pipefail
